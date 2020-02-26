@@ -151,15 +151,11 @@ class Stiefel(BaseManifold):
             # TODO Check limit cases like n = 1, 2, 3 ; m = k/2 - 1, k/2, k/2 + 1
             # Compute just the projection from SO(n) / SO(k)
             n, m = x.size()
-            k = m // 2
-            x = x[:, :k]
-            if m % 2 == 0:
-                low = x.tril(-1)
-            else:
-                low = x[:, :k+1].tril(-1)
-            up = x.triu(1)
-            # S is square upper triangular
+            low = x[:, :m//2].tril(-1)
+            up =  x[:, :m//2 + m%2].triu(1)
+            # Compute the reflection of low
             low = low.flip(-1).flip(-2)
+            # S is square upper triangular
             S = torch.cat([up, low], dim=1)
             return Stiefel.total_space.frame(S, base)
         else:
@@ -261,10 +257,13 @@ class Stiefel(BaseManifold):
             # First non-central diagonal
             diag_z = torch.zeros(tensor.size(0)-1)
             diag_z[::2] = diag
-            diag_z1, diag_z2 = torch.chunk(diag_z, 2)
+            # Make diag_z2 longer than diag_z2
+            diag_z1, diag_z2 = torch.split(diag_z,
+                                           [len(diag_z) // 2,
+                                            len(diag_z) // 2 + (len(diag_z) % 2)])
             diag_z2 = diag_z2.flip(0)
-            if len(diag_z1) > len(diag_z2):
-                diag_z2 = torch.cat([diag_z2, diag_z2.new_zeros(1)])
+            if len(diag_z2) > len(diag_z1):
+                diag_z1 = torch.cat([diag_z1, diag_z1.new_zeros(1)])
 
             tensor.data.zero_()
             tensor[:n_diag+1, :n_diag+1] = torch.diag(diag_z1, diagonal=1) +\

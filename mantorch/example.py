@@ -9,7 +9,7 @@ torch.backends.cudnn.benchmark = False
 torch.manual_seed(5555)
 
 batch_size  = 128
-hidden_size = 6
+hidden_size = 8
 iterations  = 4000 # Training iterations
 L           = 1000 # Length of sequence before asking to remember
 K           = 10   # Length of sequence to remember
@@ -54,7 +54,7 @@ class ExpRNN(nn.Module):
         self.nonlinearity = modrelu(hidden_size)
 
         # Make recurrent_kernel orthogonal
-        self.orth_method = Ort.SO.apply(self.recurrent_kernel, name="weight")
+        self.orth_method = Ort.Stiefel.apply(self.recurrent_kernel, name="weight")
 
 
         self.reset_parameters()
@@ -62,7 +62,7 @@ class ExpRNN(nn.Module):
     def reset_parameters(self):
         nn.init.kaiming_normal_(self.input_kernel.weight.data, nonlinearity="relu")
         # Initialize weight
-        Ort.SO.torus_init_(self.recurrent_kernel.weight_orig)
+        Ort.Stiefel.torus_init_(self.recurrent_kernel.weight_orig)
 
         # Recommended: Use the initial point as the point on which to trivialize
         # See triv\infty vs ExpRNN in: https://arxiv.org/abs/1909.09501
