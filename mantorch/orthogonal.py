@@ -40,18 +40,12 @@ class SO(Manifold):
         self.base = torch.empty_like(t)
         self.uniform_init_()
 
-    def frame(self, x, base):
-        r"""
-        Parametrizes the skew-symmetric matrices in terms of the lower triangle of ``x``
-        """
-        x = x.triu(diagonal=1)
-        x = x - x.t()
-        return x
-
     def trivialization(self, x, base):
         r"""
         Maps the skew-symmetric matrices into SO(n) surjectively
         """
+        x = x.triu(diagonal=1)
+        x = x - x.t()
         return base.mm(self.triv(x))
 
     def uniform_init(self):
@@ -72,6 +66,16 @@ class SO(Manifold):
         return 'n={}, triv={}'.format(self.orig.size(0), name)
 
 
+def _tall_to_skew(x):
+    n = x.size(0)
+    low = x[:, :n//2].tril(-1)
+    up  = x[:, :n//2 + n%2].triu(1)
+    # Compute the reflection of low
+    low = low.flip(-1).flip(-2)
+    # S is square upper triangular
+    return torch.cat([up, low], dim=1)
+
+
 class Stiefel(SO):
     r"""
     Implement everything as the fibration SO(n) -> St(n,k)
@@ -84,44 +88,44 @@ class Stiefel(SO):
             self.n, self.k = self.k, self.n
             t = t.t()
 
-        super().__init__(t.new_empty(n, n))
-        if self.k < self.n//2 + self.n%2:
-            d = self.n//2 + self.n%2 - self-k
-            self.register_parameter("fibr_aux", t.new_zeros(n, d))
-
-
-    def frame(self, x, base):
-        if self.inverted:
-            x = x.t()
-        low = x[:, :self.n//2].tril(-1)
-        up =  x[:, :self.n//2 + self.n%2].triu(1)
-        # Compute the reflection of low
-        low = low.flip(-1).flip(-2)
-        # S is square upper triangular
-        S = torch.cat([up, low], dim=1)
-        return super().frame(S, base)
+        super().__init__(t.new_empty(self.n, self.n))
+        self.small = self.k < self.n//2 + self.n%2
+        if self.small:
+            d = self.n//2 + self.n%2 - self.k
+            self.register_parameter("fibr_aux", t.new_zeros(self.n, d))
 
     def trivialization(self, x, base):
+        if self.inverted:
+            x = x.t()
+        if self.small:
+            x = torch.cat([x, self.fibr_aux], dim=1)
+        A = _tall_to_skew(x)
+
         # Size of the original matrix
         n, k = self.size
-        return super().trivialization(x, base)[:n, :k]
+        return super().trivialization(A, base)[:n, :k]
 
     def update_base(self):
         if "orig" not in self._parameters:
             raise RuntimeError("Parametrization {} has to be applied to a tensor with "
-                    "`module.register_parametrization`".format(type(self).__name__))
-        v = self.frame(self.orig.data, self.base)
-        x = super().trivialization(v, self.base)
+                               "`module.register_parametrization`".format(type(self).__name__))
+        x = super().trivialization(self.orig.data, self.base)
         self.base.copy_(x)
         self.orig.data.zero_()
+        if self.small:
+            self.fibr_aux.data.zero_()
 
     def uniform_init_(self):
         uniform_init_(self.base)
         self.orig.data.zero_()
+        if self.small:
+            self.fibr_aux.data.zero_()
 
     def torus_init_(self, init_=None):
         torus_init_(self.base, init_)
         self.orig.data.zero_()
+        if self.small:
+            self.fibr_aux.data.zero_()
 
     def extra_repr(self):
         inv_map = {v: k for k, v in SO.trivializations.items()}
@@ -129,7 +133,6 @@ class Stiefel(SO):
         if name is None:
             name = "custom"
         return 'n={}, k={}, triv={}'.format(self.orig.size(0), self.orig.size(1), name)
-
 
 class StiefelTall(Manifold):
     """
@@ -159,50 +162,43 @@ class StiefelTall(Manifold):
         if self.inverted:
             self.n, self.k = self.k, self.n
             t = t.t()
-        if self.n < 2 * self.k:
-            raise NotImplementedError
         self.base = torch.empty_like(t)
         uniform_init_(self.base)
-        # TODO Register
-
-    def frame(self, x, base):
-        # Eq. (2.3) in https://arxiv.org/pdf/physics/9806030.pdf
-        btx = b.t().mm(x)
-        # x - projection to the normal space
-        return x - .5*base.mm(btx + btx.t())
+        self.register_parameter("fibr_aux", t.new_zeros(self.k, self.k//2 + self.k%2))
 
     def trivialization(self, x, base):
         # TODO Implement Cayley
-        # TODO Implement Exp even
-        # We compute the exponential map
-        # www.manoptjl.org/stable/manifolds/stiefel/#Base.exp
-        # Eq before 2.14
-        # https://arxiv.org/pdf/physics/9806030.pdf
-        X1 = torch.cat([base, x], dim=1)
-        bx = base.t().mm(x)
-        xx = x.t().mm(x)
-        Id = torch.eye(base.size(1), dtype=base.dtype, device=base.device)
-        X2 = torch.cat([torch.cat([bx, -xx], dim=1), torch.cat([Id, bx], dim=1)])
-        eX2 = expm(X2)
-        embx = expm(-bx)
-        zeros = torch.zeros_like(Id)
-        X3 = torch.cat([embx, zeros])
-        # Order matters
-        ret = X1.mm(X2.mm(X3))
+        #  We compute the exponential map as per Edelman
+
+        # Equivalent to:
+        # Id = torch.eye(n)
+        # IBBt = Id - B @ B.t()
+        # delta = B @ Asmall + IBBt @ tallA
+        # Q, R = torch.qr(IBBt @ delta)
+        B = base
+        A = _tall_to_skew(self.fibr_aux)
+        T = base @ A + x
+        Q, R = torch.qr(T - B @ (B.t() @ T))
+        Atilde = torch.cat([
+                   torch.cat([Asmall, -R.t()],       dim=1),
+                   torch.cat([R, torch.zeros(k, k)], dim=1)])
+        BQ = torch.cat([B, Q], dim=1)
+        MN = expm(Atilde)[:, :k]
+        ret = BQ @ MN
+
         if self.inverted:
             ret = ret.t()
         return ret
 
-
     def uniform_init_(self):
         uniform_init_(self.base)
         self.orig.data.zero_()
-        raise NotImplementedError()
+        self.fibr_aux.data.zero_()
 
     def torus_init_(self, init_=None):
         torus_init_(self.base, init_)
         self.orig.data.zero_()
-        raise NotImplementedError()
+        self.fibr_aux.data.zero_()
 
     def extra_repr(self):
         inv_map = {v: k for k, v in SO.trivializations.items()}
@@ -210,6 +206,21 @@ class StiefelTall(Manifold):
         if name is None:
             name = "custom"
         return 'n={}, k={}, triv={}'.format(self.orig.size(0), self.orig.size(1), name)
+
+
+def uniform_init_(tensor):
+    r"""Samples the 2D `tensor` uniformly distributed over the orthogonal matrices.
+    If `tensor` is square, then it will be distributed over the orthogonal matrices
+    with positive determinant
+
+    Args:
+        tensor (torch.nn.Tensor): a 2-dimensional matrix
+    """
+    torch.nn.init.orthogonal_(tensor)
+    if tensor.size(0) == tensor.size(1) and torch.det(tensor) < 0.:
+        with torch.no_grad():
+            torch.data[0] *= -1.
+    return tensor
 
 
 def torus_init_(tensor, triv=expm, init_=None):
@@ -245,7 +256,7 @@ def torus_init_(tensor, triv=expm, init_=None):
         if square:
             t = tensor
         else:
-            t = torch.new_empty(n,n)
+            t = torch.new_empty(n, n)
 
         # First non-central diagonal
         diag_z = torch.zeros(n-1)
