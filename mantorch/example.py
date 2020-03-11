@@ -9,14 +9,14 @@ torch.backends.cudnn.benchmark = False
 torch.manual_seed(5555)
 
 batch_size  = 128
-hidden_size = 190
-iterations  = 4000 # Training iterations
-L           = 1000 # Length of sequence before asking to remember
+hidden_size = 11
+iterations  = 40 # Training iterations
+L           = 10 # Length of sequence before asking to remember
 K           = 10   # Length of sequence to remember
 n_classes   = 9    # Number of possible classes
 lr          = 1e-3
 lr_orth     = 2e-4
-device      = torch.device('cuda')
+device      = torch.device('cpu')
 # When RGD == True we perform Riemannian gradient descent
 # This is to demonstrate the power of these abstractions, as one may
 # implement RGD with just one extra line of code.
@@ -54,14 +54,14 @@ class ExpRNN(nn.Module):
         self.nonlinearity = modrelu(hidden_size)
 
         # Make recurrent_kernel orthogonal
-        self.recurrent_kernel.register_parametrization(Ort.SO(), "weight")
+        self.recurrent_kernel.register_parametrization(Ort.StiefelTall(), "weight")
 
         self.reset_parameters()
 
     def reset_parameters(self):
         nn.init.kaiming_normal_(self.input_kernel.weight.data, nonlinearity="relu")
         # Initialize
-        param = self.recurrent_kernel.parametrization("weight").torus_init_()
+        self.recurrent_kernel._parametrizations["weight"].torus_init_()
 
     def default_hidden(self, input):
         return input.new_zeros(input.size(0), self.hidden_size, requires_grad=False)
@@ -130,7 +130,7 @@ def copy_data(batch_size):
 def main():
     model = Model(n_classes, hidden_size).to(device)
 
-    p_orth = model.rnn.recurrent_kernel.parametrization("weight")
+    p_orth = model.rnn.recurrent_kernel._parametrizations["weight"]
     orth_param = p_orth.parameters()
     non_orth_params = (param for param in model.parameters()
                        if param not in set(p_orth.parameters()))
@@ -160,7 +160,7 @@ def main():
         optim.step()
 
         if RGD:
-            model.rnn.recurrent_kernel.parametrization("weight").update_base()
+            model.rnn.recurrent_kernel._parametrization["weight"].update_base()
 
         with torch.no_grad():
             accuracy = model.accuracy(logits, batch_y)

@@ -47,4 +47,4 @@ class Manifold(nn.Parametrization):
                     "`module.register_parametrization`".format(type(self).__name__))
         with torch.no_grad():
             self.base.data.copy_(self.param.data)
-                self.orig.zero_()
+            self.orig.zero_()

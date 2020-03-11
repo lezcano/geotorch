@@ -1,7 +1,6 @@
-from abc import abstractmethod
 import math
-import random
 import torch
+import torch.nn as nn
 
 from manifold import Manifold
 from linalg.expm import expm
@@ -14,11 +13,8 @@ def cayley_map(X):
 
 
 class SO(Manifold):
-    trivializations = {
-                       "expm": expm,
-                       "cayley": cayley_map,
-                      }
-
+    trivializations = {"expm": expm,
+                       "cayley": cayley_map}
 
     def __init__(self, triv="expm"):
         super().__init__()
@@ -48,15 +44,13 @@ class SO(Manifold):
         x = x - x.t()
         return base.mm(self.triv(x))
 
-    def uniform_init(self):
+    def uniform_init_(self):
         uniform_init_(self.base)
-        if "orig" not in self._parametrizations:
-            self.orig.data.zero_()
+        self.orig.data.zero_()
 
-    def torus_init(self, init_=None):
-        torus_init_(self.base, init_)
-        if "orig" not in self._parametrizations:
-            self.orig.data.zero_()
+    def torus_init_(self, init_=None, triv=expm):
+        torus_init_(self.base, init_, triv)
+        self.orig.data.zero_()
 
     def extra_repr(self):
         inv_map = {v: k for k, v in SO.trivializations.items()}
@@ -88,11 +82,11 @@ class Stiefel(SO):
             self.n, self.k = self.k, self.n
             t = t.t()
 
-        super().__init__(t.new_empty(self.n, self.n))
         self.small = self.k < self.n//2 + self.n%2
         if self.small:
             d = self.n//2 + self.n%2 - self.k
-            self.register_parameter("fibr_aux", t.new_zeros(self.n, d))
+            self.register_parameter("fibr_aux", nn.Parameter(t.new_zeros(self.n, d)))
+        super().init(t.new_empty(self.n, self.n))
 
     def trivialization(self, x, base):
         if self.inverted:
@@ -121,8 +115,8 @@ class Stiefel(SO):
         if self.small:
             self.fibr_aux.data.zero_()
 
-    def torus_init_(self, init_=None):
-        torus_init_(self.base, init_)
+    def torus_init_(self, init_=None, triv=expm):
+        torus_init_(self.base, init_, triv)
         self.orig.data.zero_()
         if self.small:
             self.fibr_aux.data.zero_()
@@ -164,7 +158,9 @@ class StiefelTall(Manifold):
             t = t.t()
         self.base = torch.empty_like(t)
         uniform_init_(self.base)
-        self.register_parameter("fibr_aux", t.new_zeros(self.k, self.k//2 + self.k%2))
+        self.register_parameter("fibr_aux",
+                                nn.Parameter(
+                                    t.new_zeros(self.k, self.k//2 + self.k%2)))
 
     def trivialization(self, x, base):
         # TODO Implement Cayley
@@ -173,17 +169,18 @@ class StiefelTall(Manifold):
         # Equivalent to:
         # Id = torch.eye(n)
         # IBBt = Id - B @ B.t()
-        # delta = B @ Asmall + IBBt @ tallA
+        # delta = B @ A + IBBt @ X
         # Q, R = torch.qr(IBBt @ delta)
-        B = base
+        X, B = x, base
         A = _tall_to_skew(self.fibr_aux)
-        T = base @ A + x
+        T = base @ A + X
         Q, R = torch.qr(T - B @ (B.t() @ T))
+        Z = torch.zeros(self.k, self.k)
         Atilde = torch.cat([
-                   torch.cat([Asmall, -R.t()],       dim=1),
-                   torch.cat([R, torch.zeros(k, k)], dim=1)])
+                   torch.cat([A, -R.t()], dim=1),
+                   torch.cat([R,  Z],     dim=1)])
         BQ = torch.cat([B, Q], dim=1)
-        MN = expm(Atilde)[:, :k]
+        MN = expm(Atilde)[:, :self.k]
         ret = BQ @ MN
 
         if self.inverted:
@@ -195,8 +192,8 @@ class StiefelTall(Manifold):
         self.orig.data.zero_()
         self.fibr_aux.data.zero_()
 
-    def torus_init_(self, init_=None):
-        torus_init_(self.base, init_)
+    def torus_init_(self, init_=None, triv=expm):
+        torus_init_(self.base, init_, triv)
         self.orig.data.zero_()
         self.fibr_aux.data.zero_()
 
@@ -219,11 +216,11 @@ def uniform_init_(tensor):
     torch.nn.init.orthogonal_(tensor)
     if tensor.size(0) == tensor.size(1) and torch.det(tensor) < 0.:
         with torch.no_grad():
-            torch.data[0] *= -1.
+            tensor.data[0] *= -1.
     return tensor
 
 
-def torus_init_(tensor, triv=expm, init_=None):
+def torus_init_(tensor, init_=None, triv=expm):
     r"""Samples the 2D input `tensor` as a block-diagonal skew-symmetric matrix
     which is skew-symmetric in the main diagonal. The blocks are of the form
     :math:`\begin{pmatrix} 0 & b \\ -b & 0\end{pmatrix}` where :math:`b` is
@@ -254,7 +251,7 @@ def torus_init_(tensor, triv=expm, init_=None):
 
     with torch.no_grad():
         if square:
-            t = tensor
+            t = tensor.data
         else:
             t = torch.new_empty(n, n)
 
@@ -262,7 +259,7 @@ def torus_init_(tensor, triv=expm, init_=None):
         diag_z = torch.zeros(n-1)
         diag_z[::2] = diag
         torch.diag(diag_z, diagonal=1, out=t.data)
-        t.data = triv(t.data - t.data.t())[:tensor.size(0), :tensor.size(1)]
+        t = triv(t - t.t())[:tensor.size(0), :tensor.size(1)]
         if not square:
-            tensor = t.data
+            tensor.data = t
     return tensor
