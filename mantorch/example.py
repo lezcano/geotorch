@@ -9,7 +9,7 @@ torch.backends.cudnn.benchmark = False
 torch.manual_seed(5555)
 
 batch_size  = 128
-hidden_size = 8
+hidden_size = 190
 iterations  = 4000 # Training iterations
 L           = 1000 # Length of sequence before asking to remember
 K           = 10   # Length of sequence to remember
@@ -54,19 +54,14 @@ class ExpRNN(nn.Module):
         self.nonlinearity = modrelu(hidden_size)
 
         # Make recurrent_kernel orthogonal
-        self.orth_method = Ort.Stiefel.apply(self.recurrent_kernel, name="weight")
-
+        self.recurrent_kernel.register_parametrization(Ort.SO(), "weight")
 
         self.reset_parameters()
 
     def reset_parameters(self):
         nn.init.kaiming_normal_(self.input_kernel.weight.data, nonlinearity="relu")
-        # Initialize weight
-        Ort.Stiefel.torus_init_(self.recurrent_kernel.weight_orig)
-
-        # Recommended: Use the initial point as the point on which to trivialize
-        # See triv\infty vs ExpRNN in: https://arxiv.org/abs/1909.09501
-        self.orth_method.update_base()
+        # Initialize
+        param = self.recurrent_kernel.parametrization("weight").torus_init_()
 
     def default_hidden(self, input):
         return input.new_zeros(input.size(0), self.hidden_size, requires_grad=False)
@@ -135,27 +130,29 @@ def copy_data(batch_size):
 def main():
     model = Model(n_classes, hidden_size).to(device)
 
-    orth_param = model.rnn.recurrent_kernel.weight_orig
+    p_orth = model.rnn.recurrent_kernel.parametrization("weight")
+    orth_param = p_orth.parameters()
     non_orth_params = (param for param in model.parameters()
-                       if param is not orth_param)
+                       if param not in set(p_orth.parameters()))
 
     if RGD:
         optim = torch.optim.SGD([{'params': non_orth_params},
-                                 {'params': (orth_param,), 'lr': lr_orth}
+                                 {'params': orth_param, 'lr': lr_orth}
                                  ], lr=lr)
     else:
         # These recurrent models benefit of slightly larger mixing constants
         # on the adaptive term. They also work with beta_2 = 0.999, but they
         # give better results with beta_2 = 0.99 or even 0.95
         optim = torch.optim.Adam([{'params': non_orth_params},
-                                  {'params': (orth_param,), 'lr': lr_orth, 'betas': (0.9, 0.99)}
+                                  {'params': orth_param, 'lr': lr_orth, 'betas': (0.9, 0.99)}
                                  ], lr=lr)
 
     model.train()
     for step in range(iterations):
         batch_x, batch_y = copy_data(batch_size)
         x_onehot = F.one_hot(batch_x, num_classes=n_classes+1).float()
-        logits = model(x_onehot)
+        with torch.nn.cached(model) as model:
+            logits = model(x_onehot)
         loss = model.loss(logits, batch_y)
 
         optim.zero_grad()
@@ -163,7 +160,7 @@ def main():
         optim.step()
 
         if RGD:
-            model.rnn.orth_method.update_base()
+            model.rnn.recurrent_kernel.parametrization("weight").update_base()
 
         with torch.no_grad():
             accuracy = model.accuracy(logits, batch_y)

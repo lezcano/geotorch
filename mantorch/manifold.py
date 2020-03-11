@@ -1,16 +1,16 @@
 from abc import abstractmethod
 import torch
-import torch.nn.utils.parametrize as P
+import torch.nn as nn
 
-class BaseManifold(P.BaseParametrizationMethod):
+class Manifold(nn.Parametrization):
 
-    @classmethod
-    def apply(cls, module, name, mode="auto"):
-        method = super().apply(module, name, mode)
-        method._module.register_buffer(method._tensor_name + "_base", None)
-        return method
+    def __init__(self):
+        super().__init__()
+        self.register_buffer("base", None)
 
-    @abstractmethod
+    def init(self, t):
+        raise NotImplementedError()
+
     def frame(self, x, base):
         r"""
         Parametrizes the tangent space in terms of x
@@ -23,7 +23,6 @@ class BaseManifold(P.BaseParametrizationMethod):
         """
         raise NotImplementedError()
 
-    @abstractmethod
     def trivialization(self, x, base):
         r"""
         Parametrizes the manifold in terms of the tangent space from the frame
@@ -39,26 +38,12 @@ class BaseManifold(P.BaseParametrizationMethod):
 
         raise NotImplementedError()
 
-    @property
-    def param(self):
-        return getattr(self._module, self._tensor_name)
 
-    @property
-    def param_orig(self):
-        orig_name = self._tensor_name + "_orig"
-        return getattr(self._module, orig_name)
+    def forward(self, t):
+        if self.base is None:
+            raise RuntimeError("Parametrization {} has to be applied to a tensor with "
+                    "`module.register_parametrization`".format(type(self).__name__))
 
-    @property
-    def base(self):
-        base_name = self._tensor_name + "_base"
-        return getattr(self._module, base_name)
-
-    def update_base(self):
-        with torch.no_grad():
-            self.base.data.copy_(self.param.data)
-            self.param_orig.zero_()
-
-    def compute_param(self, t):
         # Element on a tangent space
         base = self.base
         x = self.frame(t, base)
@@ -67,19 +52,17 @@ class BaseManifold(P.BaseParametrizationMethod):
         x = self.trivialization(x, base)
         return x
 
-    def remove(self):
-        super().remove()
-        self._delete_base()
+    @property
+    def size(self):
+        x = self.original
+        n = x.size(-2)
+        m = x.size(-1)
+        return n, m
 
-    def undo(self):
-        super().undo()
-        self._delete_base()
-
-    def _delete_base(self):
-        if self.mode == "forward":
-            params = []
-        elif self.mode == "auto":
-            params = get_auto_parametrizations(self._module, self._tensor_name)
-        # If it's the last one we remove it
-        if len(params) == 0:
-            del self._module._buffers[self._tensor_name + "_base"]
+    def update_base(self):
+        if "orig" not in self._parameters:
+            raise RuntimeError("Parametrization {} has to be applied to a tensor with "
+                    "`module.register_parametrization`".format(type(self).__name__))
+        with torch.no_grad():
+            self.base.data.copy_(self.param.data)
+                self.orig.zero_()
