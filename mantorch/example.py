@@ -54,7 +54,7 @@ class ExpRNN(nn.Module):
         self.nonlinearity = modrelu(hidden_size)
 
         # Make recurrent_kernel orthogonal
-        self.recurrent_kernel.register_parametrization(Ort.SO(), "weight")
+        self.recurrent_kernel.register_parametrization(Ort.Stiefel(), "weight")
 
         self.reset_parameters()
 

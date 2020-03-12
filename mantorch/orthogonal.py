@@ -258,8 +258,8 @@ def torus_init_(tensor, init_=None, triv=expm):
         # First non-central diagonal
         diag_z = torch.zeros(n-1)
         diag_z[::2] = diag
-        torch.diag(diag_z, diagonal=1, out=t.data)
-        t = triv(t - t.t())[:tensor.size(0), :tensor.size(1)]
+        torch.diag(diag_z, diagonal=1, out=t)
+        t.copy_(triv(t - t.t())[:tensor.size(0), :tensor.size(1)])
         if not square:
             tensor.data = t
     return tensor
