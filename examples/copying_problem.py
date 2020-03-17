@@ -1,12 +1,7 @@
 import torch
 from torch import nn
 import torch.nn.functional as F
-import orthogonal as Ort
-
-
-torch.backends.cudnn.deterministic = True
-torch.backends.cudnn.benchmark = False
-torch.manual_seed(5555)
+import mantorch.orthogonal as Ort
 
 batch_size  = 128
 hidden_size = 190
@@ -18,8 +13,8 @@ lr          = 1e-3
 lr_orth     = 2e-4
 device      = torch.device('cuda')
 # When RGD == True we perform Riemannian gradient descent
-# This is to demonstrate the power of these abstractions, as one may
-# implement RGD with just one extra line of code.
+# This is to demonstrate how one may implement RGD with
+# just one extra line of code.
 # RGD does not perform very well in these problems though.
 RGD         = False
 
@@ -44,9 +39,9 @@ class modrelu(nn.Module):
         return phase * magnitude
 
 
-class ExpRNN(nn.Module):
+class ExpRNNCell(nn.Module):
     def __init__(self, input_size, hidden_size):
-        super(ExpRNN, self).__init__()
+        super(ExpRNNCell, self).__init__()
         self.input_size = input_size
         self.hidden_size = hidden_size
         self.recurrent_kernel = nn.Linear(hidden_size, hidden_size)
@@ -54,7 +49,7 @@ class ExpRNN(nn.Module):
         self.nonlinearity = modrelu(hidden_size)
 
         # Make recurrent_kernel orthogonal
-        self.recurrent_kernel.register_parametrization(Ort.Stiefel(), "weight")
+        self.recurrent_kernel.register_parametrization(Ort.SO(), "weight")
 
         self.reset_parameters()
 
@@ -79,7 +74,7 @@ class Model(nn.Module):
     def __init__(self, n_classes, hidden_size):
         super(Model, self).__init__()
         self.hidden_size = hidden_size
-        self.rnn = ExpRNN(n_classes + 1, hidden_size)
+        self.rnn = ExpRNNCell(n_classes + 1, hidden_size)
         self.lin = nn.Linear(hidden_size, n_classes)
         self.loss_func = nn.CrossEntropyLoss()
         self.reset_parameters()
@@ -88,6 +83,7 @@ class Model(nn.Module):
         nn.init.kaiming_normal_(self.lin.weight.data, nonlinearity="relu")
         nn.init.constant_(self.lin.bias.data, 0)
 
+    @nn.cached
     def forward(self, inputs):
         state = self.rnn.default_hidden(inputs[:, 0, ...])
         outputs = []
@@ -151,8 +147,7 @@ def main():
     for step in range(iterations):
         batch_x, batch_y = copy_data(batch_size)
         x_onehot = F.one_hot(batch_x, num_classes=n_classes+1).float()
-        with torch.nn.cached(model) as model:
-            logits = model(x_onehot)
+        logits = model(x_onehot)
         loss = model.loss(logits, batch_y)
 
         optim.zero_grad()

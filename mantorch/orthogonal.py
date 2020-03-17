@@ -2,8 +2,8 @@ import math
 import torch
 import torch.nn as nn
 
-from manifold import Manifold
-from linalg.expm import expm
+from .manifold import Manifold
+from .linalg.expm import expm
 
 
 def cayley_map(X):
