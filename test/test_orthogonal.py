@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from mantorch.orthogonal import SO, Stiefel, StiefelTall
+from mantorch.stiefel import Stiefel, StiefelTall
 
 class TestOrthogonal(TestCase):
 

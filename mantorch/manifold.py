@@ -9,7 +9,7 @@ class Manifold(nn.Parametrization):
         self.register_buffer("base", None)
 
     def init(self, t):
-        raise NotImplementedError()
+        super().init(t)
 
     def trivialization(self, x, base):
         r"""
@@ -34,12 +34,11 @@ class Manifold(nn.Parametrization):
 
         return self.trivialization(t, self.base)
 
-    @property
-    def size(self):
-        x = self.original
-        n = x.size(-2)
-        m = x.size(-1)
-        return n, m
+    def size(self, k=None):
+        if k is None:
+            return self.original().size()
+        else:
+            return self.original().size(k)
 
     def update_base(self):
         if "orig" not in self._parameters:

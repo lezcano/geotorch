@@ -127,20 +127,20 @@ def main():
     model = Model(n_classes, hidden_size).to(device)
 
     p_orth = model.rnn.recurrent_kernel.parametrization("weight")
-    orth_param = p_orth.parameters()
+    orth_params = p_orth.parameters()
     non_orth_params = (param for param in model.parameters()
                        if param not in set(p_orth.parameters()))
 
     if RGD:
         optim = torch.optim.SGD([{'params': non_orth_params},
-                                 {'params': orth_param, 'lr': lr_orth}
+                                 {'params': orth_params, 'lr': lr_orth}
                                  ], lr=lr)
     else:
         # These recurrent models benefit of slightly larger mixing constants
         # on the adaptive term. They also work with beta_2 = 0.999, but they
         # give better results with beta_2 = 0.99 or even 0.95
         optim = torch.optim.Adam([{'params': non_orth_params},
-                                  {'params': orth_param, 'lr': lr_orth, 'betas': (0.9, 0.99)}
+                                  {'params': orth_params, 'lr': lr_orth, 'betas': (0.9, 0.99)}
                                  ], lr=lr)
 
     model.train()
