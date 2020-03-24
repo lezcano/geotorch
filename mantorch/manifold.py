@@ -1,15 +1,13 @@
 from abc import abstractmethod
 import torch
+import torch.nn.utils.parametrization as P
 import torch.nn as nn
 
-class Manifold(nn.Parametrization):
+class Manifold(P.Parametrization):
 
     def __init__(self):
         super().__init__()
         self.register_buffer("base", None)
-
-    def init(self, t):
-        super().init(t)
 
     def trivialization(self, x, base):
         r"""
@@ -28,9 +26,9 @@ class Manifold(nn.Parametrization):
 
 
     def forward(self, t):
-        if self.base is None:
+        if not hasattr(self, "orig"):
             raise RuntimeError("Parametrization {} has to be applied to a tensor with "
-                    "`module.register_parametrization`".format(type(self).__name__))
+                    "`register_parametrization` before being used.".format(type(self).__name__))
 
         return self.trivialization(t, self.base)
 
@@ -41,9 +39,20 @@ class Manifold(nn.Parametrization):
             return self.original().size(k)
 
     def update_base(self):
-        if "orig" not in self._parameters:
+        if not hasattr(self, "orig"):
             raise RuntimeError("Parametrization {} has to be applied to a tensor with "
-                    "`module.register_parametrization`".format(type(self).__name__))
+                    "`register_parametrization` before being used.".format(type(self).__name__))
         with torch.no_grad():
             self.base.data.copy_(self.param.data)
             self.orig.zero_()
+
+
+class Frame(P.Parametrization):
+    pass
+
+
+class Fibration(P.Parametrization):
+    pass
+
+
+

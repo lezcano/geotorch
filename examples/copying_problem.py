@@ -1,7 +1,8 @@
 import torch
 from torch import nn
 import torch.nn.functional as F
-import mantorch.orthogonal as Ort
+import torch.nn.utils.parametrization as P
+import mantorch.so as Ort
 
 batch_size  = 128
 hidden_size = 190
@@ -49,14 +50,14 @@ class ExpRNNCell(nn.Module):
         self.nonlinearity = modrelu(hidden_size)
 
         # Make recurrent_kernel orthogonal
-        self.recurrent_kernel.register_parametrization(Ort.SO(), "weight")
+        P.register_parametrization(self.recurrent_kernel, Ort.SO(), "weight")
 
         self.reset_parameters()
 
     def reset_parameters(self):
         nn.init.kaiming_normal_(self.input_kernel.weight.data, nonlinearity="relu")
         # Initialize
-        self.recurrent_kernel.parametrization("weight").torus_init_()
+        self.recurrent_kernel.weight_param.torus_init_()
 
     def default_hidden(self, input):
         return input.new_zeros(input.size(0), self.hidden_size, requires_grad=False)
@@ -83,7 +84,7 @@ class Model(nn.Module):
         nn.init.kaiming_normal_(self.lin.weight.data, nonlinearity="relu")
         nn.init.constant_(self.lin.bias.data, 0)
 
-    @nn.cached
+    @P.cached_method()
     def forward(self, inputs):
         state = self.rnn.default_hidden(inputs[:, 0, ...])
         outputs = []
@@ -126,7 +127,7 @@ def copy_data(batch_size):
 def main():
     model = Model(n_classes, hidden_size).to(device)
 
-    p_orth = model.rnn.recurrent_kernel.parametrization("weight")
+    p_orth = model.rnn.recurrent_kernel.weight_param
     orth_params = p_orth.parameters()
     non_orth_params = (param for param in model.parameters()
                        if param not in set(p_orth.parameters()))
@@ -155,7 +156,7 @@ def main():
         optim.step()
 
         if RGD:
-            model.rnn.recurrent_kernel.parametrization("weight").update_base()
+            model.rnn.recurrent_kernel.weight_param.update_base()
 
         with torch.no_grad():
             accuracy = model.accuracy(logits, batch_y)

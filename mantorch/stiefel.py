@@ -52,7 +52,7 @@ class Stiefel(Manifold):
         A = A - A.t() # \in skew(n)
 
 
-        ret = base.mm(self.triv(x))[:n,:k]
+        ret = base.mm(self.triv(A))[:n,:k]
         if self.inverted:
             ret = ret.t()
         return ret
@@ -100,9 +100,7 @@ class StiefelTall(Manifold):
         self.base = torch.empty_like(t)
         uniform_init_(self.base)
         # Parameters to parametrize a square k x k skew-symmetric matrix
-        self.register_parameter("fibr_aux",
-                                nn.Parameter(
-                                    t.new_zeros(self.k, self.k)))
+        self.register_parameter("skew", nn.Parameter(t.new_zeros(self.k, self.k)))
 
     def trivialization(self, x, base):
         if self.inverted:

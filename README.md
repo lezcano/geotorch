@@ -13,8 +13,8 @@ class Model(nn.Module):
     def __init__(self):
         super(Model, self).__init__()
         self.linear = nn.Linear(4, 5)
-		# Make the linear layer into an orthogonal layer
-		M.orthogonal(self.linear.weight)
+        # Make the linear layer into an orthogonal layer
+        M.orthogonal(self.linear.weight)
 
     def forward(self, x):
         # Here self.linear.weight is orthogonal

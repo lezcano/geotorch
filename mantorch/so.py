@@ -1,4 +1,4 @@
-from stiefel import Stiefel
+from .stiefel import Stiefel
 
 
 class SO(Stiefel):
