@@ -91,17 +91,18 @@ def taylor_approx(A, deg):
         # Minor: Precompute
         SQRT = math.sqrt(177.)
         x3 = 2./3.
-        a1 = 1./88.*(1.+SQRT)*x3
-        a2 = 1./352.*(1.+SQRT)*x3
-        u2 = 1./630.*(857.-58.*SQRT)
+        a1 = (1.+SQRT)*x3
+        x1 = a1/88.
+        x2 = a1/352.
         c0 = (-271.+29.*SQRT)/(315.*x3)
         c1 = (11.*(-1.+SQRT))/(1260.*x3)
         c2 = (11.*(-9.+SQRT))/(5040.*x3)
-        c4 = -((-89.+SQRT)/(5040.*x3**2))
+        c4 = (89.-SQRT)/(5040.*x3*x3)
+        y2 = ((857.-58.*SQRT))/630.
         # Matrix products
-        A4 = A2*(a1*A + a2*A2)
-        A8 = (x3*A2 + A4)*(c0*I + c1*A + c2*A2 + c4*A4)
-        return I + A + u2*A2 + A8
+        A4 = A2.mm(x1*A + x2*A2)
+        A8 = (x3*A2 + A4).mm(c0*I + c1*A + c2*A2 + c4*A4)
+        return I + A + y2*A2 + A8
     elif deg == 12:
         b = torch.tensor(
 		[[-1.86023205146205530824e-02,
@@ -121,7 +122,6 @@ def taylor_approx(A, deg):
 		   -2.02785554058925905629e-02,
 		   -6.75951846863086323186e-03]],
         dtype=A.dtype, device=A.device)
-
 
         # We implement the following
         #q31 = a01*I+a11*A+a21*A2+a31*A3

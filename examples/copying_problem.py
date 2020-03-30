@@ -45,19 +45,24 @@ class ExpRNNCell(nn.Module):
         super(ExpRNNCell, self).__init__()
         self.input_size = input_size
         self.hidden_size = hidden_size
-        self.recurrent_kernel = nn.Linear(hidden_size, hidden_size)
-        self.input_kernel = nn.Linear(input_size, hidden_size, bias=False)
+        self.recurrent_kernel = nn.Linear(hidden_size, hidden_size, bias=False)
+        self.input_kernel = nn.Linear(input_size, hidden_size)
         self.nonlinearity = modrelu(hidden_size)
 
         # Make recurrent_kernel orthogonal
-        P.register_parametrization(self.recurrent_kernel, Ort.SO(), "weight")
+        rk = self.recurrent_kernel
+        P.register_parametrization(self.recurrent_kernel,
+                                   Ort.SO(self.recurrent_kernel.weight.size()),
+                                   "weight")
 
         self.reset_parameters()
 
     def reset_parameters(self):
-        nn.init.kaiming_normal_(self.input_kernel.weight.data, nonlinearity="relu")
-        # Initialize
-        self.recurrent_kernel.weight_param.torus_init_()
+        with torch.no_grad():
+            nn.init.kaiming_normal_(self.input_kernel.weight.data, nonlinearity="relu")
+            # Initialize
+            self.recurrent_kernel.weight_param.torus_init_()
+            self.recurrent_kernel.weight_orig.zero_()
 
     def default_hidden(self, input):
         return input.new_zeros(input.size(0), self.hidden_size, requires_grad=False)
@@ -127,7 +132,7 @@ def copy_data(batch_size):
 def main():
     model = Model(n_classes, hidden_size).to(device)
 
-    p_orth = model.rnn.recurrent_kernel.weight_param
+    p_orth = model.rnn.recurrent_kernel
     orth_params = p_orth.parameters()
     non_orth_params = (param for param in model.parameters()
                        if param not in set(p_orth.parameters()))
@@ -156,6 +161,7 @@ def main():
         optim.step()
 
         if RGD:
+            # TODO Correct
             model.rnn.recurrent_kernel.weight_param.update_base()
 
         with torch.no_grad():
