@@ -14,7 +14,7 @@ class Skew(AbstractManifold):
             X = X.tril(-1)
         else:
             X = X.triu(1)
-        return X - X.t()
+        return X - X.transpose(-2, -1)
 
     def extra_repr(self):
         return 'n={}'.format(self.n)

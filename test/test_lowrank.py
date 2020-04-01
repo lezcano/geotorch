@@ -7,7 +7,7 @@ import torch.nn.utils.parametrization as P
 
 from mantorch.lowrank import LowRank
 
-class TestStiefel(TestCase):
+class TestLowRank(TestCase):
 
     def assertIsOrthogonal(self, X):
         if X.size(0) < X.size(1):
@@ -48,7 +48,7 @@ class TestStiefel(TestCase):
                 P.register_parametrization(layer, LR, "weight")
                 self.assertTrue(P.is_parametrized(layer, "weight"))
                 print(layer)
-                U_orig, S_orig, V_orig = LR.total_space_eval(layer.weight_orig)
+                U_orig, S_orig, V_orig = LR.total_space.evaluate()
                 self.assertIsOrthogonal(U_orig)
                 self.assertIsOrthogonal(V_orig)
                 self.assertHasSingularValues(layer.weight, S_orig)
@@ -60,7 +60,7 @@ class TestStiefel(TestCase):
                 loss.backward()
                 optim.step()
 
-                U_orig, S_orig, V_orig = LR.total_space_eval(layer.weight_orig)
+                U_orig, S_orig, V_orig = LR.total_space.evaluate()
                 self.assertIsOrthogonal(U_orig)
                 self.assertIsOrthogonal(V_orig)
                 self.assertHasSingularValues(layer.weight, S_orig)
@@ -70,7 +70,7 @@ class TestStiefel(TestCase):
                 loss.backward()
                 optim.step()
 
-                U_orig, S_orig, V_orig = LR.total_space_eval(layer.weight_orig)
+                U_orig, S_orig, V_orig = LR.total_space.evaluate()
                 self.assertIsOrthogonal(U_orig)
                 self.assertIsOrthogonal(V_orig)
                 self.assertHasSingularValues(layer.weight, S_orig)

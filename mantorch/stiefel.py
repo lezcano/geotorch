@@ -35,21 +35,29 @@ class Stiefel(Fibration):
     def extra_repr(self):
         return super().extra_repr() + ", triv={}".format(self.triv)
 
+
 def stable_qr(X):
-    # Make the QR decomposition unique, so that no subgradients are needed
+    # Make the QR decomposition unique provided X is non-singular
+    # so that no subgradients are needed
     # This should be implemented in main pytorch or smth...
     Q, R = torch.qr(X)
-    d = torch.diag(R).sign()
-    return Q * d.unsqueeze(0).expand_as(Q),\
-           R * d.unsqueeze(1).expand_as(R)
+    d = R.diagonal().sign()
+    return Q * d.unsqueeze(-2).expand_as(Q),\
+           R * d.unsqueeze(-1).expand_as(R)
+
 
 def non_singular_(X):
     with torch.no_grad():
-        n, k = X.size()
+        k = X.size(-1)
         eps = 1e-7
-        # If it's close to singular, we give it a wiggle
-        if torch.norm(X) < n * k * eps:
-            X[:k]  = X[:k] + torch.normal(0., eps, (k, k)).clamp_(-5.*eps, 5.*eps)
+        # If it's close to zero, we give it a wiggle
+        small = torch.norm(X) < k * k * eps
+        if small.any():
+            if X.ndimension() == 2:
+                X[:k] += torch.normal(0., eps, (k, k)).clamp_(-5.*eps, 5.*eps)
+            else:
+                X[small][:k] += torch.normal(0., eps, X[small][:k].size()).clamp_(-5.*eps, 5.*eps)
+
 
 
 class StiefelTall(Manifold):
@@ -85,14 +93,14 @@ class StiefelTall(Manifold):
         # delta = B @ A + IBBt @ X
         # Q, R = torch.qr(IBBt @ delta)
         non_singular_(X)
-        Q, R = stable_qr(X - B @ (B.t() @ X))
+        Q, R = stable_qr(X - B @ (B.transpose(-2, -1) @ X))
         # Form
         # A \in Skew(k)
         # Atilde = [[A, -R.t()],
         #           [R,  0    ]] \in Skew(2k)
         A = self.fibr_aux.tril(-1)
         Atilde = torch.cat([torch.cat([A, R]),torch.zeros(2*self.k, self.k)], dim=1)
-        Atilde = Atilde - Atilde.t()
+        Atilde = Atilde - Atilde.transpose(-2, -1)
 
         BQ = torch.cat([B, Q], dim=1)
         MN = expm(Atilde)[:, :self.k]

@@ -1,5 +1,4 @@
 import torch
-import numpy as np
 import math
 
 degs = [1, 2, 4, 8, 12, 18]
@@ -43,50 +42,101 @@ thetas_dict = {"single": [1.192092800768788e-07,  # m_vals = 1
                           1.090863719290036e+00]  # m_vals = 18
                }
 
+def matrix_power_two_batch(A, k):
+    orig_size = A.size()
+    A, k = A.flatten(0, -3), k.flatten()
+    ksorted, idx = torch.sort(k)
+    # Abusing bincount...
+    count = torch.bincount(ksorted)
+    nonzero = torch.nonzero(count, as_tuple=False)
+    A = torch.matrix_power(A, 2**ksorted[0])
+    last = ksorted[0]
+    processed = count[nonzero[0]]
+    for exp in nonzero[1:]:
+        new, last = exp - last, exp
+        A[idx[processed:]] = torch.matrix_power(A[idx[processed:]], 2**new.item())
+        processed += count[exp]
+    return A.reshape(orig_size)
+
 
 def expm_taylor(A):
-    if len(A.shape) != 2 or A.shape[0] != A.shape[1]:
-        raise ValueError('expected a square matrix')
+    if A.ndimension() < 2 or A.size(-2) != A.size(-1):
+        raise ValueError('Expected a square matrix or a batch of squared matrices')
 
-    # Trivial case
-    if A.shape == (1, 1):
-        return torch.exp(A)
+    if A.ndimension() == 2:
+        # Just one matrix
 
-    if A.element_size() > 4:
-        thetas = thetas_dict["double"]
+        # Trivial case
+        if A.size() == (1, 1):
+            return torch.exp(A)
+
+        if A.element_size() > 4:
+            thetas = thetas_dict["double"]
+        else:
+            thetas = thetas_dict["single"]
+
+        # No scale-square needed
+        # This could be done marginally faster if iterated in reverse
+        normA = torch.norm(A, 1).item()
+        for deg, theta in zip(degs, thetas):
+            if normA <= theta:
+                return taylor_approx(A, deg)
+
+        # Scale square
+        s = int(math.ceil(math.log2(normA) - math.log2(thetas[-1])))
+        A = A * (2**-s)
+        X = taylor_approx(A, degs[-1])
+        return torch.matrix_power(X, 2**s)
     else:
-        thetas = thetas_dict["single"]
+        # Batching
 
-    # No scale-square needed
-    # This could be done marginally faster if iterated in reverse
-    normA = torch.norm(A, 1).item()
-    for deg, theta in zip(degs, thetas):
-        if normA <= theta:
-            return taylor_approx(A, deg)
+        # Trivial case
+        if A.size()[-2:] == (1, 1):
+            return torch.exp(A)
 
-    # Scale square
-    s = int(np.ceil(np.log2(normA / thetas[-1])))
-    A = A * (2**-s)
-    X = taylor_approx(A, degs[-1])
-    return torch.matrix_power(X, 2**s)
+        if A.element_size() > 4:
+            thetas = thetas_dict["double"]
+        else:
+            thetas = thetas_dict["single"]
+
+        normA = torch.norm(A, dim=(-2, -1))
+
+        # Handle trivial case
+        if (normA == 0.).all():
+            I = torch.eye(A.size(-2), A.size(-1), dtype=A.dtype, device=A.device)
+            I = I.expand_as(A)
+            return I
+
+        # Handle small normA
+        more = normA > thetas[-1]
+        k = normA.new_zeros(normA.size(), dtype=torch.long)
+        k[more] = torch.ceil(torch.log2(normA[more]) - math.log2(thetas[-1])).long()
+
+        # A = A * 2**(-s)
+        A = torch.pow(.5, k.float()).unsqueeze_(-1).unsqueeze_(-1).expand_as(A) * A
+        X = taylor_approx(A, degs[-1])
+        return matrix_power_two_batch(X, k)
 
 
 def taylor_approx(A, deg):
-    I = torch.eye(A.shape[0], A.shape[1], dtype=A.dtype, device=A.device)
+    batched = A.ndimension() > 2
+    I = torch.eye(A.size(-2), A.size(-1), dtype=A.dtype, device=A.device)
+    if batched:
+        I = I.expand_as(A)
 
     if deg >= 2:
-        A2 = A.mm(A)
+        A2 = A @ A
     if deg > 8:
-        A3 = A.mm(A2)
+        A3 = A @ A2
     if deg == 18:
-        A6 = A3.mm(A3)
+        A6 = A3 @ A3
 
     if deg == 1:
         return I + A
     elif deg == 2:
         return I + A + .5*A2
     elif deg == 4:
-        return I + A + A2.mm(.5*I + A/6. + A2/24.)
+        return I + A + A2 @ (.5*I + A/6. + A2/24.)
     elif deg == 8:
         # Minor: Precompute
         SQRT = math.sqrt(177.)
@@ -100,8 +150,8 @@ def taylor_approx(A, deg):
         c4 = (89.-SQRT)/(5040.*x3*x3)
         y2 = ((857.-58.*SQRT))/630.
         # Matrix products
-        A4 = A2.mm(x1*A + x2*A2)
-        A8 = (x3*A2 + A4).mm(c0*I + c1*A + c2*A2 + c4*A4)
+        A4 = A2 @ (x1*A + x2*A2)
+        A8 = (x3*A2 + A4) @ (c0*I + c1*A + c2*A2 + c4*A4)
         return I + A + y2*A2 + A8
     elif deg == 12:
         b = torch.tensor(
@@ -123,20 +173,38 @@ def taylor_approx(A, deg):
 		   -6.75951846863086323186e-03]],
         dtype=A.dtype, device=A.device)
 
-        # We implement the following
+        # We implement the following allowing for batches
         #q31 = a01*I+a11*A+a21*A2+a31*A3
         #q32 = a02*I+a12*A+a22*A2+a32*A3
         #q33 = a03*I+a13*A+a23*A2+a33*A3
         #q34 = a04*I+a14*A+a24*A2+a34*A3
         # Matrix products
-        #q61 = q33 + q34*q34
-        #return (q31 + (q32 + q61)*q61)
+        #q61 = q33 + q34 @ q34
+        #return (q31 + (q32 + q61) @ q61)
 
-        q = torch.stack([I, A, A2, A3]).repeat(4, 1, 1, 1)
-        b = b.unsqueeze(-1).unsqueeze(-1).expand_as(q)
-        q = (b * q).sum(dim=1)
-        qaux = q[2] + q[3].mm(q[3])
-        return q[0] + (q[1] + qaux).mm(qaux)
+        # Example of non-batched version for reference
+        #q = torch.stack([I, A, A2, A3]).repeat(4, 1, 1, 1)
+        #b = b.unsqueeze(-1).unsqueeze(-1).expand_as(q)
+        #q = (b * q).sum(dim=1)
+        #qaux = q[2] + q[3] @ q[3]
+        #return q[0] + (q[1] + qaux) @ qaux
+
+        q = torch.stack([I, A, A2, A3], dim=-3).unsqueeze_(-4)
+        len_batch = A.ndimension() - 2
+        # Expand first dimension
+        q_size =  [-1 for _ in range(len_batch)] + [4, -1, -1, -1]
+        q = q.expand(*q_size)
+        b = b.unsqueeze_(-1).unsqueeze_(-1).expand_as(q)
+        q = (b * q).sum(dim=-3)
+        if batched:
+            # Indexing the third to last dimension, because otherwise we
+            # would have to prepend as many 1's as the batch shape for the
+            # previous expand_as to work
+            qaux = q[..., 2,:,:] + q[..., 3,:,:] @ q[..., 3,:,:]
+            return q[..., 0,:,:] + (q[..., 1,:,:] + qaux) @ qaux
+        else:
+            qaux = q[2] + q[3] @ q[3]
+            return q[0] + (q[1] + qaux) @ qaux
 
     elif deg == 18:
         b = torch.tensor(
@@ -167,29 +235,39 @@ def taylor_approx(A, deg):
          -1.40086798182036094347e-05]],
         dtype=A.dtype, device=A.device)
 
-        # We implement the following
+        # We implement the following allowing for batches
         #q31 = a01*I + a11*A + a21*A2 + a31*A3
         #q61 = b01*I + b11*A + b21*A2 + b31*A3 + b61*A6
         #q62 = b02*I + b12*A + b22*A2 + b32*A3 + b62*A6
         #q63 = b03*I + b13*A + b23*A2 + b33*A3 + b63*A6
         #q64 = b04*I + b14*A + b24*A2 + b34*A3 + b64*A6
-        #q91 = q31.mm(q64) + q63
-        #return q61 + (q62 + q91).mm(q91)
+        #q91 = q31 @ q64 + q63
+        #return q61 + (q62 + q91) @ q91
+        q = torch.stack([I, A, A2, A3, A6], dim=-3).unsqueeze_(-4)
+        len_batch = A.ndimension() - 2
+        q_size =  [-1 for _ in range(len_batch)] + [5, -1, -1, -1]
+        q = q.expand(*q_size)
+        b = b.unsqueeze_(-1).unsqueeze_(-1).expand_as(q)
+        q = (b * q).sum(dim=-3)
+        if batched:
+            # Indexing the third to last dimension, because otherwise we
+            # would have to prepend as many 1's as the batch shape for the
+            # previous expand_as to work
+            qaux = q[..., 0,:,:] @ q[..., 4,:,:] + q[..., 3,:,:]
+            return q[..., 1,:,:] + (q[..., 2,:,:] + qaux) @ qaux
+        else:
+            qaux = q[0] @ q[4] + q[3]
+            return q[1] + (q[2] + qaux) @ qaux
 
-        q = torch.stack([I, A, A2, A3, A6]).repeat(5, 1, 1, 1)
-        b = b.unsqueeze(-1).unsqueeze(-1).expand_as(q)
-        q = (b * q).sum(dim=1)
-        qaux = q[0].mm(q[4]) + q[3]
-        return q[1] + (q[2] + qaux).mm(qaux)
 
-
-def differential(A, E, expm):
-    n = A.size(0)
-    M = torch.zeros(2*n, 2*n, dtype=A.dtype, device=A.device)
-    M[:n, :n] = A
-    M[n:, n:] = A
-    M[:n, n:] = E
-    return expm(M)[:n, n:]
+def differential(A, E, f):
+    n = A.size(-1)
+    size_M = list(A.size()[:-2]) + [2*n, 2*n]
+    M = A.new_zeros(size_M)
+    M[..., :n, :n] = A
+    M[..., n:, n:] = A
+    M[..., :n, n:] = E
+    return f(M)[..., :n, n:]
 
 
 class expm_taylor_class(torch.autograd.Function):
@@ -201,7 +279,11 @@ class expm_taylor_class(torch.autograd.Function):
     @staticmethod
     def backward(ctx, G):
         (A,) = ctx.saved_tensors
-        return differential(A.t(), G, expm_taylor)
+        # Handle tipical case separately as (dexp)_0 = Id
+        if (A == 0).all():
+            return G
+        else:
+            return differential(A.transpose(-2, -1), G, expm_taylor)
 
 
 expm = expm_taylor_class.apply

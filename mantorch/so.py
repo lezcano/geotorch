@@ -33,20 +33,24 @@ class SO(Manifold):
         else:
             self.triv = SO.trivializations[triv]
 
-        self.skew = Skew(size=size, lower=lower)
+        # Precompose with Skew
+        self.chain(Skew(size=size, lower=lower))
         self.uniform_init_()
 
     def trivialization(self, X, B):
-        X = self.skew(X)
         return B @ self.triv(X)
 
     def uniform_init_(self):
         with torch.no_grad():
             uniform_init_(self.base)
+            for p in self.parameters():
+                p.zero_()
 
     def torus_init_(self, init_=None, triv=expm):
         with torch.no_grad():
             torus_init_(self.base, init_, triv)
+            for p in self.parameters():
+                p.zero_()
 
     def extra_repr(self):
         inv_map = {v: k for k, v in SO.trivializations.items()}
@@ -66,6 +70,7 @@ def uniform_init_(tensor):
         raise ValueError("Expected a matrix. Got a tensor of shape {}"
                          .format(list(tensor.size())))
     torch.nn.init.orthogonal_(tensor)
+    # Map to SO(n)
     if tensor.size(0) == tensor.size(1) and torch.det(tensor) < 0.:
         with torch.no_grad():
             tensor.data[0] *= -1.
@@ -111,7 +116,7 @@ def torus_init_(tensor, init_=None, triv=expm):
         diag_z = torch.zeros(n-1)
         diag_z[::2] = diag
         torch.diag(diag_z, diagonal=1, out=t)
-        t.copy_(triv(t - t.t())[:tensor.size(0), :tensor.size(1)])
+        t.copy_(triv(t - t.transpose(-2, -1))[:tensor.size(0), :tensor.size(1)])
         if not square:
             tensor.data = t
     return tensor

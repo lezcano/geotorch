@@ -9,6 +9,7 @@ import torch.nn.utils.parametrization as P
 from mantorch.stiefel import Stiefel, StiefelTall
 from mantorch.grassmanian import Grassmanian, GrassmanianTall
 
+
 class TestStiefel(TestCase):
 
     def assertIsOrthogonal(self, X):
@@ -37,11 +38,12 @@ class TestStiefel(TestCase):
             torch.random.manual_seed(8888)
             for (n, k), triv in itertools.product(sizes, trivs):
                 l1 = nn.Linear(n,k)
-                with torch.no_grad():
-                    l1.weight.zero_()
                 l2 = deepcopy(l1)
                 P.register_parametrization(l1, cls(size=l1.weight.size(), triv=triv), "weight")
                 P.register_parametrization(l2, cls_tall(size=l2.weight.size(), triv=triv), "weight")
+                for layer in [l1, l2]:
+                    with torch.no_grad():
+                        layer.weight_param.uniform_init_()
 
                 # Check that the initialization of both layers is orthogonal
                 for layer in [l1, l2]:
@@ -74,14 +76,6 @@ class TestStiefel(TestCase):
                     optim.zero_grad()
                     loss.backward()
                     optim.step()
-                    #print(layer.weight_param.orig_param.orig_param.orig_param.orig)
-                    #print(layer.weight_param.orig_param.orig_param.orig)
-                    #print(layer.weight_param.orig_param.orig)
-                    #A = layer.weight_param.orig_param.orig
-                    #W = layer.weight_param.orig
-                    #print(W)
-                    #self.assertIsOrthogonal(W)
-                    #print(layer.weight)
 
                     X2 = layer.weight
                     self.assertIsOrthogonal(X2)
@@ -92,4 +86,3 @@ class TestStiefel(TestCase):
 
                 self.assertAlmostEqual(torch.norm(ret[0][0] - ret[1][0]).item(), 0., places=3)
                 self.assertAlmostEqual(torch.norm(ret[0][1] - ret[1][1]).item(), 0., places=2)
-

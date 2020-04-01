@@ -59,10 +59,10 @@ class Manifold(AbstractManifold):
 
     def forward(self, X):
         if self.transpose:
-            X = X.t()
+            X = X.transpose(-2, -1)
         X = self.trivialization(X, self.base)
         if self.transpose:
-            X = X.t()
+            X = X.transpose(-2, -1)
         return X
 
 
@@ -77,7 +77,7 @@ def update_base(module, tensor_name):
             with torch.no_grad():
                 X = module.evaluate(orig)
                 if module.transpose:
-                    X = X.t()
+                    X = X.transpose(-2, -1)
                 module.base.data.copy_(X)
         elif isinstance(module, Fibration):
             for p in module.parameters():
@@ -94,7 +94,17 @@ class Fibration(AbstractManifold):
             raise TypeError("Expecting total_space to be a subclass "
                             "'mantorch.AbstractManifold'. Got '{}''."
                             .format(type(total_space).__name__))
-        self.total_space = total_space
+
+        f_embedding = self.embedding
+        if self.transpose:
+            f_embedding = lambda _, X: self.embedding(X.transpose(-2, -1))
+
+        Embedding = type("Embedding" + self.__class__.__name__,
+                        (P.Parametrization,),
+                        {"forward": f_embedding})
+
+        total_space.chain(Embedding())
+        self.chain(total_space)
 
     def embedding(self, X):
         raise NotImplementedError()
@@ -103,27 +113,19 @@ class Fibration(AbstractManifold):
         raise NotImplementedError()
 
     def forward(self, X):
-        if self.transpose:
-            X = X.t()
-        X = self.embedding(X)
-        X = self.total_space(X)
         X = self.fibration(X)
         if self.transpose:
-            X = X.t()
-        return X
-
-    def total_space_eval(self, X):
-        if self.transpose:
-            X = X.t()
-        X = self.embedding(X)
-        X = self.total_space(X)
+            X = X.transpose(-2, -1)
         return X
 
     # Expose the parameters from total_space
     @property
+    def total_space(self):
+        return self.orig_param
+
+    @property
     def base(self):
         return self.total_space.base
-
 
 class ProductManifold(AbstractManifold):
     def __init__(self, manifolds):
