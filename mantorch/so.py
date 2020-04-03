@@ -21,8 +21,7 @@ class SO(Manifold):
         super().__init__(dimensions=2, size=size)
         if self.n != self.k:
             raise ValueError("The SO parametrization can just be applied to square matrices. "
-                             "Got a tensor of size {}"
-                             .format(self.dim[::-1] if self.transpose else self.dim))
+                             "Got a tensor of size {}".format(self.orig_dim))
 
         if triv not in SO.trivializations.keys() and not callable(triv):
             raise ValueError("Argument triv was not recognized and is "
@@ -43,38 +42,54 @@ class SO(Manifold):
     def uniform_init_(self):
         with torch.no_grad():
             uniform_init_(self.base)
-            for p in self.parameters():
-                p.zero_()
+            if self.is_registered():
+                self.original().zero_()
 
     def torus_init_(self, init_=None, triv=expm):
         with torch.no_grad():
             torus_init_(self.base, init_, triv)
-            for p in self.parameters():
-                p.zero_()
+            if self.is_registered():
+                self.original().zero_()
 
     def extra_repr(self):
-        inv_map = {v: k for k, v in SO.trivializations.items()}
-        name = inv_map.get(self.triv, "custom")
-        return 'n={}, triv={}'.format(self.n, name)
+        return 'n={}, triv={}'.format(self.n, self.triv.__name__)
 
 
 def uniform_init_(tensor):
-    r"""Samples the 2D `tensor` uniformly distributed over the orthogonal matrices.
-    If `tensor` is square, then it will be distributed over the orthogonal matrices
-    with positive determinant
+    r"""Fills the input `Tensor` with an  orthogonal matrix. The matrix will have positive determinant.
+    The input tensor must have at least 2 dimensions, and for tensors with more than 2
+    dimensions the first dimensions are treated as batch dimensions.
 
     Args:
-        tensor (torch.nn.Tensor): a 2-dimensional tensor
+        tensor (torch.nn.Tensor): a 2-dimensional tensor or a batch of them
     """
-    if tensor.ndimension() != 2:
-        raise ValueError("Expected a matrix. Got a tensor of shape {}"
-                         .format(list(tensor.size())))
-    torch.nn.init.orthogonal_(tensor)
-    # Map to SO(n)
-    if tensor.size(0) == tensor.size(1) and torch.det(tensor) < 0.:
-        with torch.no_grad():
-            tensor.data[0] *= -1.
-    return tensor
+    # We re-implement torch.nn.init.orthogonal_, as their treatment of batches
+    # is not in a per-matrix base
+    if tensor.ndimension() < 2:
+        raise ValueError("Only tensors with 2 or more dimensions are supported. "
+                         "Got a tensor of shape {}".format(tuple(tensor.size())))
+    n, k = tensor.size()[-2:]
+    transpose = n < k
+    with torch.no_grad():
+        x = tensor.new(tensor.size()).normal_(0, 1)
+        if transpose:
+            x.transpose_(-2, -1)
+        q, r = torch.qr(x)
+
+        # Make uniform (diag r >= 0)
+        d = r.diagonal(dim1=-2, dim2=-1).sign()
+        q *= d.unsqueeze(-2).expand_as(q)
+        if transpose:
+            q.transpose_(-2, -1)
+
+        if n == k:
+            mask = (torch.det(q) > 0.).float()
+            mask[mask == 0.] = -1.
+            if tensor.ndimension() > 2:
+                mask = mask.unsqueeze(-1).unsqueeze(-1).expand_as(q)
+            q *= mask
+        tensor.copy_(q)
+        return tensor
 
 
 def torus_init_(tensor, init_=None, triv=expm):
@@ -91,32 +106,26 @@ def torus_init_(tensor, init_=None, triv=expm):
                 it in place according to some distribution. Default:
                :math:`\mathcal{U}(-\pi, \pi)
     """
-    if tensor.ndimension() != 2:
-        raise ValueError("Expected a matrix. Got a tensor of shape {}"
-                         .format(list(tensor.size())))
+    if tensor.ndimension() < 2 or tensor.size(-1) != tensor.size(-2):
+        raise ValueError("Only tensors with 2 or more dimensions which are square in "
+                         "the last two dimensions are supported. "
+                         "Got a tensor of shape {}".format(tuple(tensor.size())))
+
+    n, k = tensor.size[-2:]
+    tensorial_size = tensor.size()[:-2]
 
     if init_ is None:
         init_ = lambda t: torch.nn.init.uniform_(t, -math.pi, math.pi)
 
-    square = tensor.size(0) == tensor.size(1)
-    n = max(tensor.size(0), tensor.size(1))
-
     # Non-zero elements that we are going to set on the diagonal
     n_diag = n // 2
-    diag = tensor.new(n_diag)
+    diag = tensor.new(tensorial_size + (n_diag,))
     init_(diag)
 
     with torch.no_grad():
-        if square:
-            t = tensor.data
-        else:
-            t = torch.new_empty(n, n)
-
         # First non-central diagonal
-        diag_z = torch.zeros(n-1)
-        diag_z[::2] = diag
-        torch.diag(diag_z, diagonal=1, out=t)
-        t.copy_(triv(t - t.transpose(-2, -1))[:tensor.size(0), :tensor.size(1)])
-        if not square:
-            tensor.data = t
+        diag_z = tensor.new_zeros(tensorial_size + (n-1,))
+        diag_z[..., ::2] = diag
+        torch.diag_embed(diag_z, offset=-1, out=tensor)
+        tensor = triv(tensor - tensor.transpose(-2, -1))
     return tensor

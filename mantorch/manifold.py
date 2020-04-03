@@ -10,6 +10,7 @@ class AbstractManifold(P.Parametrization):
         super().__init__()
         self.transpose = False
         self.dimensions = dimensions
+        self.tensorial_size = tuple(size[:-dimensions])
         if self.dimensions == "product":
             self.dim = size
         elif self.dimensions == 1:
@@ -27,13 +28,20 @@ class AbstractManifold(P.Parametrization):
             raise ValueError("Range {} not supported. Expected a positive integer or "
                              "`product`".format(self.dimensions))
 
+    @property
+    def orig_dim(self):
+        self.dim[::-1] if self.transpose else self.dim
+
     def extra_repr(self):
         if self.dimensions == 1:
-            return "n={}".format(self.n)
+            ret = "n={}".format(self.n)
         elif self.dimensions == 2:
-            return "n={}, k={}".format(self.n, self.k)
+            ret = "n={}, k={}".format(self.n, self.k)
         else:
-            return "dim={}".format(self.dim)
+            ret = "size={}".format(self.size)
+        if len(self.tensorial_size) != 0:
+            ret += ", tensorial_size={}".format(self.tensorial_size)
+        return ret
 
 
 class Manifold(AbstractManifold):

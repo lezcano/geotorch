@@ -24,11 +24,15 @@ class Grassmanian(Fibration):
         return size
 
     def embedding(self, A):
-        Z = A.new_zeros(self.k, self.k)
-        return torch.cat([Z, A[self.k:]])
+        size_z = self.tensorial_size + (self.k, self.k)
+        Z = A.new_zeros(*size_z)
+        return torch.cat([Z, A[..., self.k:, :]], dim=-2)
 
     def fibration(self, X):
         return X
+
+    def uniform_init_(self):
+        self.total_space.uniform_init_()
 
     def extra_repr(self):
         return 'n={}, k={}, triv={}'.format(self.n, self.k, self.triv)
@@ -38,6 +42,6 @@ class GrassmanianTall(StiefelTall):
     def __init__(self, size, triv="expm"):
         super().__init__(size, triv)
         # Stiefel parametrization
-        zeros = self.fibr_aux.new_zeros(self.k, self.k)
+        zeros = self.fibr_aux.new_zeros(self.fibr_aux.size())
         delattr(self, "fibr_aux")
         self.register_buffer("fibr_aux", zeros)

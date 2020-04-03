@@ -24,13 +24,14 @@ class Stiefel(Fibration):
         return tuple(size_so)
 
     def embedding(self, A):
-        return torch.cat([A, A.new_zeros(self.n, self.n-self.k)], dim=1)
+        size_z = self.tensorial_size + (self.n, self.n - self.k)
+        return torch.cat([A, A.new_zeros(*size_z)], dim=-1)
 
     def fibration(self, X):
-        return X[:, :self.k]
+        return X[..., :, :self.k]
 
-    def uniform_init_(self, original_tensor):
-        self.total_space.uniform_init_(original_tensor)
+    def uniform_init_(self):
+        self.total_space.uniform_init_()
 
     def extra_repr(self):
         return super().extra_repr() + ", triv={}".format(self.triv)
@@ -39,25 +40,29 @@ class Stiefel(Fibration):
 def stable_qr(X):
     # Make the QR decomposition unique provided X is non-singular
     # so that no subgradients are needed
-    # This should be implemented in main pytorch or smth...
+    # This should be done with QR with pivoting...
     Q, R = torch.qr(X)
-    d = R.diagonal().sign()
+    d = R.diagonal(dim1=-2, dim2=-1).sign()
     return Q * d.unsqueeze(-2).expand_as(Q),\
            R * d.unsqueeze(-1).expand_as(R)
 
 
 def non_singular_(X):
+    # This should be done with QR with pivoting...
     with torch.no_grad():
-        k = X.size(-1)
-        eps = 1e-7
+        n, k = X.size()[-2:]
+        eps = k*1e-8
         # If it's close to zero, we give it a wiggle
-        small = torch.norm(X) < k * k * eps
+        small = X.norm(dim=(-2, -1)) < eps
         if small.any():
             if X.ndimension() == 2:
-                X[:k] += torch.normal(0., eps, (k, k)).clamp_(-5.*eps, 5.*eps)
+                X[:k] += eps*torch.eye(k,k)
             else:
-                X[small][:k] += torch.normal(0., eps, X[small][:k].size()).clamp_(-5.*eps, 5.*eps)
-
+                size_e = X.size()[:-2] + (k, k)
+                eye = (eps * torch.eye(k)).expand(*size_e)
+                small = small.unsqueeze_(-1).unsqueeze_(-1).float().expand(*size_e)
+                X[..., :k, :k] += small * eye
+        return X
 
 
 class StiefelTall(Manifold):
@@ -79,7 +84,8 @@ class StiefelTall(Manifold):
         else:
             self.triv = StiefelTall.trivializations[triv]
 
-        self.register_parameter("fibr_aux", nn.Parameter(torch.zeros(self.k, self.k)))
+        size_z = size[:-2] + (self.k, self.k)
+        self.register_parameter("fibr_aux", nn.Parameter(torch.zeros(*size_z)))
         self.uniform_init_()
 
     def trivialization(self, X, B):
@@ -92,27 +98,28 @@ class StiefelTall(Manifold):
         # IBBt = Id - B @ B.t()
         # delta = B @ A + IBBt @ X
         # Q, R = torch.qr(IBBt @ delta)
-        non_singular_(X)
+        if torch.is_grad_enabled():
+            non_singular_(X)
         Q, R = stable_qr(X - B @ (B.transpose(-2, -1) @ X))
         # Form
         # A \in Skew(k)
         # Atilde = [[A, -R.t()],
         #           [R,  0    ]] \in Skew(2k)
         A = self.fibr_aux.tril(-1)
-        Atilde = torch.cat([torch.cat([A, R]),torch.zeros(2*self.k, self.k)], dim=1)
+        z_size = self.tensorial_size + (2*self.k, self.k)
+        Atilde = torch.cat([torch.cat([A, R], dim=-2), X.new_zeros(*z_size)], dim=-1)
         Atilde = Atilde - Atilde.transpose(-2, -1)
 
-        BQ = torch.cat([B, Q], dim=1)
-        MN = expm(Atilde)[:, :self.k]
+        BQ = torch.cat([B, Q], dim=-1)
+        MN = expm(Atilde)[..., :, :self.k]
         return BQ @ MN
 
     def uniform_init_(self):
         with torch.no_grad():
             uniform_init_(self.base)
-            for p in self.parameters():
-                p.zero_()
+            if self.is_registered():
+                self.original().zero_()
+            self.fibr_aux.zero_()
 
     def extra_repr(self):
-        inv_map = {v: k for k, v in StiefelTall.trivializations.items()}
-        name = inv_map.get(self.triv, "custom")
-        return super().extra_repr() + ", triv={}".format(name)
+        return super().extra_repr() + ", triv={}".format(self.triv.__name__)

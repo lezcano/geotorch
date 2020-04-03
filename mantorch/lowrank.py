@@ -42,7 +42,7 @@ class LowRank(Fibration):
 
     def embedding(self, X):
         U = X.tril(-1)[..., :, :self.rank]
-        S = X.diagonal()[..., :self.rank]
+        S = X.diagonal(dim1=-2, dim2=-1)[..., :self.rank]
         V = X.triu(1).transpose(-2, -1)[..., :, :self.rank]
         return U, S, V
 
