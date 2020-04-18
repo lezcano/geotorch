@@ -1,8 +1,5 @@
-import itertools
-from collections.abc import Iterable
-
 import torch
-import torch.nn.utils.parametrization as P
+import torch.nn.utils.parametrize as P
 import torch.nn as nn
 
 class AbstractManifold(P.Parametrization):
@@ -10,7 +7,10 @@ class AbstractManifold(P.Parametrization):
         super().__init__()
         self.transpose = False
         self.dimensions = dimensions
-        self.tensorial_size = tuple(size[:-dimensions])
+        if isinstance(self.dimensions, int):
+            self.tensorial_size = tuple(size[:-dimensions])
+        else:
+            self.tensorial_size = tuple()
         if self.dimensions == "product":
             self.dim = size
         elif self.dimensions == 1:
@@ -38,10 +38,13 @@ class AbstractManifold(P.Parametrization):
         elif self.dimensions == 2:
             ret = "n={}, k={}".format(self.n, self.k)
         else:
-            ret = "size={}".format(self.size)
+            ret = "dim={}".format(self.dim)
         if len(self.tensorial_size) != 0:
             ret += ", tensorial_size={}".format(self.tensorial_size)
         return ret
+
+    def update_base(self, *Xs):
+        pass
 
 
 class Manifold(AbstractManifold):
@@ -73,26 +76,21 @@ class Manifold(AbstractManifold):
             X = X.transpose(-2, -1)
         return X
 
-
-def update_base(module, tensor_name):
-    if not is_parametrized(module, tensor_name):
-        raise ValueError("Tensor '{}' in module '{}' is not parametrized."
-                         .format(module, tensor_name))
-    orig = getattr(module, tensor_name + "_orig")
-
-    def _update_base(module):
-        if isinstance(module, Manifold):
-            with torch.no_grad():
-                X = module.evaluate(orig)
-                if module.transpose:
-                    X = X.transpose(-2, -1)
-                module.base.data.copy_(X)
-        elif isinstance(module, Fibration):
-            for p in module.parameters():
-                p.zero_()
-
-    module.apply(_update_base)
-    orig.zero_()
+    def update_base(self, X=None):
+        is_registered = self.is_registered()
+        if not is_registered and X is None:
+            raise ValueError("Cannot update the base before registering the "
+                             "Parametrization")
+        with torch.no_grad():
+            if X is None:
+                X = self.evaluate()
+            else:
+                X = self.evaluate(X)
+            if self.transpose:
+                X = X.transpose(-2, -1)
+            self.base.data.copy_(X)
+            if is_registered:
+                self.last_parametrization().originals[0].zero_()
 
 
 class Fibration(AbstractManifold):
@@ -114,14 +112,14 @@ class Fibration(AbstractManifold):
         total_space.chain(Embedding())
         self.chain(total_space)
 
-    def embedding(self, X):
+    def embedding(self, *X):
         raise NotImplementedError()
 
-    def fibration(self, X):
+    def fibration(self, *X):
         raise NotImplementedError()
 
-    def forward(self, X):
-        X = self.fibration(X)
+    def forward(self, *Xs):
+        X = self.fibration(*Xs)
         if self.transpose:
             X = X.transpose(-2, -1)
         return X
@@ -129,11 +127,15 @@ class Fibration(AbstractManifold):
     # Expose the parameters from total_space
     @property
     def total_space(self):
-        return self.orig_param
+        return self.parametrizations.originals
 
     @property
     def base(self):
         return self.total_space.base
+
+    def update_base(self, *Xs):
+        self.total_space.update_base(*Xs)
+
 
 class ProductManifold(AbstractManifold):
     def __init__(self, manifolds):
@@ -151,8 +153,21 @@ class ProductManifold(AbstractManifold):
 
         return tuple(m.dim for m in manifolds)
 
-    def forward(self, Xs):
-        return [mani.evaluate(X) for mani, X in zip(self, Xs)]
+    def forward(self, *Xs):
+        return tuple(mani.evaluate(X) for mani, X in zip(self, Xs))
+
+    def update_base(self, Xs=None):
+        is_registered = self.is_registered()
+        if not is_registered and Xs is None:
+            raise ValueError("Cannot update the base before registering the "
+                             "Parametrization")
+        with torch.no_grad():
+            if Xs is None:
+                Xs = self.originals
+            for mani, X in zip(self, Xs):
+                mani.update_base(X)
+            if is_registered:
+                self.last_parametrization().originals[0].zero_()
 
     def __getitem__(self, idx):
         return self.manifolds.__getitem__(idx)

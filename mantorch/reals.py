@@ -1,8 +1,9 @@
-from .manifold import AbstractManifold
+from .manifold import Manifold
 
-class Rn(AbstractManifold):
+class Rn(Manifold):
     def __init__(self, size):
         super().__init__(dimensions=1, size=size)
+        self.base.zero_()
 
-    def forward(self, X):
-        return X
+    def trivialization(self, X, B):
+        return X + B

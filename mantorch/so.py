@@ -1,6 +1,5 @@
 import math
 import torch
-import torch.nn.utils.parametrization as P
 
 from .manifold import Manifold
 from .skew import Skew
@@ -43,13 +42,13 @@ class SO(Manifold):
         with torch.no_grad():
             uniform_init_(self.base)
             if self.is_registered():
-                self.original().zero_()
+                self.last_parametrization().originals[0].zero_()
 
     def torus_init_(self, init_=None, triv=expm):
         with torch.no_grad():
             torus_init_(self.base, init_, triv)
             if self.is_registered():
-                self.original().zero_()
+                self.last_parametrization().originals[0].zero_()
 
     def extra_repr(self):
         return 'n={}, triv={}'.format(self.n, self.triv.__name__)
@@ -111,7 +110,7 @@ def torus_init_(tensor, init_=None, triv=expm):
                          "the last two dimensions are supported. "
                          "Got a tensor of shape {}".format(tuple(tensor.size())))
 
-    n, k = tensor.size[-2:]
+    n, k = tensor.size()[-2:]
     tensorial_size = tensor.size()[:-2]
 
     if init_ is None:
@@ -126,6 +125,6 @@ def torus_init_(tensor, init_=None, triv=expm):
         # First non-central diagonal
         diag_z = tensor.new_zeros(tensorial_size + (n-1,))
         diag_z[..., ::2] = diag
-        torch.diag_embed(diag_z, offset=-1, out=tensor)
-        tensor = triv(tensor - tensor.transpose(-2, -1))
+        tensor.data = torch.diag_embed(diag_z, offset=-1)
+        tensor.data = triv(tensor - tensor.transpose(-2, -1))
     return tensor

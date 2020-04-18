@@ -1,6 +1,5 @@
 import torch
 import torch.nn as nn
-import torch.nn.utils.parametrization as P
 
 from .manifold import Manifold, Fibration
 from .so import SO, uniform_init_, cayley_map
@@ -49,6 +48,8 @@ def stable_qr(X):
 
 def non_singular_(X):
     # This should be done with QR with pivoting...
+    # If this works it's because the gradients of the QR in
+    # PyTorch are not correctly implemented at zero... Check that
     with torch.no_grad():
         n, k = X.size()[-2:]
         eps = k*1e-8
@@ -114,11 +115,16 @@ class StiefelTall(Manifold):
         MN = expm(Atilde)[..., :, :self.k]
         return BQ @ MN
 
+    def update_base(self, X=None):
+        super().update_base(X)
+        with torch.no_grad():
+            self.fibr_aux.zero_()
+
     def uniform_init_(self):
         with torch.no_grad():
             uniform_init_(self.base)
             if self.is_registered():
-                self.original().zero_()
+                self.last_parametrization().originals[0].zero_()
             self.fibr_aux.zero_()
 
     def extra_repr(self):

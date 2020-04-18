@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 import torch.nn.functional as F
-import torch.nn.utils.parametrization as P
+import torch.nn.utils.parametrize as P
 import mantorch.so as Ort
 
 batch_size  = 128
@@ -50,19 +50,15 @@ class ExpRNNCell(nn.Module):
         self.nonlinearity = modrelu(hidden_size)
 
         # Make recurrent_kernel orthogonal
-        rk = self.recurrent_kernel
-        P.register_parametrization(self.recurrent_kernel,
-                                   Ort.SO(self.recurrent_kernel.weight.size()),
-                                   "weight")
+        P.register_parametrization(self.recurrent_kernel, "weight",
+                                   Ort.SO(self.recurrent_kernel.weight.size()))
 
         self.reset_parameters()
 
     def reset_parameters(self):
-        with torch.no_grad():
-            nn.init.kaiming_normal_(self.input_kernel.weight.data, nonlinearity="relu")
-            # Initialize
-            self.recurrent_kernel.weight_param.torus_init_()
-            self.recurrent_kernel.weight_orig.zero_()
+        nn.init.kaiming_normal_(self.input_kernel.weight.data, nonlinearity="relu")
+        # Initialize the recurrent kernel
+        self.recurrent_kernel.parametrizations.weight.torus_init_()
 
     def default_hidden(self, input):
         return input.new_zeros(input.size(0), self.hidden_size, requires_grad=False)
@@ -138,6 +134,7 @@ def main():
                        if param not in set(p_orth.parameters()))
 
     if RGD:
+        # DTRIV1 + SGD = Stochstic Riemannian Gradient Descent
         optim = torch.optim.SGD([{'params': non_orth_params},
                                  {'params': orth_params, 'lr': lr_orth}
                                  ], lr=lr)
@@ -161,16 +158,15 @@ def main():
         optim.step()
 
         if RGD:
-            # TODO Correct
-            model.rnn.recurrent_kernel.weight_param.update_base()
+            model.rnn.recurrent_kernel.parametrizations.weight.update_base()
 
         with torch.no_grad():
             accuracy = model.accuracy(logits, batch_y)
 
         print("Iter {} Loss: {:.6f}, Accuracy: {:.5f}".format(step, loss, accuracy))
 
-    print("Optimization Finished!")
-
+    # The evaluation in this model is not quite necessary, as we do not repeat any element
+    # of the training batch, but we leave it for completeness
     model.eval()
     with torch.no_grad():
         test_x, test_y = copy_data(batch_size)

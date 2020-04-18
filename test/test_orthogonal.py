@@ -1,17 +1,18 @@
+# Tests for the Stiefel manifold, grassmannian and SO(n)
 from unittest import TestCase
 from copy import deepcopy
 import itertools
 
 import torch
 import torch.nn as nn
-import torch.nn.utils.parametrization as P
+import torch.nn.utils.parametrize as P
 
 from mantorch.so import SO
 from mantorch.stiefel import Stiefel, StiefelTall
 from mantorch.grassmanian import Grassmanian, GrassmanianTall
 
 
-class TestStiefel(TestCase):
+class TestOrthogonal(TestCase):
 
     def assertIsOrthogonal(self, X):
         if X.ndimension() == 2:
@@ -56,10 +57,10 @@ class TestStiefel(TestCase):
                     l2 = deepcopy(l1)
                     if test_so:
                         l3 = deepcopy(l1)
-                    P.register_parametrization(l1, cls(size=l1.weight.size(), triv=triv), "weight")
-                    P.register_parametrization(l2, cls_tall(size=l2.weight.size(), triv=triv), "weight")
+                    P.register_parametrization(l1, "weight", cls(size=l1.weight.size(), triv=triv))
+                    P.register_parametrization(l2, "weight", cls_tall(size=l2.weight.size(), triv=triv))
                     if test_so:
-                        P.register_parametrization(l3, SO(size=l3.weight.size(), triv=triv), "weight")
+                        P.register_parametrization(l3, "weight", SO(size=l3.weight.size(), triv=triv))
 
                     layers = [l1, l2]
                     if test_so:
@@ -67,20 +68,20 @@ class TestStiefel(TestCase):
 
                     for layer in layers:
                         with torch.no_grad():
-                            layer.weight_param.uniform_init_()
+                            layer.parametrizations.weight.uniform_init_()
 
                     # Check that the initialization of the layers is orthogonal
                     for layer in layers:
                         self.assertIsOrthogonal(layer.weight)
-                        self.assertIsOrthogonal(layer.weight_param.base)
+                        self.assertIsOrthogonal(layer.parametrizations.weight.base)
 
                     # Make the initialization the same
-                    X = l1.weight.t() if l1.weight_param.transpose else l1.weight
+                    X = l1.weight.t() if l1.parametrizations.weight.transpose else l1.weight
                     for layer in layers[1:]:
                         with torch.no_grad():
-                            layer.weight_param.base.copy_(X)
+                            layer.parametrizations.weight.base.copy_(X)
                         self.assertAlmostEqual(torch.norm(l1.weight - layer.weight).item(), 0., places=5)
-                        self.assertIsOrthogonal(layer.weight_param.base)
+                        self.assertIsOrthogonal(layer.parametrizations.weight.base)
 
                     if isinstance(l1, nn.Linear):
                         input_ = torch.rand(5, n)
@@ -110,6 +111,13 @@ class TestStiefel(TestCase):
                         self.assertIsOrthogonal(X1)
                         results.append((X1, X2))
 
+                        # If we change the base, the forward pass should give the same
+                        loss_old = layer(input_).sum().item()
+                        layer.parametrizations.weight.update_base()
+                        loss_new = layer(input_).sum().item()
+                        self.assertAlmostEqual(loss_old, loss_new)
+
+
                     # Check pairwise equality
                     with torch.no_grad():
                         for l, m in itertools.combinations(range(len(results)), 2):
@@ -122,6 +130,5 @@ class TestStiefel(TestCase):
                                 # We are more permissive, as we are computing the norm
                                 # of the whole batch of matrices. We are fine with it
                                 # being correct on average
-                                print(l1.weight.size())
                                 self.assertAlmostEqual(norm0/(k*4.), 0., places=3)
                                 self.assertAlmostEqual(norm1/(k*4.), 0., places=2)
