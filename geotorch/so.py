@@ -13,19 +13,23 @@ def cayley_map(X):
 
 
 class SO(Manifold):
-    trivializations = {"expm": expm,
-                       "cayley": cayley_map}
+    trivializations = {"expm": expm, "cayley": cayley_map}
 
     def __init__(self, size, triv="expm", lower=True):
         super().__init__(dimensions=2, size=size)
         if self.n != self.k:
-            raise ValueError("The SO parametrization can just be applied to square matrices. "
-                             "Got a tensor of size {}".format(self.orig_dim))
+            raise ValueError(
+                "The SO parametrization can just be applied to square matrices. "
+                "Got a tensor of size {}".format(self.orig_dim)
+            )
 
         if triv not in SO.trivializations.keys() and not callable(triv):
-            raise ValueError("Argument triv was not recognized and is "
-                             "not callable. Should be one of {}. Found {}"
-                             .format(list(SO.trivializations.keys()), triv))
+            raise ValueError(
+                "Argument triv was not recognized and is "
+                "not callable. Should be one of {}. Found {}".format(
+                    list(SO.trivializations.keys()), triv
+                )
+            )
         if callable(triv):
             self.triv = triv
         else:
@@ -51,7 +55,7 @@ class SO(Manifold):
                 self.last_parametrization().originals[0].zero_()
 
     def extra_repr(self):
-        return 'n={}, triv={}'.format(self.n, self.triv.__name__)
+        return "n={}, triv={}".format(self.n, self.triv.__name__)
 
 
 def uniform_init_(tensor):
@@ -65,8 +69,10 @@ def uniform_init_(tensor):
     # We re-implement torch.nn.init.orthogonal_, as their treatment of batches
     # is not in a per-matrix base
     if tensor.ndimension() < 2:
-        raise ValueError("Only tensors with 2 or more dimensions are supported. "
-                         "Got a tensor of shape {}".format(tuple(tensor.size())))
+        raise ValueError(
+            "Only tensors with 2 or more dimensions are supported. "
+            "Got a tensor of shape {}".format(tuple(tensor.size()))
+        )
     n, k = tensor.size()[-2:]
     transpose = n < k
     with torch.no_grad():
@@ -82,8 +88,8 @@ def uniform_init_(tensor):
             q.transpose_(-2, -1)
 
         if n == k:
-            mask = (torch.det(q) > 0.).float()
-            mask[mask == 0.] = -1.
+            mask = (torch.det(q) > 0.0).float()
+            mask[mask == 0.0] = -1.0
             if tensor.ndimension() > 2:
                 mask = mask.unsqueeze(-1).unsqueeze(-1).expand_as(q)
             q *= mask
@@ -106,9 +112,11 @@ def torus_init_(tensor, init_=None, triv=expm):
                :math:`\mathcal{U}(-\pi, \pi)
     """
     if tensor.ndimension() < 2 or tensor.size(-1) != tensor.size(-2):
-        raise ValueError("Only tensors with 2 or more dimensions which are square in "
-                         "the last two dimensions are supported. "
-                         "Got a tensor of shape {}".format(tuple(tensor.size())))
+        raise ValueError(
+            "Only tensors with 2 or more dimensions which are square in "
+            "the last two dimensions are supported. "
+            "Got a tensor of shape {}".format(tuple(tensor.size()))
+        )
 
     n, k = tensor.size()[-2:]
     tensorial_size = tensor.size()[:-2]
@@ -123,7 +131,7 @@ def torus_init_(tensor, init_=None, triv=expm):
 
     with torch.no_grad():
         # First non-central diagonal
-        diag_z = tensor.new_zeros(tensorial_size + (n-1,))
+        diag_z = tensor.new_zeros(tensorial_size + (n - 1,))
         diag_z[..., ::2] = diag
         tensor.data = torch.diag_embed(diag_z, offset=-1)
         tensor.data = triv(tensor - tensor.transpose(-2, -1))

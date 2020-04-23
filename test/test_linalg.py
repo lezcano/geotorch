@@ -4,8 +4,8 @@ import torch
 
 from geotorch.linalg.expm import expm, taylor_approx
 
-class TestLinalg(TestCase):
 
+class TestLinalg(TestCase):
     def taylor(self, X, deg):
         assert X.size(-1) == X.size(-2)
         n = X.size(-1)
@@ -14,7 +14,7 @@ class TestLinalg(TestCase):
             Id = Id.expand_as(X)
         acc = Id
         last = Id
-        for i in range(1, deg+1):
+        for i in range(1, deg + 1):
             last = last @ X / float(i)
             acc = acc + last
         return acc
@@ -24,11 +24,11 @@ class TestLinalg(TestCase):
         Scale-squaring trick
         """
         norm = X.norm()
-        if norm < .5:
+        if norm < 0.5:
             return self.taylor(X, 12)
 
         k = int(math.ceil(math.log2(float(norm)))) + 2
-        X = X * (2**-k)
+        X = X * (2 ** -k)
         E = self.taylor(X, 18)
         for _ in range(k):
             E = torch.mm(E, E)
@@ -37,7 +37,7 @@ class TestLinalg(TestCase):
     def assertIsCloseSquare(self, X, Y, places=4):
         self.assertEqual(X.ndimension(), 2)
         self.assertEqual(X.size(0), X.size(1))
-        self.assertAlmostEqual(torch.norm(X - Y).item(), 0., places=places)
+        self.assertAlmostEqual(torch.norm(X - Y).item(), 0.0, places=places)
 
     def compare_f(self, f_batching, f_simple, allows_batches, gradients=False):
         # Test expm without batching
@@ -72,21 +72,29 @@ class TestLinalg(TestCase):
                 # sample a few coordinates and evaluate the equality
                 # of those elements in the batch
                 for _ in range(3):
-                    coords = [torch.randint(low=0, high=s, size=(1,)).item()
-                                for s in shape_batch]
+                    coords = [
+                        torch.randint(low=0, high=s, size=(1,)).item()
+                        for s in shape_batch
+                    ]
                     coords = coords + [...]
                     self.assertIsCloseSquare(B1[coords], B2[coords], places=3)
             else:
                 # sample a few coordinates and evaluate the equality
                 # of those elements in the batch
                 for _ in range(3):
-                    coords = [torch.randint(low=0, high=s, size=(1,)).item()
-                                for s in shape_batch]
+                    coords = [
+                        torch.randint(low=0, high=s, size=(1,)).item()
+                        for s in shape_batch
+                    ]
                     coords = coords + [...]
                     if gradients:
-                        self.assertIsCloseSquare(B1[coords], f_simple(A[coords], G[coords]), places=2)
+                        self.assertIsCloseSquare(
+                            B1[coords], f_simple(A[coords], G[coords]), places=2
+                        )
                     else:
-                        self.assertIsCloseSquare(B1[coords], f_simple(A[coords]), places=3)
+                        self.assertIsCloseSquare(
+                            B1[coords], f_simple(A[coords]), places=3
+                        )
 
     def test_expm(self):
         with torch.random.fork_rng(devices=range(torch.cuda.device_count())):
@@ -94,9 +102,11 @@ class TestLinalg(TestCase):
             # Test different Taylor approximations
             degs = [1, 2, 4, 8, 12, 18]
             for deg in degs:
-                self.compare_f(lambda X: taylor_approx(X, deg),
-                               lambda X: self.taylor(X, deg),
-                               allows_batches=True)
+                self.compare_f(
+                    lambda X: taylor_approx(X, deg),
+                    lambda X: self.taylor(X, deg),
+                    allows_batches=True,
+                )
 
             # Test the main function
             self.compare_f(expm, self.scale_square, allows_batches=False)
@@ -106,6 +116,12 @@ class TestLinalg(TestCase):
                 def wrap(A, G):
                     A.requires_grad_()
                     return torch.autograd.grad([f(A)], [A], [G])[0]
+
                 return wrap
 
-            self.compare_f(diff(expm), diff(self.scale_square), allows_batches=False, gradients=True)
+            self.compare_f(
+                diff(expm),
+                diff(self.scale_square),
+                allows_batches=False,
+                gradients=True,
+            )

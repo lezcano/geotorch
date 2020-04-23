@@ -2,6 +2,7 @@ import torch
 import torch.nn.utils.parametrize as P
 import torch.nn as nn
 
+
 class AbstractManifold(P.Parametrization):
     def __init__(self, dimensions, size):
         super().__init__()
@@ -23,10 +24,12 @@ class AbstractManifold(P.Parametrization):
                 self.n, self.k = self.k, self.n
             self.dim = (self.n, self.k)
         elif self.dimensions >= 3:
-            self.dim = tuple(size[-(i+1)] for i in reversed(range(self.dimensions)))
+            self.dim = tuple(size[-(i + 1)] for i in reversed(range(self.dimensions)))
         else:
-            raise ValueError("Range {} not supported. Expected a positive integer or "
-                             "`product`".format(self.dimensions))
+            raise ValueError(
+                "Range {} not supported. Expected a positive integer or "
+                "`product`".format(self.dimensions)
+            )
 
     @property
     def orig_dim(self):
@@ -79,8 +82,9 @@ class Manifold(AbstractManifold):
     def update_base(self, X=None):
         is_registered = self.is_registered()
         if not is_registered and X is None:
-            raise ValueError("Cannot update the base before registering the "
-                             "Parametrization")
+            raise ValueError(
+                "Cannot update the base before registering the " "Parametrization"
+            )
         with torch.no_grad():
             if X is None:
                 X = self.evaluate()
@@ -97,17 +101,22 @@ class Fibration(AbstractManifold):
     def __init__(self, dimensions, size, total_space):
         super().__init__(dimensions, size)
         if not isinstance(total_space, AbstractManifold):
-            raise TypeError("Expecting total_space to be a subclass "
-                            "'geotorch.AbstractManifold'. Got '{}''."
-                            .format(type(total_space).__name__))
+            raise TypeError(
+                "Expecting total_space to be a subclass "
+                "'geotorch.AbstractManifold'. Got '{}''.".format(
+                    type(total_space).__name__
+                )
+            )
 
         f_embedding = self.embedding
         if self.transpose:
             f_embedding = lambda _, X: self.embedding(X.transpose(-2, -1))
 
-        Embedding = type("Embedding" + self.__class__.__name__,
-                        (P.Parametrization,),
-                        {"forward": f_embedding})
+        Embedding = type(
+            "Embedding" + self.__class__.__name__,
+            (P.Parametrization,),
+            {"forward": f_embedding},
+        )
 
         total_space.chain(Embedding())
         self.chain(total_space)
@@ -139,17 +148,17 @@ class Fibration(AbstractManifold):
 
 class ProductManifold(AbstractManifold):
     def __init__(self, manifolds):
-        super().__init__(dimensions="product",
-                         size=ProductManifold._size(manifolds))
+        super().__init__(dimensions="product", size=ProductManifold._size(manifolds))
         self.manifolds = nn.ModuleList(manifolds)
 
     @staticmethod
     def _size(manifolds):
         for mani in manifolds:
             if not isinstance(mani, AbstractManifold):
-                raise TypeError("Expecting all elements in a ProductManifold to be "
-                                "geotorch.AbstractManifold. Found a {}."
-                                .format(type(mani).__name__))
+                raise TypeError(
+                    "Expecting all elements in a ProductManifold to be "
+                    "geotorch.AbstractManifold. Found a {}.".format(type(mani).__name__)
+                )
 
         return tuple(m.dim for m in manifolds)
 
@@ -159,8 +168,9 @@ class ProductManifold(AbstractManifold):
     def update_base(self, Xs=None):
         is_registered = self.is_registered()
         if not is_registered and Xs is None:
-            raise ValueError("Cannot update the base before registering the "
-                             "Parametrization")
+            raise ValueError(
+                "Cannot update the base before registering the " "Parametrization"
+            )
         with torch.no_grad():
             if Xs is None:
                 Xs = self.originals

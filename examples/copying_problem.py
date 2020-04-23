@@ -4,20 +4,20 @@ import torch.nn.functional as F
 import torch.nn.utils.parametrize as P
 import geotorch.so as Ort
 
-batch_size  = 128
+batch_size = 128
 hidden_size = 190
-iterations  = 4000 # Training iterations
-L           = 1000 # Length of sequence before asking to remember
-K           = 10   # Length of sequence to remember
-n_classes   = 9    # Number of possible classes
-lr          = 1e-3
-lr_orth     = 2e-4
-device      = torch.device('cuda')
+iterations = 4000  # Training iterations
+L = 1000  # Length of sequence before asking to remember
+K = 10  # Length of sequence to remember
+n_classes = 9  # Number of possible classes
+lr = 1e-3
+lr_orth = 2e-4
+device = torch.device("cuda")
 # When RGD == True we perform Riemannian gradient descent
 # This is to demonstrate how one may implement RGD with
 # just one extra line of code.
 # RGD does not perform very well in these problems though.
-RGD         = False
+RGD = False
 
 
 class modrelu(nn.Module):
@@ -50,8 +50,9 @@ class ExpRNNCell(nn.Module):
         self.nonlinearity = modrelu(hidden_size)
 
         # Make recurrent_kernel orthogonal
-        P.register_parametrization(self.recurrent_kernel, "weight",
-                                   Ort.SO(self.recurrent_kernel.weight.size()))
+        P.register_parametrization(
+            self.recurrent_kernel, "weight", Ort.SO(self.recurrent_kernel.weight.size())
+        )
 
         self.reset_parameters()
 
@@ -97,7 +98,6 @@ class Model(nn.Module):
     def loss(self, logits, y):
         return self.loss_func(logits.view(-1, 9), y.view(-1))
 
-
     def accuracy(self, logits, y):
         return torch.eq(torch.argmax(logits, dim=2), y).float().mean()
 
@@ -113,11 +113,11 @@ def copy_data(batch_size):
     # signal to start outputting the numbers
     # We codify `-` as a 0 and `:` as a 9.
 
-    seq =    torch.randint(1, n_classes, (batch_size, K),            dtype=torch.long, device=device)
-    zeros1 = torch.zeros(                (batch_size, L),            dtype=torch.long, device=device)
-    zeros2 = torch.zeros(                (batch_size, K-1),          dtype=torch.long, device=device)
-    zeros3 = torch.zeros(                (batch_size, K+L),          dtype=torch.long, device=device)
-    marker = torch.full(                 (batch_size, 1), n_classes, dtype=torch.long, device=device)
+    seq = torch.randint(1, n_classes, (batch_size, K), dtype=torch.long, device=device)
+    zeros1 = torch.zeros((batch_size, L), dtype=torch.long, device=device)
+    zeros2 = torch.zeros((batch_size, K - 1), dtype=torch.long, device=device)
+    zeros3 = torch.zeros((batch_size, K + L), dtype=torch.long, device=device)
+    marker = torch.full((batch_size, 1), n_classes, dtype=torch.long, device=device)
 
     x = torch.cat([seq, zeros1, marker, zeros2], dim=1)
     y = torch.cat([zeros3, seq], dim=1)
@@ -130,26 +130,31 @@ def main():
 
     p_orth = model.rnn.recurrent_kernel
     orth_params = p_orth.parameters()
-    non_orth_params = (param for param in model.parameters()
-                       if param not in set(p_orth.parameters()))
+    non_orth_params = (
+        param for param in model.parameters() if param not in set(p_orth.parameters())
+    )
 
     if RGD:
         # DTRIV1 + SGD = Stochstic Riemannian Gradient Descent
-        optim = torch.optim.SGD([{'params': non_orth_params},
-                                 {'params': orth_params, 'lr': lr_orth}
-                                 ], lr=lr)
+        optim = torch.optim.SGD(
+            [{"params": non_orth_params}, {"params": orth_params, "lr": lr_orth}], lr=lr
+        )
     else:
         # These recurrent models benefit of slightly larger mixing constants
         # on the adaptive term. They also work with beta_2 = 0.999, but they
         # give better results with beta_2 = 0.99 or even 0.95
-        optim = torch.optim.Adam([{'params': non_orth_params},
-                                  {'params': orth_params, 'lr': lr_orth, 'betas': (0.9, 0.99)}
-                                 ], lr=lr)
+        optim = torch.optim.Adam(
+            [
+                {"params": non_orth_params},
+                {"params": orth_params, "lr": lr_orth, "betas": (0.9, 0.99)},
+            ],
+            lr=lr,
+        )
 
     model.train()
     for step in range(iterations):
         batch_x, batch_y = copy_data(batch_size)
-        x_onehot = F.one_hot(batch_x, num_classes=n_classes+1).float()
+        x_onehot = F.one_hot(batch_x, num_classes=n_classes + 1).float()
         logits = model(x_onehot)
         loss = model.loss(logits, batch_y)
 
@@ -170,7 +175,7 @@ def main():
     model.eval()
     with torch.no_grad():
         test_x, test_y = copy_data(batch_size)
-        x_onehot = F.one_hot(test_x, num_classes=n_classes+1).float()
+        x_onehot = F.one_hot(test_x, num_classes=n_classes + 1).float()
         logits = model(x_onehot)
         loss = model.loss(logits, test_y)
         accuracy = model.accuracy(logits, test_y)

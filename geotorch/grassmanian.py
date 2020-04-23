@@ -9,10 +9,10 @@ class Grassmanian(Fibration):
     Implement everything as the fibration St(n,k) -> Gr(n,k)
     G(n,k) \iso St(n,k) / O(k)
     """
+
     def __init__(self, size, triv="expm"):
         size_st = Grassmanian.size_st(size)
-        super().__init__(dimensions=2, size=size,
-                         total_space=Stiefel(size_st, triv))
+        super().__init__(dimensions=2, size=size, total_space=Stiefel(size_st, triv))
         self.triv = triv
 
     @staticmethod
@@ -26,7 +26,7 @@ class Grassmanian(Fibration):
     def embedding(self, A):
         size_z = self.tensorial_size + (self.k, self.k)
         Z = A.new_zeros(*size_z)
-        return torch.cat([Z, A[..., self.k:, :]], dim=-2)
+        return torch.cat([Z, A[..., self.k :, :]], dim=-2)
 
     def fibration(self, X):
         return X
@@ -35,7 +35,7 @@ class Grassmanian(Fibration):
         self.total_space.uniform_init_()
 
     def extra_repr(self):
-        return 'n={}, k={}, triv={}'.format(self.n, self.k, self.triv)
+        return "n={}, k={}, triv={}".format(self.n, self.k, self.triv)
 
 
 class GrassmanianTall(StiefelTall):

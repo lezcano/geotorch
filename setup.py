@@ -51,8 +51,5 @@ setup(
     packages=find_packages(),
     python_requires=">=3.6,",
     install_requires=["torch>=1.4"],
-    extras_require={
-        "dev": DEV_REQUIRES,
-        "test": TEST_REQUIRES,
-    },
+    extras_require={"dev": DEV_REQUIRES, "test": TEST_REQUIRES,},
 )

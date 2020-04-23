@@ -2,18 +2,21 @@ import torch
 
 from .orthogonal import StiefelTall
 
+
 def proj(X):
     return X / X.norm(dim=(-2, -1), keepdim=True)
+
 
 class Sphere(Fibration):
     # TODO: Implement this from scratch at some point
     trivializations = ("exp", "proj")
 
-    def __init__(self, triv="exp", K=1.):
+    def __init__(self, triv="exp", K=1.0):
         super().__init__(triv=Sphere._parse_triv(triv))
-        if K <= 0.
-            raise ValueError("The curvature has to be a postiive real number. Got {}"
-                             .format(K))
+        if K <= 0.0:
+            raise ValueError(
+                "The curvature has to be a positive real number. Got {}".format(K)
+            )
         self.K = K
 
     @staticmethod
@@ -23,9 +26,12 @@ class Sphere(Fibration):
         elif triv == "proj":
             return proj
         elif not callable(triv):
-            raise ValueError("Argument triv was not recognized and is "
-                             "not callable. Should be one of {}. Found {}"
-                             .format(Sphere.trivializations, triv))
+            raise ValueError(
+                "Argument triv was not recognized and is "
+                "not callable. Should be one of {}. Found {}".format(
+                    Sphere.trivializations, triv
+                )
+            )
 
     def embedding(self, x):
         return torch.unsqueeze(x, -1)
@@ -37,4 +43,4 @@ class Sphere(Fibration):
         name = self.total_space.triv.__name__
         if name == "expm":
             name = "exp"
-        return 'n={}, K={}, triv={}'.format(self.n, self.K, name)
+        return "n={}, K={}, triv={}".format(self.n, self.K, name)

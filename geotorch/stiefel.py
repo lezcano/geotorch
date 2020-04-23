@@ -12,8 +12,11 @@ class Stiefel(Fibration):
     """
 
     def __init__(self, size, triv="expm"):
-        super().__init__(dimensions=2, size=size,
-                         total_space=SO(size=Stiefel.size_so(size), triv=triv, lower=True))
+        super().__init__(
+            dimensions=2,
+            size=size,
+            total_space=SO(size=Stiefel.size_so(size), triv=triv, lower=True),
+        )
         self.triv = triv
 
     @staticmethod
@@ -27,7 +30,7 @@ class Stiefel(Fibration):
         return torch.cat([A, A.new_zeros(*size_z)], dim=-1)
 
     def fibration(self, X):
-        return X[..., :, :self.k]
+        return X[..., :, : self.k]
 
     def uniform_init_(self):
         self.total_space.uniform_init_()
@@ -42,8 +45,7 @@ def stable_qr(X):
     # This should be done with QR with pivoting...
     Q, R = torch.qr(X)
     d = R.diagonal(dim1=-2, dim2=-1).sign()
-    return Q * d.unsqueeze(-2).expand_as(Q),\
-           R * d.unsqueeze(-1).expand_as(R)
+    return Q * d.unsqueeze(-2).expand_as(Q), R * d.unsqueeze(-1).expand_as(R)
 
 
 def non_singular_(X):
@@ -52,12 +54,12 @@ def non_singular_(X):
     # PyTorch are not correctly implemented at zero... Check that
     with torch.no_grad():
         n, k = X.size()[-2:]
-        eps = k*1e-8
+        eps = k * 1e-8
         # If it's close to zero, we give it a wiggle
         small = X.norm(dim=(-2, -1)) < eps
         if small.any():
             if X.ndimension() == 2:
-                X[:k] += eps*torch.eye(k,k)
+                X[:k] += eps * torch.eye(k, k)
             else:
                 size_e = X.size()[:-2] + (k, k)
                 eye = (eps * torch.eye(k)).expand(*size_e)
@@ -70,15 +72,18 @@ class StiefelTall(Manifold):
     """
     Implements St(n,k), 1 <= k <= n/2
     """
-    trivializations = {"expm": expm,
-                       "cayley": cayley_map}
+
+    trivializations = {"expm": expm, "cayley": cayley_map}
 
     def __init__(self, size, triv="expm"):
         super().__init__(dimensions=2, size=size)
         if triv not in StiefelTall.trivializations.keys() and not callable(triv):
-            raise ValueError("Argument triv was not recognized and is "
-                             "not callable. Should be one of {}. Found {}"
-                             .format(list(StiefelTall.trivializations.keys()), triv))
+            raise ValueError(
+                "Argument triv was not recognized and is "
+                "not callable. Should be one of {}. Found {}".format(
+                    list(StiefelTall.trivializations.keys()), triv
+                )
+            )
 
         if callable(triv):
             self.triv = triv
@@ -107,12 +112,12 @@ class StiefelTall(Manifold):
         # Atilde = [[A, -R.t()],
         #           [R,  0    ]] \in Skew(2k)
         A = self.fibr_aux.tril(-1)
-        z_size = self.tensorial_size + (2*self.k, self.k)
+        z_size = self.tensorial_size + (2 * self.k, self.k)
         Atilde = torch.cat([torch.cat([A, R], dim=-2), X.new_zeros(*z_size)], dim=-1)
         Atilde = Atilde - Atilde.transpose(-2, -1)
 
         BQ = torch.cat([B, Q], dim=-1)
-        MN = expm(Atilde)[..., :, :self.k]
+        MN = expm(Atilde)[..., :, : self.k]
         return BQ @ MN
 
     def update_base(self, X=None):

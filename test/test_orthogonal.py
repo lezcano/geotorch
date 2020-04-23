@@ -13,15 +13,16 @@ from geotorch.grassmanian import Grassmanian, GrassmanianTall
 
 
 class TestOrthogonal(TestCase):
-
     def assertIsOrthogonal(self, X):
         if X.ndimension() == 2:
             self._assertIsOrthogonal(X)
         elif X.ndimension() > 2:
             # Sample a few elements and see that they are orthogonal
             for _ in range(4):
-                coords = [torch.randint(low=0, high=s, size=(1,)).item()
-                           for s in X.size()[:-2]]
+                coords = [
+                    torch.randint(low=0, high=s, size=(1,)).item()
+                    for s in X.size()[:-2]
+                ]
                 coords = coords + [...]
                 self._assertIsOrthogonal(X[coords])
 
@@ -29,7 +30,7 @@ class TestOrthogonal(TestCase):
         if X.size(0) < X.size(1):
             X = X.t()
         Id = torch.eye(X.size(1))
-        self.assertAlmostEqual(torch.norm(X.t() @ X - Id).item(), 0., places=3)
+        self.assertAlmostEqual(torch.norm(X.t() @ X - Id).item(), 0.0, places=3)
 
     def test_stiefel(self):
         self._test_orthogonality(Stiefel, StiefelTall)
@@ -42,25 +43,42 @@ class TestOrthogonal(TestCase):
         register them in modules of several sizes. Check that the
         results are orthogonal and equal in the three cases.
         """
-        sizes = [(8,1), (8,3), (8,4), (8,8),
-                 (7,1), (7,3), (7,4), (7,7),
-                 (1,7), (2,7), (1,1), (1,2)]
+        sizes = [
+            (8, 1),
+            (8, 3),
+            (8, 4),
+            (8, 8),
+            (7, 1),
+            (7, 3),
+            (7, 4),
+            (7, 7),
+            (1, 7),
+            (2, 7),
+            (1, 1),
+            (1, 2),
+        ]
         trivs = ["expm"]
 
         with torch.random.fork_rng(devices=range(torch.cuda.device_count())):
             torch.random.manual_seed(8888)
             for (n, k), triv in itertools.product(sizes, trivs):
-                for layer_init in [nn.Linear(n,k), nn.Conv2d(k, 4, 3)]:
+                for layer_init in [nn.Linear(n, k), nn.Conv2d(k, 4, 3)]:
                     print("START")
                     test_so = cls != Grassmanian and n == k
                     l1 = layer_init
                     l2 = deepcopy(l1)
                     if test_so:
                         l3 = deepcopy(l1)
-                    P.register_parametrization(l1, "weight", cls(size=l1.weight.size(), triv=triv))
-                    P.register_parametrization(l2, "weight", cls_tall(size=l2.weight.size(), triv=triv))
+                    P.register_parametrization(
+                        l1, "weight", cls(size=l1.weight.size(), triv=triv)
+                    )
+                    P.register_parametrization(
+                        l2, "weight", cls_tall(size=l2.weight.size(), triv=triv)
+                    )
                     if test_so:
-                        P.register_parametrization(l3, "weight", SO(size=l3.weight.size(), triv=triv))
+                        P.register_parametrization(
+                            l3, "weight", SO(size=l3.weight.size(), triv=triv)
+                        )
 
                     layers = [l1, l2]
                     if test_so:
@@ -76,11 +94,17 @@ class TestOrthogonal(TestCase):
                         self.assertIsOrthogonal(layer.parametrizations.weight.base)
 
                     # Make the initialization the same
-                    X = l1.weight.t() if l1.parametrizations.weight.transpose else l1.weight
+                    X = (
+                        l1.weight.t()
+                        if l1.parametrizations.weight.transpose
+                        else l1.weight
+                    )
                     for layer in layers[1:]:
                         with torch.no_grad():
                             layer.parametrizations.weight.base.copy_(X)
-                        self.assertAlmostEqual(torch.norm(l1.weight - layer.weight).item(), 0., places=5)
+                        self.assertAlmostEqual(
+                            torch.norm(l1.weight - layer.weight).item(), 0.0, places=5
+                        )
                         self.assertIsOrthogonal(layer.parametrizations.weight.base)
 
                     if isinstance(l1, nn.Linear):
@@ -93,7 +117,7 @@ class TestOrthogonal(TestCase):
                     for i, layer in enumerate(layers):
                         print(layer)
                         # Take one SGD step
-                        optim = torch.optim.SGD(layer.parameters(), lr=1.)
+                        optim = torch.optim.SGD(layer.parameters(), lr=1.0)
                         loss = layer(input_).sum()
                         optim.zero_grad()
                         loss.backward()
@@ -117,18 +141,17 @@ class TestOrthogonal(TestCase):
                         loss_new = layer(input_).sum().item()
                         self.assertAlmostEqual(loss_old, loss_new)
 
-
                     # Check pairwise equality
                     with torch.no_grad():
                         for l, m in itertools.combinations(range(len(results)), 2):
                             norm0 = torch.norm(results[l][0] - results[m][0]).item()
                             norm1 = torch.norm(results[l][1] - results[m][1]).item()
                             if isinstance(l1, nn.Linear):
-                                self.assertAlmostEqual(norm0, 0., places=3)
-                                self.assertAlmostEqual(norm1, 0., places=2)
+                                self.assertAlmostEqual(norm0, 0.0, places=3)
+                                self.assertAlmostEqual(norm1, 0.0, places=2)
                             elif isinstance(l1, nn.Conv2d):
                                 # We are more permissive, as we are computing the norm
                                 # of the whole batch of matrices. We are fine with it
                                 # being correct on average
-                                self.assertAlmostEqual(norm0/(k*4.), 0., places=3)
-                                self.assertAlmostEqual(norm1/(k*4.), 0., places=2)
+                                self.assertAlmostEqual(norm0 / (k * 4.0), 0.0, places=3)
+                                self.assertAlmostEqual(norm1 / (k * 4.0), 0.0, places=2)
