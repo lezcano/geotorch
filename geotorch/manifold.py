@@ -98,7 +98,7 @@ class Fibration(AbstractManifold):
         super().__init__(dimensions, size)
         if not isinstance(total_space, AbstractManifold):
             raise TypeError("Expecting total_space to be a subclass "
-                            "'mantorch.AbstractManifold'. Got '{}''."
+                            "'geotorch.AbstractManifold'. Got '{}''."
                             .format(type(total_space).__name__))
 
         f_embedding = self.embedding
@@ -148,7 +148,7 @@ class ProductManifold(AbstractManifold):
         for mani in manifolds:
             if not isinstance(mani, AbstractManifold):
                 raise TypeError("Expecting all elements in a ProductManifold to be "
-                                "mantorch.AbstractManifold. Found a {}."
+                                "geotorch.AbstractManifold. Found a {}."
                                 .format(type(mani).__name__))
 
         return tuple(m.dim for m in manifolds)

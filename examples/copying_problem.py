@@ -2,7 +2,7 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 import torch.nn.utils.parametrize as P
-import mantorch.so as Ort
+import geotorch.so as Ort
 
 batch_size  = 128
 hidden_size = 190

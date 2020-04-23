@@ -7,9 +7,9 @@ import torch
 import torch.nn as nn
 import torch.nn.utils.parametrize as P
 
-from mantorch.so import SO
-from mantorch.stiefel import Stiefel, StiefelTall
-from mantorch.grassmanian import Grassmanian, GrassmanianTall
+from geotorch.so import SO
+from geotorch.stiefel import Stiefel, StiefelTall
+from geotorch.grassmanian import Grassmanian, GrassmanianTall
 
 
 class TestOrthogonal(TestCase):

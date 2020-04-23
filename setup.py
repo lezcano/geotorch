@@ -31,14 +31,14 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(
-    name="mantorch",
+    name="geotorch",
     version="0.1.0",
     description="Constrained Optimization in Pytorch",
     author="Mario Lezcano Casado",
     license="MIT",
     long_description=long_description,  # Optional
     long_description_content_type="text/markdown",
-    url="https://github.com/Lezcano/mantorch",
+    url="https://github.com/Lezcano/geotorch",
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Programming Language :: Python :: 3 :: Only",

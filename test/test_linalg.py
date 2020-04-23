@@ -2,7 +2,7 @@ import math
 from unittest import TestCase
 import torch
 
-from mantorch.linalg.expm import expm, taylor_approx
+from geotorch.linalg.expm import expm, taylor_approx
 
 class TestLinalg(TestCase):
 

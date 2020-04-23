@@ -5,7 +5,7 @@ import torch
 import torch.nn as nn
 import torch.nn.utils.parametrize as P
 
-from mantorch.lowrank import LowRank
+from geotorch.lowrank import LowRank
 
 class TestLowRank(TestCase):
 
