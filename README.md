@@ -1,3 +1,5 @@
+[![codecov](https://codecov.io/gh/Lezcano/geotorch/branch/master/graph/badge.svg?token=1AKM2EQ7RT)](https://codecov.io/gh/Lezcano/geotorch)
+
 # GeoTorch
 > A library for constrained and manifold optimization for deep learning in Pytorch
 
