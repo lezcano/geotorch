@@ -37,7 +37,7 @@ jobs:
       run: black --check --diff .
 
     - name: Test with pytest
-      run: pytest tests
+      run: pytest test
 
     - name: Coverage tests
       run: pytest --cov=geotorch test/ --cov-report term-missing
