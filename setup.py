@@ -2,7 +2,6 @@
 
 from setuptools import setup, find_packages
 import sys
-from os import path
 
 REQUIRED_MAJOR = 3
 REQUIRED_MINOR = 6
@@ -51,5 +50,5 @@ setup(
     packages=find_packages(),
     python_requires=">=3.6,",
     install_requires=["torch>=1.4"],
-    extras_require={"dev": DEV_REQUIRES, "test": TEST_REQUIRES,},
+    extras_require={"dev": DEV_REQUIRES, "test": TEST_REQUIRES},
 )

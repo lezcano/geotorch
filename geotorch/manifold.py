@@ -110,7 +110,9 @@ class Fibration(AbstractManifold):
 
         f_embedding = self.embedding
         if self.transpose:
-            f_embedding = lambda _, X: self.embedding(X.transpose(-2, -1))
+
+            def f_embedding(_, X):
+                return self.embedding(X.transpose(-2, -1))
 
         Embedding = type(
             "Embedding" + self.__class__.__name__,

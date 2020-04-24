@@ -117,7 +117,7 @@ class StiefelTall(Manifold):
         Atilde = Atilde - Atilde.transpose(-2, -1)
 
         BQ = torch.cat([B, Q], dim=-1)
-        MN = expm(Atilde)[..., :, : self.k]
+        MN = self.triv(Atilde)[..., :, : self.k]
         return BQ @ MN
 
     def update_base(self, X=None):

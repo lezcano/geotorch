@@ -122,7 +122,9 @@ def torus_init_(tensor, init_=None, triv=expm):
     tensorial_size = tensor.size()[:-2]
 
     if init_ is None:
-        init_ = lambda t: torch.nn.init.uniform_(t, -math.pi, math.pi)
+
+        def init_(t):
+            return torch.nn.init.uniform_(t, -math.pi, math.pi)
 
     # Non-zero elements that we are going to set on the diagonal
     n_diag = n // 2

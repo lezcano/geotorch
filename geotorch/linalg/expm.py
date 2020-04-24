@@ -46,6 +46,72 @@ thetas_dict = {
     ],  # m_vals = 18
 }
 
+coefs = {
+    12: [
+        [
+            -1.86023205146205530824e-02,
+            -5.00702322573317714499e-03,
+            -5.73420122960522249400e-01,
+            -1.33399693943892061476e-01,
+        ],
+        [
+            4.6,
+            9.92875103538486847299e-01,
+            -1.32445561052799642976e-01,
+            1.72990000000000000000e-03,
+        ],
+        [
+            2.11693118299809440730e-01,
+            1.58224384715726723583e-01,
+            1.65635169436727403003e-01,
+            1.07862779315792429308e-02,
+        ],
+        [
+            0.0,
+            -1.31810610138301836924e-01,
+            -2.02785554058925905629e-02,
+            -6.75951846863086323186e-03,
+        ],
+    ],
+    18: [
+        [
+            0.0,
+            -1.00365581030144618291e-01,
+            -8.02924648241156932449e-03,
+            -8.92138498045729985177e-04,
+            0.0,
+        ],
+        [
+            0.0,
+            3.97849749499645077844e-01,
+            1.36783778460411720168e00,
+            4.98289622525382669416e-01,
+            -6.37898194594723280150e-04,
+        ],
+        [
+            -1.09676396052962061844e01,
+            1.68015813878906206114e00,
+            5.71779846478865511061e-02,
+            -6.98210122488052056106e-03,
+            3.34975017086070470649e-05,
+        ],
+        [
+            -9.04316832390810593223e-02,
+            -6.76404519071381882256e-02,
+            6.75961301770459654925e-02,
+            2.95552570429315521194e-02,
+            -1.39180257516060693404e-05,
+        ],
+        [
+            0.0,
+            0.0,
+            -9.23364619367118555360e-02,
+            -1.69364939002081722752e-02,
+            -1.40086798182036094347e-05,
+        ],
+    ],
+}
+
 
 def matrix_power_two_batch(A, k):
     orig_size = A.size()
@@ -108,187 +174,126 @@ def expm_taylor(A):
 
         # Handle trivial case
         if (normA == 0.0).all():
-            I = torch.eye(A.size(-2), A.size(-1), dtype=A.dtype, device=A.device)
-            I = I.expand_as(A)
-            return I
+            Id = torch.eye(A.size(-2), A.size(-1), dtype=A.dtype, device=A.device)
+            return Id.expand_as(A)
 
         # Handle small normA
         more = normA > thetas[-1]
-        k = normA.new_zeros(normA.size(), dtype=torch.long)
-        k[more] = torch.ceil(torch.log2(normA[more]) - math.log2(thetas[-1])).long()
+        s = normA.new_zeros(normA.size(), dtype=torch.long)
+        s[more] = torch.ceil(torch.log2(normA[more]) - math.log2(thetas[-1])).long()
 
         # A = A * 2**(-s)
-        A = torch.pow(0.5, k.float()).unsqueeze_(-1).unsqueeze_(-1).expand_as(A) * A
+        A = torch.pow(0.5, s.float()).unsqueeze_(-1).unsqueeze_(-1).expand_as(A) * A
         X = taylor_approx(A, degs[-1])
-        return matrix_power_two_batch(X, k)
+        return matrix_power_two_batch(X, s)
+
+
+def taylor1(Id, A):
+    return Id + A
+
+
+def taylor2(Id, A, A2):
+    return Id + A + 0.5 * A2
+
+
+def taylor4(Id, A, A2):
+    return Id + A + A2 @ (0.5 * Id + A / 6.0 + A2 / 24.0)
+
+
+def taylor8(Id, A, A2):
+    # Minor: Precompute
+    SQRT = math.sqrt(177.0)
+    x3 = 2.0 / 3.0
+    a1 = (1.0 + SQRT) * x3
+    x1 = a1 / 88.0
+    x2 = a1 / 352.0
+    c0 = (-271.0 + 29.0 * SQRT) / (315.0 * x3)
+    c1 = (11.0 * (-1.0 + SQRT)) / (1260.0 * x3)
+    c2 = (11.0 * (-9.0 + SQRT)) / (5040.0 * x3)
+    c4 = (89.0 - SQRT) / (5040.0 * x3 * x3)
+    y2 = ((857.0 - 58.0 * SQRT)) / 630.0
+    # Matrix products
+    A4 = A2 @ (x1 * A + x2 * A2)
+    A8 = (x3 * A2 + A4) @ (c0 * Id + c1 * A + c2 * A2 + c4 * A4)
+    return Id + A + y2 * A2 + A8
+
+
+def taylor12(Id, A, A2, A3):
+    b = torch.tensor(coefs[12], dtype=A.dtype, device=A.device)
+    # We implement the following allowing for batches
+    # q31 = a01*Id+a11*A+a21*A2+a31*A3
+    # q32 = a02*Id+a12*A+a22*A2+a32*A3
+    # q33 = a03*Id+a13*A+a23*A2+a33*A3
+    # q34 = a04*Id+a14*A+a24*A2+a34*A3
+    # Matrix products
+    # q61 = q33 + q34 @ q34
+    # return (q31 + (q32 + q61) @ q61)
+
+    q = torch.stack([Id, A, A2, A3], dim=-3).unsqueeze_(-4)
+    len_batch = A.ndimension() - 2
+    # Expand first dimension to perform pointwise multiplication
+    q_size = [-1 for _ in range(len_batch)] + [4, -1, -1, -1]
+    q = q.expand(*q_size)
+    b = b.unsqueeze_(-1).unsqueeze_(-1).expand_as(q)
+    q = (b * q).sum(dim=-3)
+    if A.ndimension() > 2:
+        # Indexing the third to last dimension, because otherwise we
+        # would have to prepend as many 1's as the batch shape for the
+        # previous expand_as to work
+        qaux = q[..., 2, :, :] + q[..., 3, :, :] @ q[..., 3, :, :]
+        return q[..., 0, :, :] + (q[..., 1, :, :] + qaux) @ qaux
+    else:
+        qaux = q[2] + q[3] @ q[3]
+        return q[0] + (q[1] + qaux) @ qaux
+
+
+def taylor18(Id, A, A2, A3, A6):
+    b = torch.tensor(coefs[18], dtype=A.dtype, device=A.device)
+    # We implement the following allowing for batches
+    # q31 = a01*Id + a11*A + a21*A2 + a31*A3
+    # q61 = b01*Id + b11*A + b21*A2 + b31*A3 + b61*A6
+    # q62 = b02*Id + b12*A + b22*A2 + b32*A3 + b62*A6
+    # q63 = b03*Id + b13*A + b23*A2 + b33*A3 + b63*A6
+    # q64 = b04*Id + b14*A + b24*A2 + b34*A3 + b64*A6
+    # q91 = q31 @ q64 + q63
+    # return q61 + (q62 + q91) @ q91
+    q = torch.stack([Id, A, A2, A3, A6], dim=-3).unsqueeze_(-4)
+    len_batch = A.ndimension() - 2
+    q_size = [-1 for _ in range(len_batch)] + [5, -1, -1, -1]
+    q = q.expand(*q_size)
+    b = b.unsqueeze_(-1).unsqueeze_(-1).expand_as(q)
+    q = (b * q).sum(dim=-3)
+    if A.ndimension() > 2:
+        # Indexing the third to last dimension, because otherwise we
+        # would have to prepend as many 1's as the batch shape for the
+        # previous expand_as to work
+        qaux = q[..., 0, :, :] @ q[..., 4, :, :] + q[..., 3, :, :]
+        return q[..., 1, :, :] + (q[..., 2, :, :] + qaux) @ qaux
+    else:
+        qaux = q[0] @ q[4] + q[3]
+        return q[1] + (q[2] + qaux) @ qaux
 
 
 def taylor_approx(A, deg):
-    batched = A.ndimension() > 2
-    I = torch.eye(A.size(-2), A.size(-1), dtype=A.dtype, device=A.device)
-    if batched:
-        I = I.expand_as(A)
+    Id = torch.eye(A.size(-2), A.size(-1), dtype=A.dtype, device=A.device)
+    if A.ndimension() > 2:
+        Id = Id.expand_as(A)
 
+    As = [Id, A]
     if deg >= 2:
-        A2 = A @ A
-    if deg > 8:
-        A3 = A @ A2
+        # A2
+        As.append(A @ A)
+    if deg >= 12:
+        # A3
+        As.append(A @ As[2])
     if deg == 18:
-        A6 = A3 @ A3
+        # A6
+        As.append(As[3] @ As[3])
 
-    if deg == 1:
-        return I + A
-    elif deg == 2:
-        return I + A + 0.5 * A2
-    elif deg == 4:
-        return I + A + A2 @ (0.5 * I + A / 6.0 + A2 / 24.0)
-    elif deg == 8:
-        # Minor: Precompute
-        SQRT = math.sqrt(177.0)
-        x3 = 2.0 / 3.0
-        a1 = (1.0 + SQRT) * x3
-        x1 = a1 / 88.0
-        x2 = a1 / 352.0
-        c0 = (-271.0 + 29.0 * SQRT) / (315.0 * x3)
-        c1 = (11.0 * (-1.0 + SQRT)) / (1260.0 * x3)
-        c2 = (11.0 * (-9.0 + SQRT)) / (5040.0 * x3)
-        c4 = (89.0 - SQRT) / (5040.0 * x3 * x3)
-        y2 = ((857.0 - 58.0 * SQRT)) / 630.0
-        # Matrix products
-        A4 = A2 @ (x1 * A + x2 * A2)
-        A8 = (x3 * A2 + A4) @ (c0 * I + c1 * A + c2 * A2 + c4 * A4)
-        return I + A + y2 * A2 + A8
-    elif deg == 12:
-        b = torch.tensor(
-            [
-                [
-                    -1.86023205146205530824e-02,
-                    -5.00702322573317714499e-03,
-                    -5.73420122960522249400e-01,
-                    -1.33399693943892061476e-01,
-                ],
-                [
-                    4.6,
-                    9.92875103538486847299e-01,
-                    -1.32445561052799642976e-01,
-                    1.72990000000000000000e-03,
-                ],
-                [
-                    2.11693118299809440730e-01,
-                    1.58224384715726723583e-01,
-                    1.65635169436727403003e-01,
-                    1.07862779315792429308e-02,
-                ],
-                [
-                    0.0,
-                    -1.31810610138301836924e-01,
-                    -2.02785554058925905629e-02,
-                    -6.75951846863086323186e-03,
-                ],
-            ],
-            dtype=A.dtype,
-            device=A.device,
-        )
-
-        # We implement the following allowing for batches
-        # q31 = a01*I+a11*A+a21*A2+a31*A3
-        # q32 = a02*I+a12*A+a22*A2+a32*A3
-        # q33 = a03*I+a13*A+a23*A2+a33*A3
-        # q34 = a04*I+a14*A+a24*A2+a34*A3
-        # Matrix products
-        # q61 = q33 + q34 @ q34
-        # return (q31 + (q32 + q61) @ q61)
-
-        # Example of non-batched version for reference
-        # q = torch.stack([I, A, A2, A3]).repeat(4, 1, 1, 1)
-        # b = b.unsqueeze(-1).unsqueeze(-1).expand_as(q)
-        # q = (b * q).sum(dim=1)
-        # qaux = q[2] + q[3] @ q[3]
-        # return q[0] + (q[1] + qaux) @ qaux
-
-        q = torch.stack([I, A, A2, A3], dim=-3).unsqueeze_(-4)
-        len_batch = A.ndimension() - 2
-        # Expand first dimension
-        q_size = [-1 for _ in range(len_batch)] + [4, -1, -1, -1]
-        q = q.expand(*q_size)
-        b = b.unsqueeze_(-1).unsqueeze_(-1).expand_as(q)
-        q = (b * q).sum(dim=-3)
-        if batched:
-            # Indexing the third to last dimension, because otherwise we
-            # would have to prepend as many 1's as the batch shape for the
-            # previous expand_as to work
-            qaux = q[..., 2, :, :] + q[..., 3, :, :] @ q[..., 3, :, :]
-            return q[..., 0, :, :] + (q[..., 1, :, :] + qaux) @ qaux
-        else:
-            qaux = q[2] + q[3] @ q[3]
-            return q[0] + (q[1] + qaux) @ qaux
-
-    elif deg == 18:
-        b = torch.tensor(
-            [
-                [
-                    0.0,
-                    -1.00365581030144618291e-01,
-                    -8.02924648241156932449e-03,
-                    -8.92138498045729985177e-04,
-                    0.0,
-                ],
-                [
-                    0.0,
-                    3.97849749499645077844e-01,
-                    1.36783778460411720168e00,
-                    4.98289622525382669416e-01,
-                    -6.37898194594723280150e-04,
-                ],
-                [
-                    -1.09676396052962061844e01,
-                    1.68015813878906206114e00,
-                    5.71779846478865511061e-02,
-                    -6.98210122488052056106e-03,
-                    3.34975017086070470649e-05,
-                ],
-                [
-                    -9.04316832390810593223e-02,
-                    -6.76404519071381882256e-02,
-                    6.75961301770459654925e-02,
-                    2.95552570429315521194e-02,
-                    -1.39180257516060693404e-05,
-                ],
-                [
-                    0.0,
-                    0.0,
-                    -9.23364619367118555360e-02,
-                    -1.69364939002081722752e-02,
-                    -1.40086798182036094347e-05,
-                ],
-            ],
-            dtype=A.dtype,
-            device=A.device,
-        )
-
-        # We implement the following allowing for batches
-        # q31 = a01*I + a11*A + a21*A2 + a31*A3
-        # q61 = b01*I + b11*A + b21*A2 + b31*A3 + b61*A6
-        # q62 = b02*I + b12*A + b22*A2 + b32*A3 + b62*A6
-        # q63 = b03*I + b13*A + b23*A2 + b33*A3 + b63*A6
-        # q64 = b04*I + b14*A + b24*A2 + b34*A3 + b64*A6
-        # q91 = q31 @ q64 + q63
-        # return q61 + (q62 + q91) @ q91
-        q = torch.stack([I, A, A2, A3, A6], dim=-3).unsqueeze_(-4)
-        len_batch = A.ndimension() - 2
-        q_size = [-1 for _ in range(len_batch)] + [5, -1, -1, -1]
-        q = q.expand(*q_size)
-        b = b.unsqueeze_(-1).unsqueeze_(-1).expand_as(q)
-        q = (b * q).sum(dim=-3)
-        if batched:
-            # Indexing the third to last dimension, because otherwise we
-            # would have to prepend as many 1's as the batch shape for the
-            # previous expand_as to work
-            qaux = q[..., 0, :, :] @ q[..., 4, :, :] + q[..., 3, :, :]
-            return q[..., 1, :, :] + (q[..., 2, :, :] + qaux) @ qaux
-        else:
-            qaux = q[0] @ q[4] + q[3]
-            return q[1] + (q[2] + qaux) @ qaux
+    # Switch-case
+    return {1: taylor1, 2: taylor2, 4: taylor4, 8: taylor8, 12: taylor12, 18: taylor18}[
+        deg
+    ](*As)
 
 
 def differential(A, E, f):

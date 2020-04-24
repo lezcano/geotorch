@@ -1,11 +1,5 @@
-from copy import deepcopy
-
-import torch
-import torch.nn as nn
-
 from .manifold import Fibration, ProductManifold
 from .stiefel import Stiefel, StiefelTall
-from .so import SO
 from .reals import Rn
 
 
