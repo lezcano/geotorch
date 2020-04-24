@@ -17,12 +17,16 @@ class Model(nn.Module):
     def __init__(self):
         super(Model, self).__init__()
         self.linear = nn.Linear(4, 5)
+        self.cnn = nn.Conv(16, 32, 3)
         # Make the linear layer into an orthogonal layer
         geotorch.orthogonal(self.linear, "weight")
+        # Also works on tensors. Makes every kernel orthogonal
+        geotorch.orthogonal(self.cnn, "weight")
 
     def forward(self, x):
         # Here self.linear.weight is orthogonal
-        return self.linear(x)
+        # Every kernel of the cnn is also orthogonal
+        ...
 
 # Use the model as you'd normally do, everything works as in a non-parametrized model
 model = Model()
@@ -37,11 +41,14 @@ GeoTorch currently supports the following manifolds:
 - `Sphere`
 - `SO`: Manifold of orthogonal square matrices
 - `Stiefel`: Manifold of matrices with orthonormal columns
-- `Grassmannian`: Manifold of k-subspaces in R^n
+- `Grassmannian`: Manifold of k-subspaces in Rⁿ
 - `Low-Rank`: Variety of matrices n x k of rank r or less
 - `Skew`: Vector space of skew-symmetric matrices
 - `Sym`: Vector space of symmetric matrices
 - `Rn`: Unrestricted optimisation
+
+Every manifold of dimension `(m, n)`can be applied to tensors of shape `(*, m, n)`, so we also get efficient parallel implementations of product manifolds such as
+- `Oblique Manifold`: Sⁿ × ...ᵐ⁾ × Sⁿ
 
 Furthermore, it implements the following constructions:
 - `Manifold`: Manifold that supports Riemannian Gradient Descent and trivializations
