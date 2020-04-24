@@ -58,9 +58,7 @@ class TestLowRank(TestCase):
             # Delete zero values to reveal true rank
             S = S[:-idx]
         # Rather lax as this is quite unstable
-        self.assertAlmostEqual(
-            (S_orig - S).abs().max().item(), 0.0, places=1
-        )
+        self.assertAlmostEqual((S_orig - S).abs().max().item(), 0.0, places=1)
 
     def test_lowrank(self):
         sizes = [
