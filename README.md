@@ -38,21 +38,21 @@ optim = torch.optim.Adam(model.parameters(), lr=lr)
 ## Manifolds
 
 GeoTorch currently supports the following manifolds:
-- `Sphere`
-- `SO`: Manifold of orthogonal square matrices
-- `Stiefel`: Manifold of matrices with orthonormal columns
-- `Grassmannian`: Manifold of k-subspaces in Rⁿ
-- `Low-Rank`: Variety of matrices n x k of rank r or less
-- `Skew`: Vector space of skew-symmetric matrices
-- `Sym`: Vector space of symmetric matrices
-- `Rn`: Unrestricted optimisation
+- `Sphere(n)`: Sⁿ
+- `SO(n)`: Manifold of orthogonal square matrices
+- `Stiefel(n,k)`: Manifold of n × k matrices with orthonormal columns
+- `Grassmannian(n,k)`: Manifold of k-subspaces in Rⁿ
+- `LowRank(n,k,r)`: Variety of matrices n × k of rank r or less
+- `Skew(n)`: Vector space of skew-symmetric matrices
+- `Sym(n)`: Vector space of symmetric matrices
+- `Rn(n)`: Rⁿ. Unrestricted optimisation
 
-Every manifold of dimension `(m, n)`can be applied to tensors of shape `(*, m, n)`, so we also get efficient parallel implementations of product manifolds such as
-- `Oblique Manifold`: Sⁿ × ...ᵐ⁾ × Sⁿ
+Every manifold of dimension `(n, k)`can be applied to tensors of shape `(*, n, k)`, so we also get efficient parallel implementations of product manifolds such as
+- `Oblique Manifold`: Sⁿ × ...ᵏ⁾ × Sⁿ
 
 Furthermore, it implements the following constructions:
 - `Manifold`: Manifold that supports Riemannian Gradient Descent and trivializations
-- `Fibration`: Fibred space π : E → M, constructed from a `Manifold` E, a submersion π and local sections of dπ. Think the `Stiefel` manifold π : SO(n) → St(n, k) or the `Grassmannian` π : St(n, k) → Gr(n, k)
+- `Fibration`: Fibred space π : E → M, constructed from a `Manifold` E, a submersion π and local sections of dπ. For example the `Stiefel` manifold π : SO(n) → St(n, k) or the `Grassmannian` π : St(n, k) → Gr(n, k)
 - `ProductManifold`: M₁ × ... × Mₖ
 
 ## Bibliography
