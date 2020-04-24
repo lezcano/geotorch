@@ -1,4 +1,6 @@
+[![Build](https://github.com/lezcano/geotorch/workflows/build/badge.svg)](https://github.com/lezcano/geotorch/actions)
 [![codecov](https://codecov.io/gh/Lezcano/geotorch/branch/master/graph/badge.svg?token=1AKM2EQ7RT)](https://codecov.io/gh/Lezcano/geotorch)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 # GeoTorch
 > A library for constrained and manifold optimization for deep learning in Pytorch
