@@ -57,8 +57,9 @@ class TestLowRank(TestCase):
         if idx != 0:
             # Delete zero values to reveal true rank
             S = S[:-idx]
+        # Rather lax as this is quite unstable
         self.assertAlmostEqual(
-            torch.norm(S_orig - S, p=float("Inf")).item(), 0.0, places=2
+            (S_orig - S).abs().max().item(), 0.0, places=1
         )
 
     def test_lowrank(self):
@@ -102,25 +103,17 @@ class TestLowRank(TestCase):
                         # batch x in_channel x in_length x in_width
                         input_ = torch.rand(6, n, 9, 8)
 
-                    loss = layer(input_).sum()
-                    optim.zero_grad()
-                    loss.backward()
-                    optim.step()
+                    for i in range(2):
+                        print(i)
+                        loss = layer(input_).sum()
+                        optim.zero_grad()
+                        loss.backward()
+                        optim.step()
 
-                    U_orig, S_orig, V_orig = LR.total_space.evaluate()
-                    self.assertIsOrthogonal(U_orig)
-                    self.assertIsOrthogonal(V_orig)
-                    self.assertHasSingularValues(layer.weight, S_orig)
-
-                    loss = layer(input_).sum()
-                    optim.zero_grad()
-                    loss.backward()
-                    optim.step()
-
-                    U_orig, S_orig, V_orig = LR.total_space.evaluate()
-                    self.assertIsOrthogonal(U_orig)
-                    self.assertIsOrthogonal(V_orig)
-                    self.assertHasSingularValues(layer.weight, S_orig)
+                        U_orig, S_orig, V_orig = LR.total_space.evaluate()
+                        self.assertIsOrthogonal(U_orig)
+                        self.assertIsOrthogonal(V_orig)
+                        self.assertHasSingularValues(layer.weight, S_orig)
 
                     # Test update_base
                     prev_out = layer(input_)
