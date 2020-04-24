@@ -5,8 +5,8 @@ import itertools
 
 import torch
 import torch.nn as nn
-import torch.nn.utils.parametrize as P
 
+import geotorch.parametrize as P
 from geotorch.so import SO
 from geotorch.stiefel import Stiefel, StiefelTall
 from geotorch.grassmanian import Grassmanian, GrassmanianTall

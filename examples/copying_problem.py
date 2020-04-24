@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 import torch.nn.functional as F
-import torch.nn.utils.parametrize as P
+import geotorch.parametrize as P
 import geotorch.so as Ort
 
 batch_size = 128

@@ -4,8 +4,8 @@ import itertools
 
 import torch
 import torch.nn as nn
-import torch.nn.utils.parametrize as P
 
+import geotorch.parametrize as P
 from geotorch.sphere import Sphere
 
 

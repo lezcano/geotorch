@@ -1,6 +1,7 @@
 import torch
-import torch.nn.utils.parametrize as P
 import torch.nn as nn
+
+import geotorch.parametrize as P
 
 
 class AbstractManifold(P.Parametrization):
