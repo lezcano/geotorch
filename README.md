@@ -3,7 +3,7 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 # GeoTorch
-> A library for constrained and manifold optimization for deep learning in Pytorch
+> A library for constrained optimization and manifold optimization for deep learning in Pytorch
 
 ## Overview
 
