@@ -2,4 +2,4 @@ __pycache__/
 .cache/
 .pytest_cache/
 .git/
-
+.coverage
