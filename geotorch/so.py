@@ -16,6 +16,7 @@ class SO(Manifold):
     trivializations = {"expm": expm, "cayley": cayley_map}
 
     def __init__(self, size, triv="expm", lower=True):
+        size = SO._parse_size(size)
         super().__init__(dimensions=2, size=size)
         if self.n != self.k:
             raise ValueError(
@@ -38,6 +39,13 @@ class SO(Manifold):
         # Precompose with Skew
         self.chain(Skew(size=size, lower=lower))
         self.uniform_init_()
+
+    @staticmethod
+    def _parse_size(size):
+        if isinstance(size, int):
+            return (size, size)
+        else:
+            return size
 
     def trivialization(self, X, B):
         return B @ self.triv(X)

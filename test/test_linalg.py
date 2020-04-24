@@ -39,12 +39,12 @@ class TestLinalg(TestCase):
         self.assertEqual(X.size(0), X.size(1))
         self.assertAlmostEqual(torch.norm(X - Y).item(), 0.0, places=places)
 
-    def compare_f(self, f_batching, f_simple, allows_batches, gradients=False):
+    def compare_f(self, f_batching, f_simple, allows_batches, dtype, gradients=False):
         # Test expm without batching
         for _ in range(8):
-            A = torch.rand(10, 10)
+            A = torch.rand(10, 10, dtype=dtype)
             if gradients:
-                G = torch.rand(10, 10)
+                G = torch.rand(10, 10, dtype=dtype)
                 B1 = f_batching(A, G)
                 B2 = f_simple(A, G)
                 self.assertIsCloseSquare(B1, B2, places=2)
@@ -58,9 +58,9 @@ class TestLinalg(TestCase):
             len_shape = torch.randint(1, 4, (1,))
             shape_batch = torch.randint(1, 5, size=(len_shape,))
             shape = list(shape_batch) + [8, 8]
-            A = torch.rand(*shape)
+            A = torch.rand(*shape, dtype=dtype)
             if gradients:
-                G = torch.rand(*shape)
+                G = torch.rand(*shape, dtype=dtype)
                 B1 = f_batching(A, G)
             else:
                 B1 = f_batching(A)
@@ -102,14 +102,19 @@ class TestLinalg(TestCase):
             # Test different Taylor approximations
             degs = [1, 2, 4, 8, 12, 18]
             for deg in degs:
-                self.compare_f(
-                    lambda X: taylor_approx(X, deg),
-                    lambda X: self.taylor(X, deg),
-                    allows_batches=True,
-                )
+                for dtype in [torch.float, torch.double]:
+                    self.compare_f(
+                        lambda X: taylor_approx(X, deg),
+                        lambda X: self.taylor(X, deg),
+                        allows_batches=True,
+                        dtype=dtype,
+                    )
 
             # Test the main function
-            self.compare_f(expm, self.scale_square, allows_batches=False)
+            for dtype in [torch.float, torch.double]:
+                self.compare_f(
+                    expm, self.scale_square, allows_batches=False, dtype=dtype
+                )
 
             # Test the gradients
             def diff(f):
@@ -119,9 +124,17 @@ class TestLinalg(TestCase):
 
                 return wrap
 
-            self.compare_f(
-                diff(expm),
-                diff(self.scale_square),
-                allows_batches=False,
-                gradients=True,
-            )
+            for dtype in [torch.float, torch.double]:
+                self.compare_f(
+                    diff(expm),
+                    diff(self.scale_square),
+                    allows_batches=False,
+                    dtype=dtype,
+                    gradients=True,
+                )
+
+    def test_errors(self):
+        with self.assertRaises(ValueError):
+            expm(torch.empty(3, 4))
+        with self.assertRaises(ValueError):
+            expm(torch.empty(1, 4))

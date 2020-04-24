@@ -7,17 +7,35 @@ import torch
 import torch.nn as nn
 
 import geotorch.parametrize as P
-from geotorch.so import SO
+from geotorch.so import SO, torus_init_, uniform_init_
 from geotorch.stiefel import Stiefel, StiefelTall
-from geotorch.grassmanian import Grassmanian, GrassmanianTall
+from geotorch.grassmannian import Grassmannian, GrassmannianTall
 
 
 class TestOrthogonal(TestCase):
-    def test_stiefel(self):
+    def test_orthogonality_stiefel(self):
         self._test_orthogonality(Stiefel, StiefelTall)
 
-    def test_grassmanian(self):
-        self._test_orthogonality(Grassmanian, GrassmanianTall)
+    def test_initialization_stiefel(self):
+        self._test_initializations(Stiefel, StiefelTall)
+
+    def test_constructor_stiefel(self):
+        self._test_constructor(Stiefel, StiefelTall)
+
+    def test_custom_trivialization_stiefel(self):
+        self._test_custom_trivialization(Stiefel)
+
+    def test_orthogonality_grassmannian(self):
+        self._test_orthogonality(Grassmannian, GrassmannianTall)
+
+    def test_initializations_grassmannian(self):
+        self._test_initializations(Grassmannian, GrassmannianTall)
+
+    def test_constructors_grassmannian(self):
+        self._test_constructor(Grassmannian, GrassmannianTall)
+
+    def test_custom_trivialization_grassmannian(self):
+        self._test_custom_trivialization(Grassmannian)
 
     def _test_orthogonality(self, cls, cls_tall):
         r"""Test that we may instantiate the parametrizations and
@@ -80,6 +98,75 @@ class TestOrthogonal(TestCase):
 
                 self.assertPairwiseEqual(results)
 
+    def _test_custom_trivialization(self, cls):
+        def qr(X):
+            return torch.qr(X).Q
+
+        # Note that qr is not an analytic function. As such, it may not be used with StiefelTall
+        layer = nn.Linear(5, 3)
+        P.register_parametrization(
+            layer, "weight", cls(size=layer.weight.size(), triv=qr)
+        )
+
+        optim = torch.optim.SGD(layer.parameters(), lr=0.1)
+        input_ = torch.rand(5, layer.in_features)
+        for _ in range(2):
+            with P.cached(layer):
+                self.assertIsOrthogonal(layer.weight)
+                loss = layer(input_).sum()
+            optim.zero_grad()
+            loss.backward()
+            optim.step()
+
+    def _test_constructor(self, cls, cls_tall):
+        with self.assertRaises(ValueError):
+            cls(size=(3, 3), triv="wrong")
+
+        with self.assertRaises(ValueError):
+            cls_tall(size=(3, 3), triv="wrong")
+
+        with self.assertRaises(ValueError):
+            SO(size=(3, 3), triv="wrong")
+
+        try:
+            cls(size=(3, 3), triv=lambda: 3)
+        except ValueError:
+            self.fail("{} raised ValueError unexpectedly!".format(cls))
+
+        try:
+            cls_tall(size=(3, 3), triv=lambda: 3)
+        except ValueError:
+            self.fail("{} raised ValueError unexpectedly!".format(cls_tall))
+
+    def _test_initializations(self, cls, cls_tall):
+        for layers in self._test_layers(cls, cls_tall):
+            for layer in layers:
+                p = layer.parametrizations.weight
+                p.uniform_init_()
+                self.assertIsOrthogonal(layer.weight)
+                if isinstance(p, SO):
+                    p.torus_init_()
+                    self.assertIsOrthogonal(layer.weight)
+        t = torch.empty(3, 4)
+        uniform_init_(t)
+        self.assertIsOrthogonal(t)
+        t.zero_()
+        # torus_init_ is just available for square matrices
+        with self.assertRaises(ValueError):
+            torus_init_(t)
+
+        # Number of dimensions < 2 should raise an error
+        t = torch.empty(3)
+        with self.assertRaises(ValueError):
+            torus_init_(t)
+        with self.assertRaises(ValueError):
+            uniform_init_(t)
+        t = torch.empty(0)
+        with self.assertRaises(ValueError):
+            torus_init_(t)
+        with self.assertRaises(ValueError):
+            uniform_init_(t)
+
     def _test_layers(self, cls, cls_tall):
         sizes = [
             (8, 1),
@@ -100,7 +187,7 @@ class TestOrthogonal(TestCase):
         for (n, k), triv in itertools.product(sizes, trivs):
             for layer in [nn.Linear(n, k), nn.Conv2d(n, 4, k)]:
                 layers = []
-                test_so = cls != Grassmanian and n == k
+                test_so = cls != Grassmannian and n == k
                 layers.append(layer)
                 layers.append(deepcopy(layer))
                 if test_so:
@@ -108,6 +195,11 @@ class TestOrthogonal(TestCase):
                     P.register_parametrization(
                         layers[2], "weight", SO(size=layers[2].weight.size(), triv=triv)
                     )
+                elif n != k:
+                    # If it's not square it should throw
+                    with self.assertRaises(ValueError):
+                        size = layer.weight.size()[:-2] + (n, k)
+                        SO(size=size, triv=triv)
 
                 P.register_parametrization(
                     layers[0], "weight", cls(size=layers[0].weight.size(), triv=triv)

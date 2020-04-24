@@ -7,12 +7,22 @@ import geotorch.parametrize as P
 class AbstractManifold(P.Parametrization):
     def __init__(self, dimensions, size):
         super().__init__()
+        if dimensions != "product" and (
+            not isinstance(dimensions, int) or dimensions < 0
+        ):
+            raise ValueError(
+                "dimensions should be a non-negative integer or 'product'. Got {}".format(
+                    dimensions
+                )
+            )
+
         self.transpose = False
         self.dimensions = dimensions
-        if isinstance(self.dimensions, int):
-            self.tensorial_size = tuple(size[:-dimensions])
-        else:
+        if self.dimensions == "product":
             self.tensorial_size = tuple()
+        else:
+            self.tensorial_size = tuple(size[:-dimensions])
+
         if self.dimensions == "product":
             self.dim = size
         elif self.dimensions == 1:
@@ -24,13 +34,8 @@ class AbstractManifold(P.Parametrization):
             if self.transpose:
                 self.n, self.k = self.k, self.n
             self.dim = (self.n, self.k)
-        elif self.dimensions >= 3:
+        else:  # self.dimensions >= 3
             self.dim = tuple(size[-(i + 1)] for i in reversed(range(self.dimensions)))
-        else:
-            raise ValueError(
-                "Range {} not supported. Expected a positive integer or "
-                "`product`".format(self.dimensions)
-            )
 
     @property
     def orig_dim(self):
@@ -47,8 +52,28 @@ class AbstractManifold(P.Parametrization):
             ret += ", tensorial_size={}".format(self.tensorial_size)
         return ret
 
-    def update_base(self, *Xs):
-        pass
+
+class EmbeddedManifold(AbstractManifold):
+    def projection(self, X):  # pragma: no cover
+        r"""
+        Parametrizes the manifold in terms of a projection from the ambient space
+        Args:
+            X (torch.nn.Tensor): A tensor in the ambient space
+        Returns:
+            tensor (torch.nn.Tensor): A tensor on the manifold
+        Note:
+            This function should be surjective, otherwise not all the manifold
+            will be explored
+        """
+        raise NotImplementedError()
+
+    def forward(self, X):
+        if self.transpose:
+            X = X.transpose(-2, -1)
+        X = self.projection(X)
+        if self.transpose:
+            X = X.transpose(-2, -1)
+        return X
 
 
 class Manifold(AbstractManifold):
@@ -58,7 +83,7 @@ class Manifold(AbstractManifold):
         if self.transpose:
             self.base = self.base.transpose(-2, -1)
 
-    def trivialization(self, X, B):
+    def trivialization(self, X, B):  # pragma: no cover
         r"""
         Parametrizes the manifold in terms of a tangent space
         Args:
@@ -84,7 +109,7 @@ class Manifold(AbstractManifold):
         is_registered = self.is_registered()
         if not is_registered and X is None:
             raise ValueError(
-                "Cannot update the base before registering the " "Parametrization"
+                "Cannot update the base before registering the Parametrization"
             )
         with torch.no_grad():
             if X is None:
@@ -124,10 +149,10 @@ class Fibration(AbstractManifold):
         total_space.chain(Embedding())
         self.chain(total_space)
 
-    def embedding(self, *X):
+    def embedding(self, *X):  # pragma: no cover
         raise NotImplementedError()
 
-    def fibration(self, *X):
+    def fibration(self, *X):  # pragma: no cover
         raise NotImplementedError()
 
     def forward(self, *Xs):

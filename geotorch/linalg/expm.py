@@ -296,7 +296,8 @@ def taylor_approx(A, deg):
     ](*As)
 
 
-def differential(A, E, f):
+# Coverage does not catch these two being used as they are executed from the C++ backend
+def differential(A, E, f):  # pragma: no cover
     n = A.size(-1)
     size_M = list(A.size()[:-2]) + [2 * n, 2 * n]
     M = A.new_zeros(size_M)
@@ -313,7 +314,7 @@ class expm_taylor_class(torch.autograd.Function):
         return expm_taylor(A)
 
     @staticmethod
-    def backward(ctx, G):
+    def backward(ctx, G):  # pragma: no cover
         (A,) = ctx.saved_tensors
         # Handle tipical case separately as (dexp)_0 = Id
         if (A == 0).all():

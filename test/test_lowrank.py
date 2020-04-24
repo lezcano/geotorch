@@ -129,3 +129,10 @@ class TestLowRank(TestCase):
                     self.assertAlmostEqual(
                         torch.norm(prev_out - new_out).abs().max().item(), 0.0, places=3
                     )
+
+    def test_lowrank_errors(self):
+        # rank always has to be <= min(n, k)
+        with self.assertRaises(ValueError):
+            LowRank(size=(4, 3), rank=5)
+        with self.assertRaises(ValueError):
+            LowRank(size=(2, 3), rank=3)

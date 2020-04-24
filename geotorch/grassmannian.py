@@ -4,14 +4,14 @@ from .manifold import Fibration
 from .stiefel import Stiefel, StiefelTall
 
 
-class Grassmanian(Fibration):
+class Grassmannian(Fibration):
     r"""
     Implement everything as the fibration St(n,k) -> Gr(n,k)
     G(n,k) \iso St(n,k) / O(k)
     """
 
     def __init__(self, size, triv="expm"):
-        size_st = Grassmanian.size_st(size)
+        size_st = Grassmannian.size_st(size)
         super().__init__(dimensions=2, size=size, total_space=Stiefel(size_st, triv))
         self.triv = triv
 
@@ -38,7 +38,7 @@ class Grassmanian(Fibration):
         return "n={}, k={}, triv={}".format(self.n, self.k, self.triv)
 
 
-class GrassmanianTall(StiefelTall):
+class GrassmannianTall(StiefelTall):
     def __init__(self, size, triv="expm"):
         super().__init__(size, triv)
         # Stiefel parametrization
