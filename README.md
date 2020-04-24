@@ -39,7 +39,8 @@ GeoTorch currently supports the following manifolds:
 - `Stiefel`: Manifold of matrices with orthonormal columns
 - `Grassmannian`: Manifold of k-subspaces in R^n
 - `Low-Rank`: Variety of matrices n x k of rank r or less
-- `Skew`: Manifold of the skew-symmetric matrices
+- `Skew`: Vector space of skew-symmetric matrices
+- `Sym`: Vector space of symmetric matrices
 - `Rn`: Unrestricted optimisation
 
 Furthermore, it implements the following constructions:
