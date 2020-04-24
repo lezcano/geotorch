@@ -30,3 +30,32 @@ model = Model()
 # Use your optimizer of choice. Any optimizer works out of the box on any manifold
 optim = torch.optim.Adam(model.parameters(), lr=lr)
 ```
+
+## Manifolds
+
+GeoTorch currently supports the following manifolds:
+- `Sphere`
+- `SO`: Manifold of orthogonal square matrices
+- `Stiefel`: Manifold of matrices with orthonormal columns
+- `Grassmannian`: Manifold of k-subspaces in R^n
+- `Low-Rank`: Variety of matrices n x k of rank r or less
+- `Skew`: Manifold of the skew-symmetric matrices
+- `Rn`: Unrestricted optimisation
+
+Furthermore, it implements the following constructions:
+- `Manifold`: Manifold that supports Riemannian Gradient Descent and trivializations
+- `Fibration`: Fibred space π : E → M, constructed from a `Manifold` E, a submersion π and local sections of dπ. Think the `Stiefel` manifold π : SO(n) → St(n, k) or the `Grassmannian` π : St(n, k) → Gr(n, k)
+- `ProductManifold`: M₁ × ... × Mₖ
+
+## Bibliography
+
+Please cite the following work if you found GeoTorch useful. In this paper one may find a simplified mathematical explanation of some basic version of GeoTorch
+```
+@inproceedings{lezcano2019trivializations,
+    title = {Trivializations for gradient-based optimization on manifolds},
+    author = {Lezcano-Casado, Mario},
+    booktitle={Advances in Neural Information Processing Systems, NeurIPS},
+    pages = {9154--9164},
+    year = {2019},
+}
+```
