@@ -16,16 +16,15 @@ import geotorch
 class Model(nn.Module):
     def __init__(self):
         super(Model, self).__init__()
-        self.linear = nn.Linear(4, 5)
-        self.cnn = nn.Conv(16, 32, 3)
-        # Make the linear layer into an orthogonal layer
-        geotorch.orthogonal(self.linear, "weight")
+        self.linear = nn.Linear(64, 128)
+        self.cnn = nn.Conv2d(16, 32, 3)
+        # Make the linear layer into a low rank layer with rank at most 10
+        geotorch.lowrank(self.linear, "weight", rank=10)
         # Also works on tensors. Makes every kernel orthogonal
         geotorch.orthogonal(self.cnn, "weight")
 
     def forward(self, x):
-        # Here self.linear.weight is orthogonal
-        # Every kernel of the cnn is also orthogonal
+        # self.linear is lowrank and every kernel of the CNN is also orthogonal
         ...
 
 # Use the model as you'd normally do, everything works as in a non-parametrized model
@@ -38,26 +37,36 @@ optim = torch.optim.Adam(model.parameters(), lr=lr)
 ## Manifolds
 
 GeoTorch currently supports the following manifolds:
-- `Sphere(n)`: Sⁿ
-- `SO(n)`: Manifold of orthogonal square matrices
-- `Stiefel(n,k)`: Manifold of n × k matrices with orthonormal columns
-- `Grassmannian(n,k)`: Manifold of k-subspaces in Rⁿ
-- `LowRank(n,k,r)`: Variety of matrices n × k of rank r or less
-- `Skew(n)`: Vector space of skew-symmetric matrices
+- `Rn(n)`: Rⁿ. Unrestricted optimization
 - `Sym(n)`: Vector space of symmetric matrices
-- `Rn(n)`: Rⁿ. Unrestricted optimisation
+- `Skew(n)`: Vector space of skew-symmetric matrices
+- `Sphere(n)`: Sphere in Rⁿ. It is Sⁿ⁻¹ = { x ∈ Rⁿ | ||x|| = 1 }
+- `SO(n)`: Manifold of n×n orthogonal matrices
+- `Stiefel(n,k)`: Manifold of n×k matrices with orthonormal columns
+- `Grassmannian(n,k)`: Manifold of k-dimensional subspaces in Rⁿ
+- `LowRank(n,k,r)`: Variety of n×k matrices of rank r or less
+- `FixedRank(n,k,r)`: Manifold of n×k matrices of rank r. NotImplemented
+- `PD(n)`: Manifold of n×n symmetric positive definite matrices. NotImplemented
+- `PSD(n)`: Manifold of n×n symmetric positive semi-definite matrices. NotImplemented
+- `PDLowRank(n,k)`: Variety of n×n symmetric positive definite matrices of rank k or less. NotImplemented
+- `PDFixedRank(n,k)`: Manifold of n×n symmetric positive definite matrices of rank k. NotImplemented
 
 Every manifold of dimension `(n, k)`can be applied to tensors of shape `(*, n, k)`, so we also get efficient parallel implementations of product manifolds such as
-- `Oblique Manifold`: Sⁿ × ...ᵏ⁾ × Sⁿ
+- `ObliqueManifold(n,k)`: Matrix with unit length columns, Sⁿ⁻¹ × ...ᵏ⁾ × Sⁿ⁻¹
 
-Furthermore, it implements the following constructions:
+It also implements the following constructions:
 - `Manifold`: Manifold that supports Riemannian Gradient Descent and trivializations
 - `Fibration`: Fibred space π : E → M, constructed from a `Manifold` E, a submersion π and local sections of dπ. For example the `Stiefel` manifold π : SO(n) → St(n, k) or the `Grassmannian` π : St(n, k) → Gr(n, k)
 - `ProductManifold`: M₁ × ... × Mₖ
+- `SymF(n, f)`: Symmetric positive definite matrices with eigenvalues in the image of a map `f`. If the map `f` is an embedding, this is a manifold. NotImplemented
+
+## Beyond Optimization: Normalizing Flows
+
+As every manifold in GeoTorch is, at its core, a map from a flat space into a manifold, the tools implemented here also serve as a building block in normalizing flows. Using a factorized manifold such as `LowdRank` it is direct to compute the determinan to the transformation it defines with no extra computation.
 
 ## Bibliography
 
-Please cite the following work if you found GeoTorch useful. In this paper one may find a simplified mathematical explanation of some basic version of GeoTorch
+Please cite the following work if you found GeoTorch useful. This paper exposes a simplified mathematical explanation of part of the inner-workings of GeoTorch
 ```
 @inproceedings{lezcano2019trivializations,
     title = {Trivializations for gradient-based optimization on manifolds},
