@@ -34,7 +34,7 @@ class TestSym(TestCase):
             # Assert that is stays in Sym(n) after some optimiser steps
             for i in range(2):
                 print(i)
-                with P.cached(layer):
+                with P.cached():
                     self.assertIsSym(layer.weight)
                     loss = layer(input_).sum()
                 optim.zero_grad()

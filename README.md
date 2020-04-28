@@ -46,8 +46,8 @@ GeoTorch currently supports the following manifolds:
 - `Grassmannian(n,k)`: Manifold of k-dimensional subspaces in Rⁿ
 - `LowRank(n,k,r)`: Variety of n×k matrices of rank r or less
 - `FixedRank(n,k,r)`: Manifold of n×k matrices of rank r. NotImplemented
-- `PD(n)`: Manifold of n×n symmetric positive definite matrices. NotImplemented
-- `PSD(n)`: Manifold of n×n symmetric positive semi-definite matrices. NotImplemented
+- `PD(n)`: Cone of n×n symmetric positive definite matrices. NotImplemented
+- `PSD(n)`: Cone of n×n symmetric positive semi-definite matrices. NotImplemented
 - `PDLowRank(n,k)`: Variety of n×n symmetric positive definite matrices of rank k or less. NotImplemented
 - `PDFixedRank(n,k)`: Manifold of n×n symmetric positive definite matrices of rank k. NotImplemented
 

@@ -81,7 +81,7 @@ class TestOrthogonal(TestCase):
                     results.append([])
 
                     for _ in range(2):
-                        with P.cached(layer):
+                        with P.cached():
                             self.assertIsOrthogonal(layer.weight)
                             loss = layer(input_).sum()
                         optim.zero_grad()
@@ -111,7 +111,7 @@ class TestOrthogonal(TestCase):
         optim = torch.optim.SGD(layer.parameters(), lr=0.1)
         input_ = torch.rand(5, layer.in_features)
         for _ in range(2):
-            with P.cached(layer):
+            with P.cached():
                 self.assertIsOrthogonal(layer.weight)
                 loss = layer(input_).sum()
             optim.zero_grad()

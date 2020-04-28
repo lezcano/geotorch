@@ -54,13 +54,13 @@ class SO(Manifold):
         with torch.no_grad():
             uniform_init_(self.base)
             if self.is_registered():
-                self.last_parametrization().originals[0].zero_()
+                self.original_tensor().zero_()
 
     def torus_init_(self, init_=None, triv=expm):
         with torch.no_grad():
             torus_init_(self.base, init_, triv)
             if self.is_registered():
-                self.last_parametrization().originals[0].zero_()
+                self.original_tensor().zero_()
 
     def extra_repr(self):
         return "n={}, triv={}".format(self.n, self.triv.__name__)

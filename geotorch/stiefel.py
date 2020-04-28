@@ -120,8 +120,8 @@ class StiefelTall(Manifold):
         MN = self.triv(Atilde)[..., :, : self.k]
         return BQ @ MN
 
-    def update_base(self, X=None):
-        super().update_base(X)
+    def update_base(self, zero=True):
+        super().update_base(zero)
         with torch.no_grad():
             self.fibr_aux.zero_()
 
@@ -129,7 +129,7 @@ class StiefelTall(Manifold):
         with torch.no_grad():
             uniform_init_(self.base)
             if self.is_registered():
-                self.last_parametrization().originals[0].zero_()
+                self.original_tensor().zero_()
             self.fibr_aux.zero_()
 
     def extra_repr(self):

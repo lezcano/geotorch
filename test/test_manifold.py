@@ -22,14 +22,6 @@ class TestManifold(TestCase):
         # Iter
         for M in SO3SO3:
             self.assertTrue(isinstance(M, SO))
-        # Forward
-        X, Y = SO3SO3(torch.rand(3, 3), torch.rand(3, 3))
-        self.assertAlmostEqual(
-            torch.norm(X.t() @ X - torch.eye(3)).item(), 0.0, places=5
-        )
-        self.assertAlmostEqual(
-            torch.norm(Y.t() @ Y - torch.eye(3)).item(), 0.0, places=5
-        )
         # repr
         print(SO3SO3)
         with self.assertRaises(ValueError):

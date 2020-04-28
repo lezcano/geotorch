@@ -39,9 +39,9 @@ class SphereEmbedded(EmbeddedManifold):
         return self.K * self.proj(x)
 
     def uniform_init_(self):
-        with torch.no_grad():
-            if self.is_registered():
-                x = self.last_parametrization().originals[0]
+        if self.is_registered():
+            with torch.no_grad():
+                x = self.original_tensor()
                 x.normal_()
                 x.data = project(x.data)
 

@@ -46,7 +46,8 @@ class LowRank(Fibration):
         V = X.triu(1).transpose(-2, -1)[..., :, : self.rank]
         return U, S, V
 
-    def fibration(self, U, S, V):
+    def fibration(self, X):
+        U, S, V = X
         Vt = V.transpose(-2, -1)
         # Multiply the three of them, S as a diagonal matrix
         return U @ (S.unsqueeze(-1).expand_as(Vt) * Vt)

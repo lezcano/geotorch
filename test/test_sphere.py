@@ -45,7 +45,7 @@ class TestSphere(TestCase):
                     # Assert that is stays in S^n after some optimiser steps
                     for i in range(2):
                         print(i)
-                        with P.cached(layer):
+                        with P.cached():
                             self.assertInSn(layer.weight)
                             self.assertInSn(layer.bias)
                             loss = layer(input_).sum()

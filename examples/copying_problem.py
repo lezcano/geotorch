@@ -86,13 +86,13 @@ class Model(nn.Module):
         nn.init.kaiming_normal_(self.lin.weight.data, nonlinearity="relu")
         nn.init.constant_(self.lin.bias.data, 0)
 
-    @P.cached_method()
     def forward(self, inputs):
         state = self.rnn.default_hidden(inputs[:, 0, ...])
         outputs = []
-        for input in torch.unbind(inputs, dim=1):
-            out_rnn, state = self.rnn(input, state)
-            outputs.append(self.lin(out_rnn))
+        with P.cached():
+            for input in torch.unbind(inputs, dim=1):
+                out_rnn, state = self.rnn(input, state)
+                outputs.append(self.lin(out_rnn))
         return torch.stack(outputs, dim=1)
 
     def loss(self, logits, y):
