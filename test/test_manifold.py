@@ -1,5 +1,4 @@
 from unittest import TestCase
-import torch
 
 import geotorch.manifold as manifold
 from geotorch.so import SO

@@ -141,8 +141,8 @@ class Fibration(AbstractManifold):
                 return self.embedding(X.transpose(-2, -1))
 
         Embedding = parametrization_from_function(
-                f_embedding,
-                name="Embedding" + self.__class__.__name__)
+            f_embedding, name="Embedding" + self.__class__.__name__
+        )
 
         total_space.chain(Embedding())
         self.chain(total_space)
@@ -195,8 +195,8 @@ class ProductManifold(AbstractManifold):
         if not is_chained:
             for i, mani in enumerate(self):
                 projection = parametrization_from_function(
-                        lambda _, X, i=i: X[i],
-                        name="Projection{}".format(i))()
+                    lambda _, X, i=i: X[i], name="Projection{}".format(i)
+                )()
                 projection.chain(parametrization)
                 mani.chain(projection)
 
