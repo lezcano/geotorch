@@ -43,13 +43,14 @@ GeoTorch currently supports the following manifolds:
 - `Sphere(n)`: Sphere in Rⁿ. It is Sⁿ⁻¹ = { x ∈ Rⁿ | ||x|| = 1 }
 - `SO(n)`: Manifold of n×n orthogonal matrices
 - `Stiefel(n,k)`: Manifold of n×k matrices with orthonormal columns
+- `AlmostOrthogonal(n,k,t)`: Manifold of n×k matrices with singular values in the interval (1-t, 1+t). NotImplemented
 - `Grassmannian(n,k)`: Manifold of k-dimensional subspaces in Rⁿ
 - `LowRank(n,k,r)`: Variety of n×k matrices of rank r or less
 - `FixedRank(n,k,r)`: Manifold of n×k matrices of rank r. NotImplemented
 - `PD(n)`: Cone of n×n symmetric positive definite matrices. NotImplemented
 - `PSD(n)`: Cone of n×n symmetric positive semi-definite matrices. NotImplemented
-- `PDLowRank(n,k)`: Variety of n×n symmetric positive definite matrices of rank k or less. NotImplemented
-- `PDFixedRank(n,k)`: Manifold of n×n symmetric positive definite matrices of rank k. NotImplemented
+- `PSDLowRank(n,k)`: Variety of n×n symmetric positive semi-definite matrices of rank k or less. NotImplemented
+- `PSDFixedRank(n,k)`: Manifold of n×n symmetric positive semi-definite matrices of rank k. NotImplemented
 
 Every manifold of dimension `(n, k)`can be applied to tensors of shape `(*, n, k)`, so we also get efficient parallel implementations of product manifolds such as
 - `ObliqueManifold(n,k)`: Matrix with unit length columns, Sⁿ⁻¹ × ...ᵏ⁾ × Sⁿ⁻¹
