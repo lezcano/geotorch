@@ -18,30 +18,24 @@ class AbstractManifold(P.Parametrization):
 
         self.transpose = False
         self.dimensions = dimensions
-        if self.dimensions == "product":
-            self.tensorial_size = tuple()
-        else:
+        if self.dimensions != "product":
             self.tensorial_size = tuple(size[:-dimensions])
-
-        if self.dimensions == "product":
-            self.dim = size
-        elif self.dimensions == 1:
-            self.n = size[-1]
-            self.dim = (self.n,)
-        elif self.dimensions == 2:
-            self.n, self.k = size[-2], size[-1]
-            self.transpose = self.n < self.k
-            if self.transpose:
-                self.n, self.k = self.k, self.n
-            self.dim = (self.n, self.k)
-        else:  # self.dimensions >= 3
-            self.dim = tuple(size[-(i + 1)] for i in reversed(range(self.dimensions)))
+            self.dim = tuple(size[-dimensions:])
+            if self.dimensions == 1:
+                self.n = self.dim[0]
+            elif self.dimensions == 2:
+                self.transpose = self.dim[0] < self.dim[1]
+                if self.transpose:
+                    self.dim = tuple(reversed(self.dim))
+                self.n, self.k = self.dim
 
     @property
     def orig_dim(self):
         self.dim[::-1] if self.transpose else self.dim
 
     def extra_repr(self):
+        if self.dimensions == "product":
+            return ""
         if self.dimensions == 1:
             ret = "n={}".format(self.n)
         elif self.dimensions == 2:
