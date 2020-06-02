@@ -113,11 +113,11 @@ def torus_init_(tensor, init_=None, triv=expm):
 
     Args:
         tensor (torch.nn.Tensor): a 2-dimensional tensor
-        triv: Optional. A function that maps skew-symmetric matrices
-                to orthogonal matrices.
         init_: Optional. A function that takes a tensor and fills
                 it in place according to some distribution. Default:
-               :math:`\mathcal{U}(-\pi, \pi)
+                :math:`\mathcal{U}(-\pi, \pi)`
+        triv: Optional. A function that maps skew-symmetric matrices
+                to orthogonal matrices.
     """
     if tensor.ndimension() < 2 or tensor.size(-1) != tensor.size(-2):
         raise ValueError(

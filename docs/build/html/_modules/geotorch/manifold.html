@@ -1,0 +1,417 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>geotorch.manifold &mdash; geotorch 0.0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> geotorch
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../geotorch.html">geotorch package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">geotorch</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>geotorch.manifold</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for geotorch.manifold</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">import</span> <span class="nn">torch.nn</span> <span class="k">as</span> <span class="nn">nn</span>
+
+<span class="kn">import</span> <span class="nn">geotorch.parametrize</span> <span class="k">as</span> <span class="nn">P</span>
+
+
+<div class="viewcode-block" id="AbstractManifold"><a class="viewcode-back" href="../../geotorch.html#geotorch.manifold.AbstractManifold">[docs]</a><span class="k">class</span> <span class="nc">AbstractManifold</span><span class="p">(</span><span class="n">P</span><span class="o">.</span><span class="n">Parametrization</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dimensions</span><span class="p">,</span> <span class="n">size</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">dimensions</span> <span class="o">!=</span> <span class="s2">&quot;product&quot;</span> <span class="ow">and</span> <span class="p">(</span>
+            <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dimensions</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="n">dimensions</span> <span class="o">&lt;</span> <span class="mi">0</span>
+        <span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;dimensions should be a non-negative integer or &#39;product&#39;. Got </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">dimensions</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">transpose</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span> <span class="o">=</span> <span class="n">dimensions</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span> <span class="o">!=</span> <span class="s2">&quot;product&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tensorial_size</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">size</span><span class="p">[:</span><span class="o">-</span><span class="n">dimensions</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dim</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">size</span><span class="p">[</span><span class="o">-</span><span class="n">dimensions</span><span class="p">:])</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">n</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">transpose</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">transpose</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">dim</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">reversed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">orig_dim</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">transpose</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span>
+
+<div class="viewcode-block" id="AbstractManifold.extra_repr"><a class="viewcode-back" href="../../geotorch.html#geotorch.manifold.AbstractManifold.extra_repr">[docs]</a>    <span class="k">def</span> <span class="nf">extra_repr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span> <span class="o">==</span> <span class="s2">&quot;product&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">ret</span> <span class="o">=</span> <span class="s2">&quot;n=</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">ret</span> <span class="o">=</span> <span class="s2">&quot;n=</span><span class="si">{}</span><span class="s2">, k=</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ret</span> <span class="o">=</span> <span class="s2">&quot;dim=</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tensorial_size</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">ret</span> <span class="o">+=</span> <span class="s2">&quot;, tensorial_size=</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tensorial_size</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ret</span></div></div>
+
+
+<div class="viewcode-block" id="EmbeddedManifold"><a class="viewcode-back" href="../../geotorch.html#geotorch.manifold.EmbeddedManifold">[docs]</a><span class="k">class</span> <span class="nc">EmbeddedManifold</span><span class="p">(</span><span class="n">AbstractManifold</span><span class="p">):</span>
+<div class="viewcode-block" id="EmbeddedManifold.projection"><a class="viewcode-back" href="../../geotorch.html#geotorch.manifold.EmbeddedManifold.projection">[docs]</a>    <span class="k">def</span> <span class="nf">projection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parametrizes the manifold in terms of a projection from the ambient space</span>
+<span class="sd">        Args:</span>
+<span class="sd">            X (torch.nn.Tensor): A tensor in the ambient space</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            tensor (torch.nn.Tensor): A tensor on the manifold</span>
+<span class="sd">        Note:</span>
+<span class="sd">            This function should be surjective, otherwise not all the manifold</span>
+<span class="sd">            will be explored</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="EmbeddedManifold.forward"><a class="viewcode-back" href="../../geotorch.html#geotorch.manifold.EmbeddedManifold.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">transpose</span><span class="p">:</span>
+            <span class="n">X</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">projection</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">transpose</span><span class="p">:</span>
+            <span class="n">X</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">X</span></div></div>
+
+
+<div class="viewcode-block" id="Manifold"><a class="viewcode-back" href="../../geotorch.html#geotorch.manifold.Manifold">[docs]</a><span class="k">class</span> <span class="nc">Manifold</span><span class="p">(</span><span class="n">AbstractManifold</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dimensions</span><span class="p">,</span> <span class="n">size</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">dimensions</span><span class="p">,</span> <span class="n">size</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_buffer</span><span class="p">(</span><span class="s2">&quot;base&quot;</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="o">*</span><span class="n">size</span><span class="p">))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">transpose</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">base</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Manifold.trivialization"><a class="viewcode-back" href="../../geotorch.html#geotorch.manifold.Manifold.trivialization">[docs]</a>    <span class="k">def</span> <span class="nf">trivialization</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">B</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parametrizes the manifold in terms of a tangent space</span>
+<span class="sd">        Args:</span>
+<span class="sd">            X (torch.nn.Tensor): A tensor, usually living in T_B M</span>
+<span class="sd">            B (torch.nn.Tensor): Point on M at whose tangent space we are trivializing</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            tensor (torch.nn.Tensor): A tensor on the manifold</span>
+<span class="sd">        Note:</span>
+<span class="sd">            This function should be surjective, otherwise not all the manifold</span>
+<span class="sd">            will be explored</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Manifold.forward"><a class="viewcode-back" href="../../geotorch.html#geotorch.manifold.Manifold.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">transpose</span><span class="p">:</span>
+            <span class="n">X</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">trivialization</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">transpose</span><span class="p">:</span>
+            <span class="n">X</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">X</span></div>
+
+<div class="viewcode-block" id="Manifold.update_base"><a class="viewcode-back" href="../../geotorch.html#geotorch.manifold.Manifold.update_base">[docs]</a>    <span class="k">def</span> <span class="nf">update_base</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">zero</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_registered</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Cannot update the base before registering the Parametrization&quot;</span>
+            <span class="p">)</span>
+        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+            <span class="n">X</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">evaluate</span><span class="p">()</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">transpose</span><span class="p">:</span>
+                <span class="n">X</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">copy_</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">zero</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">original_tensor</span><span class="p">()</span><span class="o">.</span><span class="n">zero_</span><span class="p">()</span></div></div>
+
+
+<div class="viewcode-block" id="parametrization_from_function"><a class="viewcode-back" href="../../geotorch.html#geotorch.manifold.parametrization_from_function">[docs]</a><span class="k">def</span> <span class="nf">parametrization_from_function</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+    <span class="k">return</span> <span class="nb">type</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="p">(</span><span class="n">P</span><span class="o">.</span><span class="n">Parametrization</span><span class="p">,),</span> <span class="p">{</span><span class="s2">&quot;forward&quot;</span><span class="p">:</span> <span class="n">f</span><span class="p">})</span></div>
+
+
+<div class="viewcode-block" id="Fibration"><a class="viewcode-back" href="../../geotorch.html#geotorch.manifold.Fibration">[docs]</a><span class="k">class</span> <span class="nc">Fibration</span><span class="p">(</span><span class="n">AbstractManifold</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dimensions</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">total_space</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">dimensions</span><span class="p">,</span> <span class="n">size</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">total_space</span><span class="p">,</span> <span class="n">AbstractManifold</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                <span class="s2">&quot;Expecting total_space to be a subclass &quot;</span>
+                <span class="s2">&quot;&#39;geotorch.AbstractManifold&#39;. Got &#39;</span><span class="si">{}</span><span class="s2">&#39;&#39;.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="nb">type</span><span class="p">(</span><span class="n">total_space</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+
+        <span class="n">f_embedding</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">embedding</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">transpose</span><span class="p">:</span>
+
+            <span class="k">def</span> <span class="nf">f_embedding</span><span class="p">(</span><span class="n">_</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">embedding</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+
+        <span class="n">Embedding</span> <span class="o">=</span> <span class="n">parametrization_from_function</span><span class="p">(</span>
+            <span class="n">f_embedding</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Embedding&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span>
+        <span class="p">)</span>
+
+        <span class="n">total_space</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span><span class="n">Embedding</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span><span class="n">total_space</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Fibration.embedding"><a class="viewcode-back" href="../../geotorch.html#geotorch.manifold.Fibration.embedding">[docs]</a>    <span class="k">def</span> <span class="nf">embedding</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Fibration.fibration"><a class="viewcode-back" href="../../geotorch.html#geotorch.manifold.Fibration.fibration">[docs]</a>    <span class="k">def</span> <span class="nf">fibration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Fibration.forward"><a class="viewcode-back" href="../../geotorch.html#geotorch.manifold.Fibration.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fibration</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">transpose</span><span class="p">:</span>
+            <span class="n">X</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">X</span></div>
+
+    <span class="c1"># Expose the parameters from total_space</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">total_space</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parametrizations</span><span class="o">.</span><span class="n">original</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">base</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">total_space</span><span class="o">.</span><span class="n">base</span>
+
+<div class="viewcode-block" id="Fibration.update_base"><a class="viewcode-back" href="../../geotorch.html#geotorch.manifold.Fibration.update_base">[docs]</a>    <span class="k">def</span> <span class="nf">update_base</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">zero</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">total_space</span><span class="o">.</span><span class="n">update_base</span><span class="p">(</span><span class="n">zero</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="ProductManifold"><a class="viewcode-back" href="../../geotorch.html#geotorch.manifold.ProductManifold">[docs]</a><span class="k">class</span> <span class="nc">ProductManifold</span><span class="p">(</span><span class="n">AbstractManifold</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">manifolds</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">dimensions</span><span class="o">=</span><span class="s2">&quot;product&quot;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">ProductManifold</span><span class="o">.</span><span class="n">_size</span><span class="p">(</span><span class="n">manifolds</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">manifolds</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ModuleList</span><span class="p">(</span><span class="n">manifolds</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_size</span><span class="p">(</span><span class="n">manifolds</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">mani</span> <span class="ow">in</span> <span class="n">manifolds</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mani</span><span class="p">,</span> <span class="n">AbstractManifold</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                    <span class="s2">&quot;Expecting all elements in a ProductManifold to be &quot;</span>
+                    <span class="s2">&quot;geotorch.AbstractManifold. Found a </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">mani</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+                <span class="p">)</span>
+
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">dim</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">manifolds</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ProductManifold.chain"><a class="viewcode-back" href="../../geotorch.html#geotorch.manifold.ProductManifold.chain">[docs]</a>    <span class="k">def</span> <span class="nf">chain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parametrization</span><span class="p">):</span>
+        <span class="n">is_chained</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_chained</span><span class="p">()</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span><span class="n">parametrization</span><span class="p">)</span>
+        <span class="c1"># We do this just the first time</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">is_chained</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">mani</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="n">projection</span> <span class="o">=</span> <span class="n">parametrization_from_function</span><span class="p">(</span>
+                    <span class="k">lambda</span> <span class="n">_</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">i</span><span class="o">=</span><span class="n">i</span><span class="p">:</span> <span class="n">X</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Projection</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                <span class="p">)()</span>
+                <span class="n">projection</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span><span class="n">parametrization</span><span class="p">)</span>
+                <span class="n">mani</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span><span class="n">projection</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ProductManifold.forward"><a class="viewcode-back" href="../../geotorch.html#geotorch.manifold.ProductManifold.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
+        <span class="c1"># This is not quite right, but I don&#39;t think we can do better with the current API</span>
+        <span class="c1"># In practice it&#39;s really not a problem</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">mani</span><span class="o">.</span><span class="n">evaluate</span><span class="p">()</span> <span class="k">for</span> <span class="n">mani</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ProductManifold.update_base"><a class="viewcode-back" href="../../geotorch.html#geotorch.manifold.ProductManifold.update_base">[docs]</a>    <span class="k">def</span> <span class="nf">update_base</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">zero</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_registered</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Cannot update the base before registering the Parametrization&quot;</span>
+            <span class="p">)</span>
+        <span class="k">for</span> <span class="n">mani</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="n">mani</span><span class="o">.</span><span class="n">update_base</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">zero</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">original_tensor</span><span class="p">()</span><span class="o">.</span><span class="n">zero_</span><span class="p">()</span></div>
+
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">manifolds</span><span class="o">.</span><span class="fm">__getitem__</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">manifolds</span><span class="o">.</span><span class="fm">__len__</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">manifolds</span><span class="o">.</span><span class="fm">__iter__</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="fm">__dir__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">manifolds</span><span class="o">.</span><span class="fm">__dir__</span><span class="p">()</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Mario Lezcano-Casado
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

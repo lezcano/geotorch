@@ -10,6 +10,8 @@ Welcome to GeoTorch's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+   intro
+   geotorch
 
 
 Indices and tables

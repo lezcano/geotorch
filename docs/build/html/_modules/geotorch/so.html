@@ -1,0 +1,342 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>geotorch.so &mdash; geotorch 0.0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> geotorch
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../geotorch.html">geotorch package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">geotorch</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>geotorch.so</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for geotorch.so</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+
+<span class="kn">from</span> <span class="nn">.manifold</span> <span class="kn">import</span> <span class="n">Manifold</span>
+<span class="kn">from</span> <span class="nn">.skew</span> <span class="kn">import</span> <span class="n">Skew</span>
+<span class="kn">from</span> <span class="nn">.linalg.expm</span> <span class="kn">import</span> <span class="n">expm</span>
+
+
+<div class="viewcode-block" id="cayley_map"><a class="viewcode-back" href="../../geotorch.html#geotorch.so.cayley_map">[docs]</a><span class="k">def</span> <span class="nf">cayley_map</span><span class="p">(</span><span class="n">X</span><span class="p">):</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">Id</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">X</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">X</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">Id</span> <span class="o">-</span> <span class="n">X</span><span class="p">,</span> <span class="n">Id</span> <span class="o">+</span> <span class="n">X</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="SO"><a class="viewcode-back" href="../../geotorch.html#geotorch.so.SO">[docs]</a><span class="k">class</span> <span class="nc">SO</span><span class="p">(</span><span class="n">Manifold</span><span class="p">):</span>
+    <span class="n">trivializations</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;expm&quot;</span><span class="p">:</span> <span class="n">expm</span><span class="p">,</span> <span class="s2">&quot;cayley&quot;</span><span class="p">:</span> <span class="n">cayley_map</span><span class="p">}</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">triv</span><span class="o">=</span><span class="s2">&quot;expm&quot;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="n">size</span> <span class="o">=</span> <span class="n">SO</span><span class="o">.</span><span class="n">_parse_size</span><span class="p">(</span><span class="n">size</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">dimensions</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">n</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;The SO parametrization can just be applied to square matrices. &quot;</span>
+                <span class="s2">&quot;Got a tensor of size </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">orig_dim</span><span class="p">)</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">triv</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">SO</span><span class="o">.</span><span class="n">trivializations</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">callable</span><span class="p">(</span><span class="n">triv</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Argument triv was not recognized and is &quot;</span>
+                <span class="s2">&quot;not callable. Should be one of </span><span class="si">{}</span><span class="s2">. Found </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="nb">list</span><span class="p">(</span><span class="n">SO</span><span class="o">.</span><span class="n">trivializations</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span> <span class="n">triv</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">callable</span><span class="p">(</span><span class="n">triv</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">triv</span> <span class="o">=</span> <span class="n">triv</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">triv</span> <span class="o">=</span> <span class="n">SO</span><span class="o">.</span><span class="n">trivializations</span><span class="p">[</span><span class="n">triv</span><span class="p">]</span>
+
+        <span class="c1"># Precompose with Skew</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span><span class="n">Skew</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="n">lower</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">uniform_init_</span><span class="p">()</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_parse_size</span><span class="p">(</span><span class="n">size</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="n">size</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">size</span>
+
+<div class="viewcode-block" id="SO.trivialization"><a class="viewcode-back" href="../../geotorch.html#geotorch.so.SO.trivialization">[docs]</a>    <span class="k">def</span> <span class="nf">trivialization</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">B</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">B</span> <span class="o">@</span> <span class="bp">self</span><span class="o">.</span><span class="n">triv</span><span class="p">(</span><span class="n">X</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SO.uniform_init_"><a class="viewcode-back" href="../../geotorch.html#geotorch.so.SO.uniform_init_">[docs]</a>    <span class="k">def</span> <span class="nf">uniform_init_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+            <span class="n">uniform_init_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_registered</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">original_tensor</span><span class="p">()</span><span class="o">.</span><span class="n">zero_</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="SO.torus_init_"><a class="viewcode-back" href="../../geotorch.html#geotorch.so.SO.torus_init_">[docs]</a>    <span class="k">def</span> <span class="nf">torus_init_</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">init_</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">triv</span><span class="o">=</span><span class="n">expm</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+            <span class="n">torus_init_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="p">,</span> <span class="n">init_</span><span class="p">,</span> <span class="n">triv</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_registered</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">original_tensor</span><span class="p">()</span><span class="o">.</span><span class="n">zero_</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="SO.extra_repr"><a class="viewcode-back" href="../../geotorch.html#geotorch.so.SO.extra_repr">[docs]</a>    <span class="k">def</span> <span class="nf">extra_repr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;n=</span><span class="si">{}</span><span class="s2">, triv=</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">triv</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="uniform_init_"><a class="viewcode-back" href="../../geotorch.html#geotorch.so.uniform_init_">[docs]</a><span class="k">def</span> <span class="nf">uniform_init_</span><span class="p">(</span><span class="n">tensor</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Fills the input `Tensor` with an  orthogonal matrix. The matrix will have positive determinant.</span>
+<span class="sd">    The input tensor must have at least 2 dimensions, and for tensors with more than 2</span>
+<span class="sd">    dimensions the first dimensions are treated as batch dimensions.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        tensor (torch.nn.Tensor): a 2-dimensional tensor or a batch of them</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># We re-implement torch.nn.init.orthogonal_, as their treatment of batches</span>
+    <span class="c1"># is not in a per-matrix base</span>
+    <span class="k">if</span> <span class="n">tensor</span><span class="o">.</span><span class="n">ndimension</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;Only tensors with 2 or more dimensions are supported. &quot;</span>
+            <span class="s2">&quot;Got a tensor of shape </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">tensor</span><span class="o">.</span><span class="n">size</span><span class="p">()))</span>
+        <span class="p">)</span>
+    <span class="n">n</span><span class="p">,</span> <span class="n">k</span> <span class="o">=</span> <span class="n">tensor</span><span class="o">.</span><span class="n">size</span><span class="p">()[</span><span class="o">-</span><span class="mi">2</span><span class="p">:]</span>
+    <span class="n">transpose</span> <span class="o">=</span> <span class="n">n</span> <span class="o">&lt;</span> <span class="n">k</span>
+    <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">tensor</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">tensor</span><span class="o">.</span><span class="n">size</span><span class="p">())</span><span class="o">.</span><span class="n">normal_</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">transpose</span><span class="p">:</span>
+            <span class="n">x</span><span class="o">.</span><span class="n">transpose_</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">q</span><span class="p">,</span> <span class="n">r</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">qr</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+        <span class="c1"># Make uniform (diag r &gt;= 0)</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">diagonal</span><span class="p">(</span><span class="n">dim1</span><span class="o">=-</span><span class="mi">2</span><span class="p">,</span> <span class="n">dim2</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">sign</span><span class="p">()</span>
+        <span class="n">q</span> <span class="o">*=</span> <span class="n">d</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">expand_as</span><span class="p">(</span><span class="n">q</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">transpose</span><span class="p">:</span>
+            <span class="n">q</span><span class="o">.</span><span class="n">transpose_</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="n">k</span><span class="p">:</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">det</span><span class="p">(</span><span class="n">q</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">()</span>
+            <span class="n">mask</span><span class="p">[</span><span class="n">mask</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span>
+            <span class="k">if</span> <span class="n">tensor</span><span class="o">.</span><span class="n">ndimension</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">mask</span> <span class="o">=</span> <span class="n">mask</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">expand_as</span><span class="p">(</span><span class="n">q</span><span class="p">)</span>
+            <span class="n">q</span> <span class="o">*=</span> <span class="n">mask</span>
+        <span class="n">tensor</span><span class="o">.</span><span class="n">copy_</span><span class="p">(</span><span class="n">q</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">tensor</span></div>
+
+
+<div class="viewcode-block" id="torus_init_"><a class="viewcode-back" href="../../geotorch.html#geotorch.so.torus_init_">[docs]</a><span class="k">def</span> <span class="nf">torus_init_</span><span class="p">(</span><span class="n">tensor</span><span class="p">,</span> <span class="n">init_</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">triv</span><span class="o">=</span><span class="n">expm</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Samples the 2D input `tensor` as a block-diagonal skew-symmetric matrix</span>
+<span class="sd">    which is skew-symmetric in the main diagonal. The blocks are of the form</span>
+<span class="sd">    :math:`\begin{pmatrix} 0 &amp; b \\ -b &amp; 0\end{pmatrix}` where :math:`b` is</span>
+<span class="sd">    distributed according to `init_`. Then it is projected to the manifold using `triv`.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        tensor (torch.nn.Tensor): a 2-dimensional tensor</span>
+<span class="sd">        init_: Optional. A function that takes a tensor and fills</span>
+<span class="sd">                it in place according to some distribution. Default:</span>
+<span class="sd">                :math:`\mathcal{U}(-\pi, \pi)`</span>
+<span class="sd">        triv: Optional. A function that maps skew-symmetric matrices</span>
+<span class="sd">                to orthogonal matrices.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">tensor</span><span class="o">.</span><span class="n">ndimension</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mi">2</span> <span class="ow">or</span> <span class="n">tensor</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">!=</span> <span class="n">tensor</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;Only tensors with 2 or more dimensions which are square in &quot;</span>
+            <span class="s2">&quot;the last two dimensions are supported. &quot;</span>
+            <span class="s2">&quot;Got a tensor of shape </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">tensor</span><span class="o">.</span><span class="n">size</span><span class="p">()))</span>
+        <span class="p">)</span>
+
+    <span class="n">n</span><span class="p">,</span> <span class="n">k</span> <span class="o">=</span> <span class="n">tensor</span><span class="o">.</span><span class="n">size</span><span class="p">()[</span><span class="o">-</span><span class="mi">2</span><span class="p">:]</span>
+    <span class="n">tensorial_size</span> <span class="o">=</span> <span class="n">tensor</span><span class="o">.</span><span class="n">size</span><span class="p">()[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">init_</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+
+        <span class="k">def</span> <span class="nf">init_</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">uniform_</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="o">-</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+
+    <span class="c1"># Non-zero elements that we are going to set on the diagonal</span>
+    <span class="n">n_diag</span> <span class="o">=</span> <span class="n">n</span> <span class="o">//</span> <span class="mi">2</span>
+    <span class="n">diag</span> <span class="o">=</span> <span class="n">tensor</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">tensorial_size</span> <span class="o">+</span> <span class="p">(</span><span class="n">n_diag</span><span class="p">,))</span>
+    <span class="n">init_</span><span class="p">(</span><span class="n">diag</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+        <span class="c1"># First non-central diagonal</span>
+        <span class="n">diag_z</span> <span class="o">=</span> <span class="n">tensor</span><span class="o">.</span><span class="n">new_zeros</span><span class="p">(</span><span class="n">tensorial_size</span> <span class="o">+</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,))</span>
+        <span class="n">diag_z</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">::</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">diag</span>
+        <span class="n">tensor</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">diag_embed</span><span class="p">(</span><span class="n">diag_z</span><span class="p">,</span> <span class="n">offset</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">tensor</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">triv</span><span class="p">(</span><span class="n">tensor</span> <span class="o">-</span> <span class="n">tensor</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">tensor</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Mario Lezcano-Casado
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

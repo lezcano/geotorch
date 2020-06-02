@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Search &mdash; geotorch 0.0.1 documentation</title>
+  <title>Introduction &mdash; geotorch 0.0.1 documentation</title>
   
 
   
@@ -26,7 +26,6 @@
         <script src="_static/doctools.js"></script>
         <script src="_static/language_data.js"></script>
         <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-        <script src="_static/searchtools.js"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -36,7 +35,9 @@
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="#" /> 
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="geotorch package" href="geotorch.html" />
+    <link rel="prev" title="Welcome to GeoTorch’s documentation!" href="index.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -67,7 +68,7 @@
 
           
 <div role="search">
-  <form id="rtd-search-form" class="wy-form" action="#" method="get">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
@@ -85,8 +86,11 @@
             
             
               <p class="caption"><span class="caption-text">Contents:</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Introduction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#motivation">Motivation</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="geotorch.html">geotorch package</a></li>
 </ul>
 
@@ -133,12 +137,14 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>Search</li>
+      <li>Introduction</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
+            <a href="_sources/intro.rst.txt" rel="nofollow"> View page source</a>
+          
         
       </li>
     
@@ -150,24 +156,33 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <noscript>
-  <div id="fallback" class="admonition warning">
-    <p class="last">
-      Please activate JavaScript to enable the search
-      functionality.
-    </p>
-  </div>
-  </noscript>
+  <div class="section" id="introduction">
+<h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h1>
+<p>GeoTorch is a library for Optimization on Manifolds or Constrained Optimization built on top of PyTorch. It allows for putting restrictions on vectors, matrices, or tensors.</p>
+<div class="section" id="motivation">
+<h2>Motivation<a class="headerlink" href="#motivation" title="Permalink to this headline">¶</a></h2>
+<p>Although the term manifold is a bit intimidating, the applications in which one inadvertently finds them are not.  Examples of these are a matrix being orthogonal, invertible, or symmetric positive definite. One could also consider having an embedding to be living in the hyperbolic space or the sphere, or decompose a matrix into its SVD and optimize the SVD components separately, giving direct access to the singular values of the layer. Each of these examples has at least one manifold lurking behind, and it can be implemented in GeoTorch in no more than two lines of code.</p>
+<p>Example of some maths. For example for the Lie group \(operatorname{SO}(n)\) we have the map</p>
+<p>$$
+exp colon mathfrak{so}(n) to operatorname{SO}(n)
+$$</p>
+</div>
+</div>
 
-  
-  <div id="search-results">
-  
-  </div>
 
            </div>
            
           </div>
           <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="geotorch.html" class="btn btn-neutral float-right" title="geotorch package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral float-left" title="Welcome to GeoTorch’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
   
 
   <hr/>
@@ -200,14 +215,7 @@
   
   
     
-  
-  <script type="text/javascript">
-    jQuery(function() { Search.loadIndex("searchindex.js"); });
-  </script>
-  
-  <script type="text/javascript" id="searchindexloader"></script>
    
-
 
 </body>
 </html>
