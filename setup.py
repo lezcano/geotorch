@@ -43,7 +43,7 @@ with open(os.path.join(os.path.dirname(__file__), "geotorch/__init__.py"), "r") 
 
 setup(
     name="geotorch",
-    version="0.1.0",
+    version=version,
     description="Constrained Optimization in Pytorch",
     author="Mario Lezcano Casado",
     license="MIT",
