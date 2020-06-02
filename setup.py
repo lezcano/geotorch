@@ -35,6 +35,10 @@ DEV_REQUIRES = TEST_REQUIRES + [
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
+# get version string from module
+with open(os.path.join(os.path.dirname(__file__), "geotorch/__init__.py"), "r") as f:
+    version = re.search(r"__version__ = ['\"]([^'\"]*)['\"]", f.read(), re.M).group(1)
+
 setup(
     name="geotorch",
     version="0.1.0",
