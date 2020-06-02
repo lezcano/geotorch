@@ -29,6 +29,7 @@ DEV_REQUIRES = TEST_REQUIRES + [
     "flake8",
     "sphinx",
     "sphinx-autodoc-typehints",
+    "sphinx-rtd-theme",
     "codecov",
 ]
 
