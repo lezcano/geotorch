@@ -230,14 +230,12 @@ class TestOrthogonal(TestCase):
         Id = torch.eye(X.size(1))
         self.assertAlmostEqual(torch.norm(X.t() @ X - Id).item(), 0.0, places=3)
 
-    def assertPairwiseEqual(
-        self, results,
-    ):
+    def assertPairwiseEqual(self, results):
         # Check pairwise equality
         with torch.no_grad():
-            for l, m in itertools.combinations(range(len(results)), 2):
+            for i, j in itertools.combinations(range(len(results)), 2):
                 # Compute the infinity norm
-                norm0 = (results[l][0] - results[m][0]).abs().max().item()
-                norm1 = (results[l][1] - results[m][1]).abs().max().item()
+                norm0 = (results[i][0] - results[j][0]).abs().max().item()
+                norm1 = (results[i][1] - results[j][1]).abs().max().item()
                 self.assertAlmostEqual(norm0, 0.0, places=3)
                 self.assertAlmostEqual(norm1, 0.0, places=2)

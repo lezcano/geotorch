@@ -1,5 +1,5 @@
 from .manifold import AbstractManifold, Manifold, Fibration, ProductManifold
-from .grassmanian import Grassmanian, GrassmanianTall
+from .grassmannian import Grassmannian, GrassmannianTall
 from .lowrank import LowRank
 from .reals import Rn
 from .skew import Skew
@@ -11,16 +11,16 @@ __version__ = "0.0.1"
 
 
 __all__ = [
-        "AbstractManifold",
-        "Manifold",
-        "Fibration",
-        "ProductManifold",
-        "Grassmanian",
-        "GrassmanianTall",
-        "LowRank",
-        "Rn",
-        "Skew",
-        "SO",
-        "Sphere",
-        "Stiefel"
+    "AbstractManifold",
+    "Manifold",
+    "Fibration",
+    "ProductManifold",
+    "Grassmannian",
+    "GrassmannianTall",
+    "LowRank",
+    "Rn",
+    "Skew",
+    "SO",
+    "Sphere",
+    "Stiefel",
 ]

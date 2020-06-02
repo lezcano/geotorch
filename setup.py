@@ -2,6 +2,8 @@
 
 from setuptools import setup, find_packages
 import sys
+import os
+import re
 
 REQUIRED_MAJOR = 3
 REQUIRED_MINOR = 6
