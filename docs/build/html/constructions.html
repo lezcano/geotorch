@@ -1,0 +1,456 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Constructions &mdash; geotorch 0.0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Variety of Low Rank Matrices: \(\operatorname{LowRank}(n,k,r)\)" href="lowrank.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> geotorch
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Introduction:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Manifolds:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="reals.html">Real vector space: <span class="math notranslate nohighlight">\(\mathbb{R}^n\)</span></a></li>
+<li class="toctree-l1"><a class="reference internal" href="sym.html">Symmetric Matrices: <span class="math notranslate nohighlight">\(\operatorname{Sym}(n)\)</span></a></li>
+<li class="toctree-l1"><a class="reference internal" href="skew.html">Skew-symmetric Matrices: <span class="math notranslate nohighlight">\(\operatorname{Skew}(n)\)</span></a></li>
+<li class="toctree-l1"><a class="reference internal" href="sphere.html">Sphere: <span class="math notranslate nohighlight">\(\mathbb{S}^n\)</span></a></li>
+<li class="toctree-l1"><a class="reference internal" href="so.html">Special Orthogonal Group: <span class="math notranslate nohighlight">\(\operatorname{SO}(n)\)</span></a></li>
+<li class="toctree-l1"><a class="reference internal" href="stiefel.html">Stiefel Manifold: <span class="math notranslate nohighlight">\(\operatorname{St}(n,k)\)</span></a></li>
+<li class="toctree-l1"><a class="reference internal" href="grassmannian.html">Grassmannian Manifold: <span class="math notranslate nohighlight">\(\operatorname{Gr}(n,k)\)</span></a></li>
+<li class="toctree-l1"><a class="reference internal" href="lowrank.html">Variety of Low Rank Matrices: <span class="math notranslate nohighlight">\(\operatorname{LowRank}(n,k,r)\)</span></a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Constructions</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">geotorch</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Constructions</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="constructions">
+<h1>Constructions<a class="headerlink" href="#constructions" title="Permalink to this headline">¶</a></h1>
+<p>These are the baseclasses that conform <cite>GeoTorch</cite>. In particular,
+every manifold is either a <a class="reference internal" href="#geotorch.manifold.Manifold" title="geotorch.manifold.Manifold"><code class="xref py py-class docutils literal notranslate"><span class="pre">Manifold</span></code></a> or a <a class="reference internal" href="#geotorch.manifold.Fibration" title="geotorch.manifold.Fibration"><code class="xref py py-class docutils literal notranslate"><span class="pre">Fibration</span></code></a>
+or an <a class="reference internal" href="#geotorch.manifold.EmbeddedManifold" title="geotorch.manifold.EmbeddedManifold"><code class="xref py py-class docutils literal notranslate"><span class="pre">EmbeddedManifold</span></code></a>. They can be used to easily implement
+new manifolds in terms of them and a function that parametrizes the
+wanted manifold.</p>
+<dl class="py class">
+<dt id="geotorch.manifold.Manifold">
+<em class="property">class </em><code class="sig-prename descclassname">geotorch.manifold.</code><code class="sig-name descname">Manifold</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dimensions</span></em>, <em class="sig-param"><span class="n">size</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/manifold.html#Manifold"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.manifold.Manifold" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base class for a manifold. The class that implements the manifold
+should implement <a class="reference internal" href="#geotorch.manifold.Manifold.trivialization" title="geotorch.manifold.Manifold.trivialization"><code class="xref py py-meth docutils literal notranslate"><span class="pre">trivialization()</span></code></a>.</p>
+<p>This class automatically implement the framework of dynamic trivializations
+describe in <cite>Trivializations for Gradient-Based Optimization on Manifolds</cite> -
+Lezcano-Casado, M. (2019) allowing to perform Riemannian gradient descent
+by calling after each SGD step to <a class="reference internal" href="#geotorch.manifold.Manifold.update_base" title="geotorch.manifold.Manifold.update_base"><code class="xref py py-meth docutils literal notranslate"><span class="pre">update_base()</span></code></a>.</p>
+<p>For matrix manifolds, this class identifies <span class="math notranslate nohighlight">\(\mathbb{R}^{k \times n}\)</span>
+with <span class="math notranslate nohighlight">\(\mathbb{R}^{n \times k}\)</span> for <span class="math notranslate nohighlight">\(k &gt; n\)</span> by transposing
+the matrix before and after applying the trivialization.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dimensions</strong> (<em>int</em>) – Number of dimensions of the manifold as a tensor.
+For example, a matrix manifold would have 2 dimensions, while a
+vector would have 1. It should be a positive number</p></li>
+<li><p><strong>size</strong> (<em>torch.size</em>) – Size of the tensor to be applied to</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="geotorch.manifold.Manifold.trivialization">
+<code class="sig-name descname">trivialization</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">X</span></em>, <em class="sig-param"><span class="n">B</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/manifold.html#Manifold.trivialization"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.manifold.Manifold.trivialization" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parametrizes the manifold in terms of a tangent space</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<em>torch.Tensor</em>) – A tensor from the tangent space <span class="math notranslate nohighlight">\(T_B M\)</span></p></li>
+<li><p><strong>B</strong> (<em>torch.Tensor</em>) – A point on the manifold <span class="math notranslate nohighlight">\(M\)</span> at whose
+tangent space we are trivializing</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A tensor on the manifold</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>tensor (torch.Tensor)</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This function should be surjective, otherwise not all the manifold
+will be explored</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="geotorch.manifold.Manifold.update_base">
+<code class="sig-name descname">update_base</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">zero</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/manifold.html#Manifold.update_base"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.manifold.Manifold.update_base" title="Permalink to this definition">¶</a></dt>
+<dd><p>Changes <cite>self.base</cite> to the current output of <cite>self.original</cite>. It allows
+for the implementation of dynamic trivializations and RGD. If <cite>zero == True</cite>
+it also zeros-out the original parametrized tensor</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>zero</strong> (<em>bool</em><em>,</em><em>Optional</em>) – If <cite>True</cite>, this method will zero-out the parametrized
+tensor. Default: <cite>True</cite>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="geotorch.manifold.EmbeddedManifold">
+<em class="property">class </em><code class="sig-prename descclassname">geotorch.manifold.</code><code class="sig-name descname">EmbeddedManifold</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/manifold.html#EmbeddedManifold"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.manifold.EmbeddedManifold" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base class for an embedded manifold. The class that implements the manifold
+should implement <a class="reference internal" href="#geotorch.manifold.EmbeddedManifold.projection" title="geotorch.manifold.EmbeddedManifold.projection"><code class="xref py py-meth docutils literal notranslate"><span class="pre">projection()</span></code></a>.</p>
+<p>This class implements a simple manifold parametrized by some ambient space,
+projecting that point onto the manifold.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dimensions</strong> (<em>int</em>) – Number of dimensions of the manifold as a tensor.
+For example, a matrix manifold would have 2 dimensions, while a
+vector would have 1. It should be a positive number</p></li>
+<li><p><strong>size</strong> (<em>torch.size</em>) – Size of the tensor to be applied to</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="geotorch.manifold.EmbeddedManifold.projection">
+<code class="sig-name descname">projection</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">X</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/manifold.html#EmbeddedManifold.projection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.manifold.EmbeddedManifold.projection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parametrizes the manifold in terms of a projection from the ambient space</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>X</strong> (<em>torch.Tensor</em>) – A tensor in the ambient space</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A tensor on the manifold</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>tensor (torch.Tensor)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="geotorch.manifold.Fibration">
+<em class="property">class </em><code class="sig-prename descclassname">geotorch.manifold.</code><code class="sig-name descname">Fibration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dimensions</span></em>, <em class="sig-param"><span class="n">size</span></em>, <em class="sig-param"><span class="n">total_space</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/manifold.html#Fibration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.manifold.Fibration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base class for a fibration for parametrizing a manifold <span class="math notranslate nohighlight">\(M\)</span> in terms
+of another manifold <span class="math notranslate nohighlight">\(E\)</span> through <span class="math notranslate nohighlight">\(\pi \colon E \to M\)</span>. The class
+that implements this one should implement <a class="reference internal" href="#geotorch.manifold.Fibration.embedding" title="geotorch.manifold.Fibration.embedding"><code class="xref py py-meth docutils literal notranslate"><span class="pre">embedding()</span></code></a> and
+<a class="reference internal" href="#geotorch.manifold.Fibration.fibration" title="geotorch.manifold.Fibration.fibration"><code class="xref py py-meth docutils literal notranslate"><span class="pre">fibration()</span></code></a></p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This class is a bit abstract at first sight, so it might be best understand
+it through exmaples.
+The simplest non-trivial example of this construction is the parametrization
+of the Stiefel manifold <span class="math notranslate nohighlight">\(\operatorname{St}(n,k)\)</span> in terms of
+<span class="math notranslate nohighlight">\(\operatorname{SO}(n)\)</span> where <span class="math notranslate nohighlight">\(\pi\)</span> is taking the first <span class="math notranslate nohighlight">\(k\)</span>
+columns of the orthogonal matrix (see <code class="xref py py-class docutils literal notranslate"><span class="pre">geotorch.Stiefel</span></code> and
+<code class="xref py py-class docutils literal notranslate"><span class="pre">geotorch.LowRank</span></code>).</p>
+</div>
+<p>This class automatically implement the framework of dynamic trivializations
+describe in <cite>Trivializations for Gradient-Based Optimization on Manifolds</cite> -
+Lezcano-Casado, M. (2019) allowing to perform Riemannian gradient descent
+by calling after each SGD step to <a class="reference internal" href="#geotorch.manifold.Fibration.update_base" title="geotorch.manifold.Fibration.update_base"><code class="xref py py-meth docutils literal notranslate"><span class="pre">update_base()</span></code></a>.</p>
+<p>For matrix manifolds, this class identifies <span class="math notranslate nohighlight">\(\mathbb{R}^{k \times n}\)</span>
+with <span class="math notranslate nohighlight">\(\mathbb{R}^{n \times k}\)</span> for <span class="math notranslate nohighlight">\(k &gt; n\)</span> by transposing
+the matrix before and after applying the trivialization.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dimensions</strong> (<em>int</em>) – Number of dimensions of the manifold as a tensor.
+For example, a matrix manifold would have 2 dimensions, while a
+vector would have 1. It should be a positive number</p></li>
+<li><p><strong>size</strong> (<em>torch.size</em>) – Size of the tensor to be applied to</p></li>
+<li><p><strong>total_space</strong> (<em>geotorch.AbstractManifold</em>) – The <code class="xref py py-class docutils literal notranslate"><span class="pre">geotorch.Manifold</span></code>,
+<code class="xref py py-class docutils literal notranslate"><span class="pre">geotorch.Fibration</span></code> of <code class="xref py py-class docutils literal notranslate"><span class="pre">geotorch.ProductManifold</span></code>
+that acts as a total space for the fibration</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="geotorch.manifold.Fibration.embedding">
+<code class="sig-name descname">embedding</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">X</span></em>, <em class="sig-param"><span class="n">B</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/manifold.html#Fibration.embedding"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.manifold.Fibration.embedding" title="Permalink to this definition">¶</a></dt>
+<dd><p>Embeds a vector <span class="math notranslate nohighlight">\(X \in T_B M\)</span> in the tangent space of <span class="math notranslate nohighlight">\(M\)</span>
+onto the tangent space of the total space <span class="math notranslate nohighlight">\(T_{\pi^{-1}(B)}E\)</span> via
+a local section of <span class="math notranslate nohighlight">\(\pi\)</span>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<em>torch.Tensor</em>) – A tensor from the tangent space <span class="math notranslate nohighlight">\(T_B M\)</span></p></li>
+<li><p><strong>B</strong> (<em>torch.Tensor</em>) – A point on the manifold <span class="math notranslate nohighlight">\(M\)</span> at whose
+tangent space we are trivializing</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>A tensor on a tangent space to the total</dt><dd><p>space at <span class="math notranslate nohighlight">\(\pi^{-1}(B)\)</span></p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>tensor (torch.Tensor)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="geotorch.manifold.Fibration.fibration">
+<code class="sig-name descname">fibration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">X</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/manifold.html#Fibration.fibration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.manifold.Fibration.fibration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parametrizes the manifold in terms of the total space. This map should,
+when possible, be a submersion (surjective with full rank differential)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>X</strong> (<em>torch.Tensor</em>) – A point on the total space</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A tensor on the manifold</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>tensor (torch.Tensor)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="geotorch.manifold.Fibration.update_base">
+<code class="sig-name descname">update_base</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">zero</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/manifold.html#Fibration.update_base"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.manifold.Fibration.update_base" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates the base of total space</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>zero</strong> (<em>bool</em><em>,</em><em>Optional</em>) – If <cite>True</cite>, this method will zero-out the parametrized
+tensor. Default: <cite>True</cite>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="geotorch.manifold.ProductManifold">
+<em class="property">class </em><code class="sig-prename descclassname">geotorch.manifold.</code><code class="sig-name descname">ProductManifold</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">manifolds</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/manifold.html#ProductManifold"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.manifold.ProductManifold" title="Permalink to this definition">¶</a></dt>
+<dd><p>Product manifold. It can be indexed like a regular Python list, but it cannot
+be modified</p>
+<p>This class automatically implement the framework of dynamic trivializations
+describe in <cite>Trivializations for Gradient-Based Optimization on Manifolds</cite> -
+Lezcano-Casado, M. (2019) allowing to perform Riemannian gradient descent
+by calling after each SGD step to <code class="xref py py-meth docutils literal notranslate"><span class="pre">update_base()</span></code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This manifold is mostly useful in combination with <code class="xref py py-class docutils literal notranslate"><span class="pre">Fibration</span></code>,
+to create quotients of product manifolds, such as <code class="xref py py-class docutils literal notranslate"><span class="pre">LowRank</span></code></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>manifolds</strong> (<em>iterable</em>) – an iterable of manifolds</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="geotorch.manifold.AbstractManifold">
+<em class="property">class </em><code class="sig-prename descclassname">geotorch.manifold.</code><code class="sig-name descname">AbstractManifold</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dimensions</span></em>, <em class="sig-param"><span class="n">size</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/manifold.html#AbstractManifold"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.manifold.AbstractManifold" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base class for all the manifolds. This class implements some basic printing
+and creates some helper attributes for matrix manifolds such as <cite>self.n</cite> and
+<cite>self.k</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dimensions</strong> (<em>int</em>) – Number of dimensions of the manifold as a tensor.
+For example, a matrix manifold would have 2 dimensions, while a
+vector would have 1. It should be a positive number</p></li>
+<li><p><strong>size</strong> (<em>torch.size</em>) – Size of the tensor to be applied to</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="lowrank.html" class="btn btn-neutral float-left" title="Variety of Low Rank Matrices: \(\operatorname{LowRank}(n,k,r)\)" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Mario Lezcano-Casado
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -3,6 +3,15 @@ from .manifold import AbstractManifold
 
 class Sym(AbstractManifold):
     def __init__(self, size, lower=True):
+        r"""
+        Vector space of matrices, parametrized in terms of the upper or
+        lower triangular part of the matrix.
+
+        Args:
+            size (torch.size): Size of the tensor to be applied to
+            lower (bool): Optional. Uses the lower triangular part of the matrix to parametrize
+                the matrix. Default: `True`
+        """
         super().__init__(dimensions=2, size=size)
         if self.n != self.k:
             raise ValueError(

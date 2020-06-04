@@ -19,14 +19,14 @@ class TestLowRank(TestCase):
                     torch.randint(low=0, high=s, size=(1,)).item()
                     for s in X.size()[:-2]
                 ]
-                coords = coords + [...]
+                coords.append(...)
                 self._assertIsOrthogonal(X[coords])
 
     def _assertIsOrthogonal(self, X):
         if X.size(0) < X.size(1):
             X = X.t()
         Id = torch.eye(X.size(1))
-        self.assertAlmostEqual(torch.norm(X.t() @ X - Id).item(), 0.0, places=3)
+        self.assertAlmostEqual(torch.norm(X.t() @ X - Id).item(), 0.0, places=2)
 
     def assertHasSingularValues(self, X, S_orig):
         if X.ndimension() == 2:
@@ -38,7 +38,7 @@ class TestLowRank(TestCase):
                     torch.randint(low=0, high=s, size=(1,)).item()
                     for s in X.size()[:-2]
                 ]
-                coords = coords + [...]
+                coords.append(...)
                 self._assertHasSingularValues(X[coords], S_orig[coords])
 
     def _assertHasSingularValues(self, X, S_orig):

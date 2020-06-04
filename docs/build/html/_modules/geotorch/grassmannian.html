@@ -34,6 +34,7 @@
   
   <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
 </head>
@@ -83,10 +84,21 @@
               
             
             
-              <p class="caption"><span class="caption-text">Contents:</span></p>
+              <p class="caption"><span class="caption-text">Introduction:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../intro.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../geotorch.html">geotorch package</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Manifolds:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../reals.html">Real vector space: <span class="math notranslate nohighlight">\(\mathbb{R}^n\)</span></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../sym.html">Symmetric Matrices: <span class="math notranslate nohighlight">\(\operatorname{Sym}(n)\)</span></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../skew.html">Skew-symmetric Matrices: <span class="math notranslate nohighlight">\(\operatorname{Skew}(n)\)</span></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../sphere.html">Sphere: <span class="math notranslate nohighlight">\(\mathbb{S}^n\)</span></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../so.html">Special Orthogonal Group: <span class="math notranslate nohighlight">\(\operatorname{SO}(n)\)</span></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../stiefel.html">Stiefel Manifold: <span class="math notranslate nohighlight">\(\operatorname{St}(n,k)\)</span></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../grassmannian.html">Grassmannian Manifold: <span class="math notranslate nohighlight">\(\operatorname{Gr}(n,k)\)</span></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lowrank.html">Variety of Low Rank Matrices: <span class="math notranslate nohighlight">\(\operatorname{LowRank}(n,k,r)\)</span></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../constructions.html">Constructions</a></li>
 </ul>
 
             
@@ -156,47 +168,84 @@
 <span class="kn">from</span> <span class="nn">.stiefel</span> <span class="kn">import</span> <span class="n">Stiefel</span><span class="p">,</span> <span class="n">StiefelTall</span>
 
 
-<div class="viewcode-block" id="Grassmannian"><a class="viewcode-back" href="../../geotorch.html#geotorch.grassmannian.Grassmannian">[docs]</a><span class="k">class</span> <span class="nc">Grassmannian</span><span class="p">(</span><span class="n">Fibration</span><span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Implement everything as the fibration St(n,k) -&gt; Gr(n,k)</span>
-<span class="sd">    G(n,k) \iso St(n,k) / O(k)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
+<div class="viewcode-block" id="Grassmannian"><a class="viewcode-back" href="../../geotorch.html#geotorch.Grassmannian">[docs]</a><span class="k">class</span> <span class="nc">Grassmannian</span><span class="p">(</span><span class="n">Fibration</span><span class="p">):</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">triv</span><span class="o">=</span><span class="s2">&quot;expm&quot;</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Grassmannian manifold as a projection from the orthogonal</span>
+<span class="sd">        matrices :math:`\operatorname{St}(n,k)`.</span>
+<span class="sd">        The metric considered is the canonical.</span>
+
+<span class="sd">        .. note::</span>
+
+<span class="sd">            This class is equivalent to :class:`GrassmannianTall`, but it is faster</span>
+<span class="sd">            for the case when :math:`n` is of a similar size of `k`. For example,</span>
+<span class="sd">            :math:`n \leq 4k`.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            size (torch.size): Size of the tensor to be applied to</span>
+<span class="sd">            triv (str or callable): Optional.</span>
+<span class="sd">                A map that maps :math:`\operatorname{Skew}(n)` onto the orthogonal</span>
+<span class="sd">                matrices surjectively. It can be one of `[&quot;expm&quot;, &quot;cayley&quot;]` or a custom</span>
+<span class="sd">                callable. Default: `&quot;expm&quot;`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">size_st</span> <span class="o">=</span> <span class="n">Grassmannian</span><span class="o">.</span><span class="n">size_st</span><span class="p">(</span><span class="n">size</span><span class="p">)</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">dimensions</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">,</span> <span class="n">total_space</span><span class="o">=</span><span class="n">Stiefel</span><span class="p">(</span><span class="n">size_st</span><span class="p">,</span> <span class="n">triv</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">triv</span> <span class="o">=</span> <span class="n">triv</span>
 
-<div class="viewcode-block" id="Grassmannian.size_st"><a class="viewcode-back" href="../../geotorch.html#geotorch.grassmannian.Grassmannian.size_st">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">size_st</span><span class="p">(</span><span class="n">size</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">size</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">size</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
             <span class="n">size</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">size</span><span class="p">)</span>
             <span class="n">size</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">size</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">size</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">],</span> <span class="n">size</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
             <span class="n">size</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">size</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">size</span></div>
+        <span class="k">return</span> <span class="n">size</span>
 
-<div class="viewcode-block" id="Grassmannian.embedding"><a class="viewcode-back" href="../../geotorch.html#geotorch.grassmannian.Grassmannian.embedding">[docs]</a>    <span class="k">def</span> <span class="nf">embedding</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">A</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">embedding</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">A</span><span class="p">):</span>
         <span class="n">size_z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tensorial_size</span> <span class="o">+</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">)</span>
         <span class="n">Z</span> <span class="o">=</span> <span class="n">A</span><span class="o">.</span><span class="n">new_zeros</span><span class="p">(</span><span class="o">*</span><span class="n">size_z</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">Z</span><span class="p">,</span> <span class="n">A</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="p">:,</span> <span class="p">:]],</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">2</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">Z</span><span class="p">,</span> <span class="n">A</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="p">:,</span> <span class="p">:]],</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">2</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Grassmannian.fibration"><a class="viewcode-back" href="../../geotorch.html#geotorch.grassmannian.Grassmannian.fibration">[docs]</a>    <span class="k">def</span> <span class="nf">fibration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">X</span></div>
+    <span class="k">def</span> <span class="nf">fibration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">X</span>
 
-<div class="viewcode-block" id="Grassmannian.uniform_init_"><a class="viewcode-back" href="../../geotorch.html#geotorch.grassmannian.Grassmannian.uniform_init_">[docs]</a>    <span class="k">def</span> <span class="nf">uniform_init_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Grassmannian.uniform_init_"><a class="viewcode-back" href="../../geotorch.html#geotorch.Grassmannian.uniform_init_">[docs]</a>    <span class="k">def</span> <span class="nf">uniform_init_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Samples an orthogonal matrix uniformly at random according</span>
+<span class="sd">        to the Haar measure on :math:`\operatorname{Gr}(n,k)`.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">total_space</span><span class="o">.</span><span class="n">uniform_init_</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="Grassmannian.extra_repr"><a class="viewcode-back" href="../../geotorch.html#geotorch.grassmannian.Grassmannian.extra_repr">[docs]</a>    <span class="k">def</span> <span class="nf">extra_repr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Grassmannian.extra_repr"><a class="viewcode-back" href="../../geotorch.html#geotorch.Grassmannian.extra_repr">[docs]</a>    <span class="k">def</span> <span class="nf">extra_repr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;n=</span><span class="si">{}</span><span class="s2">, k=</span><span class="si">{}</span><span class="s2">, triv=</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">triv</span><span class="p">)</span></div></div>
 
 
-<div class="viewcode-block" id="GrassmannianTall"><a class="viewcode-back" href="../../geotorch.html#geotorch.grassmannian.GrassmannianTall">[docs]</a><span class="k">class</span> <span class="nc">GrassmannianTall</span><span class="p">(</span><span class="n">StiefelTall</span><span class="p">):</span>
+<div class="viewcode-block" id="GrassmannianTall"><a class="viewcode-back" href="../../geotorch.html#geotorch.GrassmannianTall">[docs]</a><span class="k">class</span> <span class="nc">GrassmannianTall</span><span class="p">(</span><span class="n">StiefelTall</span><span class="p">):</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">triv</span><span class="o">=</span><span class="s2">&quot;expm&quot;</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Grassmannian manifold parametrized from is tangent space using the orthogonal</span>
+<span class="sd">        projection from the ambient space :math:`\mathbb{R}^{n \times k}`.</span>
+<span class="sd">        The metric considered is the canonical.</span>
+
+<span class="sd">        .. note::</span>
+
+<span class="sd">            This class is equivalent to :class:`Grassmannian`, but it is faster for the case</span>
+<span class="sd">            when :math:`n` is of a much larger than `k`. For example, :math:`n &gt; 4k`.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            size (torch.size): Size of the tensor to be applied to</span>
+<span class="sd">            triv (str or callable): Optional.</span>
+<span class="sd">                A map that maps :math:`\operatorname{Skew}(n)` onto the orthogonal</span>
+<span class="sd">                matrices surjectively. It can be one of `[&quot;expm&quot;, &quot;cayley&quot;]` or a custom</span>
+<span class="sd">                callable. Default: `&quot;expm&quot;`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="n">triv</span><span class="p">)</span>
         <span class="c1"># Stiefel parametrization</span>
         <span class="n">zeros</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fibr_aux</span><span class="o">.</span><span class="n">new_zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fibr_aux</span><span class="o">.</span><span class="n">size</span><span class="p">())</span>
         <span class="nb">delattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;fibr_aux&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">register_buffer</span><span class="p">(</span><span class="s2">&quot;fibr_aux&quot;</span><span class="p">,</span> <span class="n">zeros</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_buffer</span><span class="p">(</span><span class="s2">&quot;fibr_aux&quot;</span><span class="p">,</span> <span class="n">zeros</span><span class="p">)</span>
+
+<div class="viewcode-block" id="GrassmannianTall.uniform_init_"><a class="viewcode-back" href="../../geotorch.html#geotorch.GrassmannianTall.uniform_init_">[docs]</a>    <span class="k">def</span> <span class="nf">uniform_init_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Samples an orthogonal matrix uniformly at random according</span>
+<span class="sd">        to the Haar measure on :math:`\operatorname{Gr}(n,k)`.&quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">uniform_init_</span><span class="p">()</span></div></div>
 </pre></div>
 
            </div>

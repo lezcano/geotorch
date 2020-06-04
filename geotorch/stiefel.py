@@ -7,11 +7,26 @@ from .linalg.expm import expm
 
 
 class Stiefel(Fibration):
-    r"""
-    Implement everything as the fibration SO(n) -> St(n,k)
-    """
-
     def __init__(self, size, triv="expm"):
+        r"""
+        Manifold of rectangular orthogonal matrices parametrized as a projection from
+        the square orthogonal matrices :math:`\operatorname{SO}(n)`.
+        The metric considered is the canonical.
+
+        .. note::
+
+            This class is equivalent to :class:`StiefelTall`, but it is faster for the
+            case when :math:`n` is of a similar size of `k`. For example,
+            :math:`n \leq 4k`.
+
+        Args:
+            size (torch.size): Size of the tensor to be applied to
+            triv (str or callable): Optional.
+                A map that maps :math:`\operatorname{Skew}(n)` onto the orthogonal
+                matrices surjectively. It can be one of `["expm", "cayley"]` or a custom
+                callable. Default: `"expm"`
+        """
+
         super().__init__(
             dimensions=2,
             size=size,
@@ -25,14 +40,16 @@ class Stiefel(Fibration):
         size_so[-1] = size_so[-2] = max(size[-1], size[-2])
         return tuple(size_so)
 
-    def embedding(self, A):
+    def embedding(self, X):
         size_z = self.tensorial_size + (self.n, self.n - self.k)
-        return torch.cat([A, A.new_zeros(*size_z)], dim=-1)
+        return torch.cat([X, X.new_zeros(*size_z)], dim=-1)
 
     def fibration(self, X):
         return X[..., :, : self.k]
 
     def uniform_init_(self):
+        r""" Samples an orthogonal matrix uniformly at random according
+        to the Haar measure on :math:`\operatorname{St}(n,k)`."""
         self.total_space.uniform_init_()
 
     def extra_repr(self):
@@ -69,13 +86,26 @@ def non_singular_(X):
 
 
 class StiefelTall(Manifold):
-    """
-    Implements St(n,k), 1 <= k <= n/2
-    """
-
     trivializations = {"expm": expm, "cayley": cayley_map}
 
     def __init__(self, size, triv="expm"):
+        r"""
+        Manifold of rectangular orthogonal matrices parametrized using its tangent space.
+        To parametrize this tangent space we use the orthogonal projection from the ambient
+        space :math:`\mathbb{R}^{n \times k}`. The metric considered is the canonical.
+
+        .. note::
+
+            This class is equivalent to :class:`Stiefel`, but it is faster for the case
+            when :math:`n` is of a much larger than `k`. For example, :math:`n > 4k`.
+
+        Args:
+            size (torch.size): Size of the tensor to be applied to
+            triv (str or callable): Optional.
+                A map that maps :math:`\operatorname{Skew}(n)` onto the orthogonal
+                matrices surjectively. It can be one of `["expm", "cayley"]` or a custom
+                callable. Default: `"expm"`
+        """
         super().__init__(dimensions=2, size=size)
         if triv not in StiefelTall.trivializations.keys() and not callable(triv):
             raise ValueError(
@@ -126,6 +156,8 @@ class StiefelTall(Manifold):
             self.fibr_aux.zero_()
 
     def uniform_init_(self):
+        r""" Samples an orthogonal matrix uniformly at random according
+        to the Haar measure on :math:`\operatorname{St}(n,k)`."""
         with torch.no_grad():
             uniform_init_(self.base)
             if self.is_registered():

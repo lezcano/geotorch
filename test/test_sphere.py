@@ -67,9 +67,9 @@ class TestSphere(TestCase):
     def test_construction(self):
         # Negative curvature
         with self.assertRaises(ValueError):
-            Sphere(size=(5,), K=-1.0)
+            Sphere(size=(5,), r=-1.0)
         with self.assertRaises(ValueError):
-            SphereEmbedded(size=(4,), K=-1.0)
+            SphereEmbedded(size=(4,), r=-1.0)
 
         # Wrong projection
         with self.assertRaises(ValueError):

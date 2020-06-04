@@ -34,6 +34,7 @@
   
   <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
 </head>
@@ -83,10 +84,21 @@
               
             
             
-              <p class="caption"><span class="caption-text">Contents:</span></p>
+              <p class="caption"><span class="caption-text">Introduction:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../intro.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../geotorch.html">geotorch package</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Manifolds:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../reals.html">Real vector space: <span class="math notranslate nohighlight">\(\mathbb{R}^n\)</span></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../sym.html">Symmetric Matrices: <span class="math notranslate nohighlight">\(\operatorname{Sym}(n)\)</span></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../skew.html">Skew-symmetric Matrices: <span class="math notranslate nohighlight">\(\operatorname{Skew}(n)\)</span></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../sphere.html">Sphere: <span class="math notranslate nohighlight">\(\mathbb{S}^n\)</span></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../so.html">Special Orthogonal Group: <span class="math notranslate nohighlight">\(\operatorname{SO}(n)\)</span></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../stiefel.html">Stiefel Manifold: <span class="math notranslate nohighlight">\(\operatorname{St}(n,k)\)</span></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../grassmannian.html">Grassmannian Manifold: <span class="math notranslate nohighlight">\(\operatorname{Gr}(n,k)\)</span></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lowrank.html">Variety of Low Rank Matrices: <span class="math notranslate nohighlight">\(\operatorname{LowRank}(n,k,r)\)</span></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../constructions.html">Constructions</a></li>
 </ul>
 
             
@@ -155,8 +167,18 @@
 <span class="kn">from</span> <span class="nn">.reals</span> <span class="kn">import</span> <span class="n">Rn</span>
 
 
-<div class="viewcode-block" id="LowRank"><a class="viewcode-back" href="../../geotorch.html#geotorch.lowrank.LowRank">[docs]</a><span class="k">class</span> <span class="nc">LowRank</span><span class="p">(</span><span class="n">Fibration</span><span class="p">):</span>
+<div class="viewcode-block" id="LowRank"><a class="viewcode-back" href="../../geotorch.html#geotorch.LowRank">[docs]</a><span class="k">class</span> <span class="nc">LowRank</span><span class="p">(</span><span class="n">Fibration</span><span class="p">):</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">rank</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Variety of the matrices of rank :math:`r` or less.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            size (torch.size): Size of the tensor to be applied to</span>
+<span class="sd">            rank (int): Rank of the matrices.</span>
+<span class="sd">                It has to be less than</span>
+<span class="sd">                :math:`\min\(\texttt{size}[-1], \texttt{size}[-2]\)`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="n">size_u</span><span class="p">,</span> <span class="n">size_s</span><span class="p">,</span> <span class="n">size_v</span> <span class="o">=</span> <span class="n">LowRank</span><span class="o">.</span><span class="n">size_usv</span><span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="n">rank</span><span class="p">)</span>
         <span class="n">Stiefel_u</span> <span class="o">=</span> <span class="n">LowRank</span><span class="o">.</span><span class="n">cls_stiefel</span><span class="p">(</span><span class="n">size_u</span><span class="p">)</span>
         <span class="n">Stiefel_v</span> <span class="o">=</span> <span class="n">LowRank</span><span class="o">.</span><span class="n">cls_stiefel</span><span class="p">(</span><span class="n">size_v</span><span class="p">)</span>
@@ -169,7 +191,7 @@
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">rank</span> <span class="o">=</span> <span class="n">rank</span>
 
-<div class="viewcode-block" id="LowRank.size_usv"><a class="viewcode-back" href="../../geotorch.html#geotorch.lowrank.LowRank.size_usv">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">size_usv</span><span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="n">rank</span><span class="p">):</span>
         <span class="n">n</span><span class="p">,</span> <span class="n">k</span> <span class="o">=</span> <span class="n">size</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">size</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">n</span> <span class="o">&lt;</span> <span class="n">k</span><span class="p">:</span>
@@ -186,23 +208,23 @@
         <span class="n">size_s</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">rank</span>
         <span class="n">size_v</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">size</span><span class="p">)</span>
         <span class="n">size_v</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">],</span> <span class="n">size_v</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">k</span><span class="p">,</span> <span class="n">rank</span>
-        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">size_u</span><span class="p">),</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">size_s</span><span class="p">),</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">size_v</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">size_u</span><span class="p">),</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">size_s</span><span class="p">),</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">size_v</span><span class="p">)</span>
 
-<div class="viewcode-block" id="LowRank.cls_stiefel"><a class="viewcode-back" href="../../geotorch.html#geotorch.lowrank.LowRank.cls_stiefel">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">cls_stiefel</span><span class="p">(</span><span class="n">size</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">StiefelTall</span> <span class="k">if</span> <span class="n">size</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">size</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">else</span> <span class="n">Stiefel</span></div>
+        <span class="k">return</span> <span class="n">StiefelTall</span> <span class="k">if</span> <span class="n">size</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">size</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">else</span> <span class="n">Stiefel</span>
 
-<div class="viewcode-block" id="LowRank.embedding"><a class="viewcode-back" href="../../geotorch.html#geotorch.lowrank.LowRank.embedding">[docs]</a>    <span class="k">def</span> <span class="nf">embedding</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">embedding</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
         <span class="n">U</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">tril</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)[</span><span class="o">...</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">rank</span><span class="p">]</span>
         <span class="n">S</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">diagonal</span><span class="p">(</span><span class="n">dim1</span><span class="o">=-</span><span class="mi">2</span><span class="p">,</span> <span class="n">dim2</span><span class="o">=-</span><span class="mi">1</span><span class="p">)[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">rank</span><span class="p">]</span>
         <span class="n">V</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">triu</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)[</span><span class="o">...</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">rank</span><span class="p">]</span>
-        <span class="k">return</span> <span class="n">U</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">V</span></div>
+        <span class="k">return</span> <span class="n">U</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">V</span>
 
-<div class="viewcode-block" id="LowRank.fibration"><a class="viewcode-back" href="../../geotorch.html#geotorch.lowrank.LowRank.fibration">[docs]</a>    <span class="k">def</span> <span class="nf">fibration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">fibration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
         <span class="n">U</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">V</span> <span class="o">=</span> <span class="n">X</span>
         <span class="n">Vt</span> <span class="o">=</span> <span class="n">V</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
         <span class="c1"># Multiply the three of them, S as a diagonal matrix</span>
-        <span class="k">return</span> <span class="n">U</span> <span class="o">@</span> <span class="p">(</span><span class="n">S</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">expand_as</span><span class="p">(</span><span class="n">Vt</span><span class="p">)</span> <span class="o">*</span> <span class="n">Vt</span><span class="p">)</span></div></div>
+        <span class="k">return</span> <span class="n">U</span> <span class="o">@</span> <span class="p">(</span><span class="n">S</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">expand_as</span><span class="p">(</span><span class="n">Vt</span><span class="p">)</span> <span class="o">*</span> <span class="n">Vt</span><span class="p">)</span></div>
 </pre></div>
 
            </div>

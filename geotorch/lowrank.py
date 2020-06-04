@@ -5,6 +5,16 @@ from .reals import Rn
 
 class LowRank(Fibration):
     def __init__(self, size, rank):
+        r"""
+        Variety of the matrices of rank :math:`r` or less.
+
+        Args:
+            size (torch.size): Size of the tensor to be applied to
+            rank (int): Rank of the matrices.
+                It has to be less than
+                :math:`\min\(\texttt{size}[-1], \texttt{size}[-2]\)`
+        """
+
         size_u, size_s, size_v = LowRank.size_usv(size, rank)
         Stiefel_u = LowRank.cls_stiefel(size_u)
         Stiefel_v = LowRank.cls_stiefel(size_v)
@@ -38,7 +48,7 @@ class LowRank(Fibration):
 
     @staticmethod
     def cls_stiefel(size):
-        return StiefelTall if size[-2] > 2 * size[-1] else Stiefel
+        return StiefelTall if size[-2] > 4 * size[-1] else Stiefel
 
     def embedding(self, X):
         U = X.tril(-1)[..., :, : self.rank]

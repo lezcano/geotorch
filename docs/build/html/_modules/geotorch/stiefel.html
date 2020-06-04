@@ -34,6 +34,7 @@
   
   <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
 </head>
@@ -83,10 +84,21 @@
               
             
             
-              <p class="caption"><span class="caption-text">Contents:</span></p>
+              <p class="caption"><span class="caption-text">Introduction:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../intro.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../geotorch.html">geotorch package</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Manifolds:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../reals.html">Real vector space: <span class="math notranslate nohighlight">\(\mathbb{R}^n\)</span></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../sym.html">Symmetric Matrices: <span class="math notranslate nohighlight">\(\operatorname{Sym}(n)\)</span></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../skew.html">Skew-symmetric Matrices: <span class="math notranslate nohighlight">\(\operatorname{Skew}(n)\)</span></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../sphere.html">Sphere: <span class="math notranslate nohighlight">\(\mathbb{S}^n\)</span></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../so.html">Special Orthogonal Group: <span class="math notranslate nohighlight">\(\operatorname{SO}(n)\)</span></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../stiefel.html">Stiefel Manifold: <span class="math notranslate nohighlight">\(\operatorname{St}(n,k)\)</span></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../grassmannian.html">Grassmannian Manifold: <span class="math notranslate nohighlight">\(\operatorname{Gr}(n,k)\)</span></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../lowrank.html">Variety of Low Rank Matrices: <span class="math notranslate nohighlight">\(\operatorname{LowRank}(n,k,r)\)</span></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../constructions.html">Constructions</a></li>
 </ul>
 
             
@@ -158,12 +170,27 @@
 <span class="kn">from</span> <span class="nn">.linalg.expm</span> <span class="kn">import</span> <span class="n">expm</span>
 
 
-<div class="viewcode-block" id="Stiefel"><a class="viewcode-back" href="../../geotorch.html#geotorch.stiefel.Stiefel">[docs]</a><span class="k">class</span> <span class="nc">Stiefel</span><span class="p">(</span><span class="n">Fibration</span><span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Implement everything as the fibration SO(n) -&gt; St(n,k)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
+<div class="viewcode-block" id="Stiefel"><a class="viewcode-back" href="../../stiefel.html#geotorch.stiefel.Stiefel">[docs]</a><span class="k">class</span> <span class="nc">Stiefel</span><span class="p">(</span><span class="n">Fibration</span><span class="p">):</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">triv</span><span class="o">=</span><span class="s2">&quot;expm&quot;</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Manifold of rectangular orthogonal matrices parametrized as a projection from</span>
+<span class="sd">        the square orthogonal matrices :math:`\operatorname{SO}(n)`.</span>
+<span class="sd">        The metric considered is the canonical.</span>
+
+<span class="sd">        .. note::</span>
+
+<span class="sd">            This class is equivalent to :class:`StiefelTall`, but it is faster for the</span>
+<span class="sd">            case when :math:`n` is of a similar size of `k`. For example,</span>
+<span class="sd">            :math:`n \leq 4k`.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            size (torch.size): Size of the tensor to be applied to</span>
+<span class="sd">            triv (str or callable): Optional.</span>
+<span class="sd">                A map that maps :math:`\operatorname{Skew}(n)` onto the orthogonal</span>
+<span class="sd">                matrices surjectively. It can be one of `[&quot;expm&quot;, &quot;cayley&quot;]` or a custom</span>
+<span class="sd">                callable. Default: `&quot;expm&quot;`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
             <span class="n">dimensions</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
             <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">,</span>
@@ -171,36 +198,38 @@
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">triv</span> <span class="o">=</span> <span class="n">triv</span>
 
-<div class="viewcode-block" id="Stiefel.size_so"><a class="viewcode-back" href="../../geotorch.html#geotorch.stiefel.Stiefel.size_so">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">size_so</span><span class="p">(</span><span class="n">size</span><span class="p">):</span>
         <span class="n">size_so</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">size</span><span class="p">)</span>
         <span class="n">size_so</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">size_so</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">size</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">size</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">])</span>
-        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">size_so</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">size_so</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Stiefel.embedding"><a class="viewcode-back" href="../../geotorch.html#geotorch.stiefel.Stiefel.embedding">[docs]</a>    <span class="k">def</span> <span class="nf">embedding</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">A</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">embedding</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
         <span class="n">size_z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tensorial_size</span> <span class="o">+</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">A</span><span class="p">,</span> <span class="n">A</span><span class="o">.</span><span class="n">new_zeros</span><span class="p">(</span><span class="o">*</span><span class="n">size_z</span><span class="p">)],</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">X</span><span class="p">,</span> <span class="n">X</span><span class="o">.</span><span class="n">new_zeros</span><span class="p">(</span><span class="o">*</span><span class="n">size_z</span><span class="p">)],</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Stiefel.fibration"><a class="viewcode-back" href="../../geotorch.html#geotorch.stiefel.Stiefel.fibration">[docs]</a>    <span class="k">def</span> <span class="nf">fibration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">X</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">]</span></div>
+    <span class="k">def</span> <span class="nf">fibration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">X</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">]</span>
 
-<div class="viewcode-block" id="Stiefel.uniform_init_"><a class="viewcode-back" href="../../geotorch.html#geotorch.stiefel.Stiefel.uniform_init_">[docs]</a>    <span class="k">def</span> <span class="nf">uniform_init_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Stiefel.uniform_init_"><a class="viewcode-back" href="../../stiefel.html#geotorch.stiefel.Stiefel.uniform_init_">[docs]</a>    <span class="k">def</span> <span class="nf">uniform_init_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Samples an orthogonal matrix uniformly at random according</span>
+<span class="sd">        to the Haar measure on :math:`\operatorname{St}(n,k)`.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">total_space</span><span class="o">.</span><span class="n">uniform_init_</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="Stiefel.extra_repr"><a class="viewcode-back" href="../../geotorch.html#geotorch.stiefel.Stiefel.extra_repr">[docs]</a>    <span class="k">def</span> <span class="nf">extra_repr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">extra_repr</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;, triv=</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">triv</span><span class="p">)</span></div></div>
+    <span class="k">def</span> <span class="nf">extra_repr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">extra_repr</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;, triv=</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">triv</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="stable_qr"><a class="viewcode-back" href="../../geotorch.html#geotorch.stiefel.stable_qr">[docs]</a><span class="k">def</span> <span class="nf">stable_qr</span><span class="p">(</span><span class="n">X</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">stable_qr</span><span class="p">(</span><span class="n">X</span><span class="p">):</span>
     <span class="c1"># Make the QR decomposition unique provided X is non-singular</span>
     <span class="c1"># so that no subgradients are needed</span>
     <span class="c1"># This should be done with QR with pivoting...</span>
     <span class="n">Q</span><span class="p">,</span> <span class="n">R</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">qr</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
     <span class="n">d</span> <span class="o">=</span> <span class="n">R</span><span class="o">.</span><span class="n">diagonal</span><span class="p">(</span><span class="n">dim1</span><span class="o">=-</span><span class="mi">2</span><span class="p">,</span> <span class="n">dim2</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">sign</span><span class="p">()</span>
-    <span class="k">return</span> <span class="n">Q</span> <span class="o">*</span> <span class="n">d</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">expand_as</span><span class="p">(</span><span class="n">Q</span><span class="p">),</span> <span class="n">R</span> <span class="o">*</span> <span class="n">d</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">expand_as</span><span class="p">(</span><span class="n">R</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">Q</span> <span class="o">*</span> <span class="n">d</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">expand_as</span><span class="p">(</span><span class="n">Q</span><span class="p">),</span> <span class="n">R</span> <span class="o">*</span> <span class="n">d</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">expand_as</span><span class="p">(</span><span class="n">R</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="non_singular_"><a class="viewcode-back" href="../../geotorch.html#geotorch.stiefel.non_singular_">[docs]</a><span class="k">def</span> <span class="nf">non_singular_</span><span class="p">(</span><span class="n">X</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">non_singular_</span><span class="p">(</span><span class="n">X</span><span class="p">):</span>
     <span class="c1"># This should be done with QR with pivoting...</span>
     <span class="c1"># If this works it&#39;s because the gradients of the QR in</span>
     <span class="c1"># PyTorch are not correctly implemented at zero... Check that</span>
@@ -217,17 +246,30 @@
                 <span class="n">eye</span> <span class="o">=</span> <span class="p">(</span><span class="n">eps</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">k</span><span class="p">))</span><span class="o">.</span><span class="n">expand</span><span class="p">(</span><span class="o">*</span><span class="n">size_e</span><span class="p">)</span>
                 <span class="n">small</span> <span class="o">=</span> <span class="n">small</span><span class="o">.</span><span class="n">unsqueeze_</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">unsqueeze_</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">()</span><span class="o">.</span><span class="n">expand</span><span class="p">(</span><span class="o">*</span><span class="n">size_e</span><span class="p">)</span>
                 <span class="n">X</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="n">k</span><span class="p">,</span> <span class="p">:</span><span class="n">k</span><span class="p">]</span> <span class="o">+=</span> <span class="n">small</span> <span class="o">*</span> <span class="n">eye</span>
-        <span class="k">return</span> <span class="n">X</span></div>
+        <span class="k">return</span> <span class="n">X</span>
 
 
-<div class="viewcode-block" id="StiefelTall"><a class="viewcode-back" href="../../geotorch.html#geotorch.stiefel.StiefelTall">[docs]</a><span class="k">class</span> <span class="nc">StiefelTall</span><span class="p">(</span><span class="n">Manifold</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Implements St(n,k), 1 &lt;= k &lt;= n/2</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
+<div class="viewcode-block" id="StiefelTall"><a class="viewcode-back" href="../../stiefel.html#geotorch.stiefel.StiefelTall">[docs]</a><span class="k">class</span> <span class="nc">StiefelTall</span><span class="p">(</span><span class="n">Manifold</span><span class="p">):</span>
     <span class="n">trivializations</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;expm&quot;</span><span class="p">:</span> <span class="n">expm</span><span class="p">,</span> <span class="s2">&quot;cayley&quot;</span><span class="p">:</span> <span class="n">cayley_map</span><span class="p">}</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">triv</span><span class="o">=</span><span class="s2">&quot;expm&quot;</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Manifold of rectangular orthogonal matrices parametrized using its tangent space.</span>
+<span class="sd">        To parametrize this tangent space we use the orthogonal projection from the ambient</span>
+<span class="sd">        space :math:`\mathbb{R}^{n \times k}`. The metric considered is the canonical.</span>
+
+<span class="sd">        .. note::</span>
+
+<span class="sd">            This class is equivalent to :class:`Stiefel`, but it is faster for the case</span>
+<span class="sd">            when :math:`n` is of a much larger than `k`. For example, :math:`n &gt; 4k`.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            size (torch.size): Size of the tensor to be applied to</span>
+<span class="sd">            triv (str or callable): Optional.</span>
+<span class="sd">                A map that maps :math:`\operatorname{Skew}(n)` onto the orthogonal</span>
+<span class="sd">                matrices surjectively. It can be one of `[&quot;expm&quot;, &quot;cayley&quot;]` or a custom</span>
+<span class="sd">                callable. Default: `&quot;expm&quot;`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">dimensions</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">triv</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">StiefelTall</span><span class="o">.</span><span class="n">trivializations</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">callable</span><span class="p">(</span><span class="n">triv</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
@@ -246,7 +288,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">register_parameter</span><span class="p">(</span><span class="s2">&quot;fibr_aux&quot;</span><span class="p">,</span> <span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="o">*</span><span class="n">size_z</span><span class="p">)))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">uniform_init_</span><span class="p">()</span>
 
-<div class="viewcode-block" id="StiefelTall.trivialization"><a class="viewcode-back" href="../../geotorch.html#geotorch.stiefel.StiefelTall.trivialization">[docs]</a>    <span class="k">def</span> <span class="nf">trivialization</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">B</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">trivialization</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">B</span><span class="p">):</span>
         <span class="c1"># We compute the exponential map as per Edelman</span>
         <span class="c1"># This also works for the Cayley</span>
         <span class="c1"># Note that this Cayley map is not the same as that of Wen &amp; Yin</span>
@@ -270,22 +312,24 @@
 
         <span class="n">BQ</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">B</span><span class="p">,</span> <span class="n">Q</span><span class="p">],</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
         <span class="n">MN</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">triv</span><span class="p">(</span><span class="n">Atilde</span><span class="p">)[</span><span class="o">...</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">]</span>
-        <span class="k">return</span> <span class="n">BQ</span> <span class="o">@</span> <span class="n">MN</span></div>
+        <span class="k">return</span> <span class="n">BQ</span> <span class="o">@</span> <span class="n">MN</span>
 
-<div class="viewcode-block" id="StiefelTall.update_base"><a class="viewcode-back" href="../../geotorch.html#geotorch.stiefel.StiefelTall.update_base">[docs]</a>    <span class="k">def</span> <span class="nf">update_base</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">zero</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">update_base</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">zero</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">update_base</span><span class="p">(</span><span class="n">zero</span><span class="p">)</span>
         <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">fibr_aux</span><span class="o">.</span><span class="n">zero_</span><span class="p">()</span></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fibr_aux</span><span class="o">.</span><span class="n">zero_</span><span class="p">()</span>
 
-<div class="viewcode-block" id="StiefelTall.uniform_init_"><a class="viewcode-back" href="../../geotorch.html#geotorch.stiefel.StiefelTall.uniform_init_">[docs]</a>    <span class="k">def</span> <span class="nf">uniform_init_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="StiefelTall.uniform_init_"><a class="viewcode-back" href="../../stiefel.html#geotorch.stiefel.StiefelTall.uniform_init_">[docs]</a>    <span class="k">def</span> <span class="nf">uniform_init_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Samples an orthogonal matrix uniformly at random according</span>
+<span class="sd">        to the Haar measure on :math:`\operatorname{St}(n,k)`.&quot;&quot;&quot;</span>
         <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
             <span class="n">uniform_init_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="p">)</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_registered</span><span class="p">():</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">original_tensor</span><span class="p">()</span><span class="o">.</span><span class="n">zero_</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">fibr_aux</span><span class="o">.</span><span class="n">zero_</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="StiefelTall.extra_repr"><a class="viewcode-back" href="../../geotorch.html#geotorch.stiefel.StiefelTall.extra_repr">[docs]</a>    <span class="k">def</span> <span class="nf">extra_repr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">extra_repr</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;, triv=</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">triv</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span></div></div>
+    <span class="k">def</span> <span class="nf">extra_repr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">extra_repr</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;, triv=</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">triv</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span></div>
 </pre></div>
 
            </div>

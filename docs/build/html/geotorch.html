@@ -34,9 +34,9 @@
   
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" />
-    <link rel="prev" title="Introduction" href="intro.html" /> 
+    <link rel="search" title="Search" href="search.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -84,23 +84,24 @@
               
             
             
-              <p class="caption"><span class="caption-text">Contents:</span></p>
-<ul class="current">
+              <p class="caption"><span class="caption-text">Introduction:</span></p>
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">geotorch package</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-geotorch.grassmannian">geotorch.grassmannian module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-geotorch.lowrank">geotorch.lowrank module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-geotorch.manifold">geotorch.manifold module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-geotorch.reals">geotorch.reals module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-geotorch.skew">geotorch.skew module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-geotorch.so">geotorch.so module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-geotorch.sphere">geotorch.sphere module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-geotorch.stiefel">geotorch.stiefel module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-geotorch.sym">geotorch.sym module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-geotorch">Module contents</a></li>
 </ul>
-</li>
+<p class="caption"><span class="caption-text">Manifolds:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="reals.html">Real vector space: <span class="math notranslate nohighlight">\(\mathbb{R}^n\)</span></a></li>
+<li class="toctree-l1"><a class="reference internal" href="sym.html">Symmetric Matrices: <span class="math notranslate nohighlight">\(\operatorname{Sym}(n)\)</span></a></li>
+<li class="toctree-l1"><a class="reference internal" href="skew.html">Skew-symmetric Matrices: <span class="math notranslate nohighlight">\(\operatorname{Skew}(n)\)</span></a></li>
+<li class="toctree-l1"><a class="reference internal" href="sphere.html">Sphere: <span class="math notranslate nohighlight">\(\mathbb{S}^n\)</span></a></li>
+<li class="toctree-l1"><a class="reference internal" href="so.html">Special Orthogonal Group: <span class="math notranslate nohighlight">\(\operatorname{SO}(n)\)</span></a></li>
+<li class="toctree-l1"><a class="reference internal" href="stiefel.html">Stiefel Manifold: <span class="math notranslate nohighlight">\(\operatorname{St}(n,k)\)</span></a></li>
+<li class="toctree-l1"><a class="reference internal" href="grassmannian.html">Grassmannian Manifold: <span class="math notranslate nohighlight">\(\operatorname{Gr}(n,k)\)</span></a></li>
+<li class="toctree-l1"><a class="reference internal" href="lowrank.html">Variety of Low Rank Matrices: <span class="math notranslate nohighlight">\(\operatorname{LowRank}(n,k,r)\)</span></a></li>
+</ul>
+<p class="caption"><span class="caption-text">Constructions:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="product.html">Product Manifold: <span class="math notranslate nohighlight">\(M_1 \times \dots \times M_k\)</span></a></li>
 </ul>
 
             
@@ -152,8 +153,6 @@
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="_sources/geotorch.rst.txt" rel="nofollow"> View page source</a>
-          
         
       </li>
     
@@ -170,671 +169,15 @@
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-geotorch.grassmannian">
-<span id="geotorch-grassmannian-module"></span><h2>geotorch.grassmannian module<a class="headerlink" href="#module-geotorch.grassmannian" title="Permalink to this headline">¶</a></h2>
-<dl class="py class">
-<dt id="geotorch.grassmannian.Grassmannian">
-<em class="property">class </em><code class="sig-prename descclassname">geotorch.grassmannian.</code><code class="sig-name descname">Grassmannian</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">size</span></em>, <em class="sig-param"><span class="n">triv</span><span class="o">=</span><span class="default_value">'expm'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/grassmannian.html#Grassmannian"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.grassmannian.Grassmannian" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#geotorch.manifold.Fibration" title="geotorch.manifold.Fibration"><code class="xref py py-class docutils literal notranslate"><span class="pre">geotorch.manifold.Fibration</span></code></a></p>
-<p>Implement everything as the fibration St(n,k) -&gt; Gr(n,k)
-G(n,k) iso St(n,k) / O(k)</p>
-<dl class="py method">
-<dt id="geotorch.grassmannian.Grassmannian.embedding">
-<code class="sig-name descname">embedding</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">A</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/grassmannian.html#Grassmannian.embedding"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.grassmannian.Grassmannian.embedding" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="geotorch.grassmannian.Grassmannian.extra_repr">
-<code class="sig-name descname">extra_repr</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/grassmannian.html#Grassmannian.extra_repr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.grassmannian.Grassmannian.extra_repr" title="Permalink to this definition">¶</a></dt>
-<dd><p>Set the extra representation of the module</p>
-<p>To print customized extra information, you should reimplement
-this method in your own modules. Both single-line and multi-line
-strings are acceptable.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="geotorch.grassmannian.Grassmannian.fibration">
-<code class="sig-name descname">fibration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">X</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/grassmannian.html#Grassmannian.fibration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.grassmannian.Grassmannian.fibration" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="geotorch.grassmannian.Grassmannian.size_st">
-<em class="property">static </em><code class="sig-name descname">size_st</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">size</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/grassmannian.html#Grassmannian.size_st"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.grassmannian.Grassmannian.size_st" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="geotorch.grassmannian.Grassmannian.uniform_init_">
-<code class="sig-name descname">uniform_init_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/grassmannian.html#Grassmannian.uniform_init_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.grassmannian.Grassmannian.uniform_init_" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt id="geotorch.grassmannian.GrassmannianTall">
-<em class="property">class </em><code class="sig-prename descclassname">geotorch.grassmannian.</code><code class="sig-name descname">GrassmannianTall</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">size</span></em>, <em class="sig-param"><span class="n">triv</span><span class="o">=</span><span class="default_value">'expm'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/grassmannian.html#GrassmannianTall"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.grassmannian.GrassmannianTall" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#geotorch.stiefel.StiefelTall" title="geotorch.stiefel.StiefelTall"><code class="xref py py-class docutils literal notranslate"><span class="pre">geotorch.stiefel.StiefelTall</span></code></a></p>
-</dd></dl>
-
-</div>
-<div class="section" id="module-geotorch.lowrank">
-<span id="geotorch-lowrank-module"></span><h2>geotorch.lowrank module<a class="headerlink" href="#module-geotorch.lowrank" title="Permalink to this headline">¶</a></h2>
-<dl class="py class">
-<dt id="geotorch.lowrank.LowRank">
-<em class="property">class </em><code class="sig-prename descclassname">geotorch.lowrank.</code><code class="sig-name descname">LowRank</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">size</span></em>, <em class="sig-param"><span class="n">rank</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/lowrank.html#LowRank"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.lowrank.LowRank" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#geotorch.manifold.Fibration" title="geotorch.manifold.Fibration"><code class="xref py py-class docutils literal notranslate"><span class="pre">geotorch.manifold.Fibration</span></code></a></p>
-<dl class="py method">
-<dt id="geotorch.lowrank.LowRank.cls_stiefel">
-<em class="property">static </em><code class="sig-name descname">cls_stiefel</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">size</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/lowrank.html#LowRank.cls_stiefel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.lowrank.LowRank.cls_stiefel" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="geotorch.lowrank.LowRank.embedding">
-<code class="sig-name descname">embedding</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">X</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/lowrank.html#LowRank.embedding"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.lowrank.LowRank.embedding" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="geotorch.lowrank.LowRank.fibration">
-<code class="sig-name descname">fibration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">X</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/lowrank.html#LowRank.fibration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.lowrank.LowRank.fibration" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="geotorch.lowrank.LowRank.size_usv">
-<em class="property">static </em><code class="sig-name descname">size_usv</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">size</span></em>, <em class="sig-param"><span class="n">rank</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/lowrank.html#LowRank.size_usv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.lowrank.LowRank.size_usv" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-</div>
-<div class="section" id="module-geotorch.manifold">
-<span id="geotorch-manifold-module"></span><h2>geotorch.manifold module<a class="headerlink" href="#module-geotorch.manifold" title="Permalink to this headline">¶</a></h2>
-<dl class="py class">
-<dt id="geotorch.manifold.AbstractManifold">
-<em class="property">class </em><code class="sig-prename descclassname">geotorch.manifold.</code><code class="sig-name descname">AbstractManifold</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dimensions</span></em>, <em class="sig-param"><span class="n">size</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/manifold.html#AbstractManifold"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.manifold.AbstractManifold" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">geotorch.parametrize.Parametrization</span></code></p>
-<dl class="py method">
-<dt id="geotorch.manifold.AbstractManifold.extra_repr">
-<code class="sig-name descname">extra_repr</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/manifold.html#AbstractManifold.extra_repr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.manifold.AbstractManifold.extra_repr" title="Permalink to this definition">¶</a></dt>
-<dd><p>Set the extra representation of the module</p>
-<p>To print customized extra information, you should reimplement
-this method in your own modules. Both single-line and multi-line
-strings are acceptable.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="geotorch.manifold.AbstractManifold.orig_dim">
-<em class="property">property </em><code class="sig-name descname">orig_dim</code><a class="headerlink" href="#geotorch.manifold.AbstractManifold.orig_dim" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt id="geotorch.manifold.EmbeddedManifold">
-<em class="property">class </em><code class="sig-prename descclassname">geotorch.manifold.</code><code class="sig-name descname">EmbeddedManifold</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dimensions</span></em>, <em class="sig-param"><span class="n">size</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/manifold.html#EmbeddedManifold"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.manifold.EmbeddedManifold" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#geotorch.manifold.AbstractManifold" title="geotorch.manifold.AbstractManifold"><code class="xref py py-class docutils literal notranslate"><span class="pre">geotorch.manifold.AbstractManifold</span></code></a></p>
-<dl class="py method">
-<dt id="geotorch.manifold.EmbeddedManifold.forward">
-<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">X</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/manifold.html#EmbeddedManifold.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.manifold.EmbeddedManifold.forward" title="Permalink to this definition">¶</a></dt>
-<dd><p>Defines the computation performed at every call.</p>
-<p>Should be overridden by all subclasses.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Although the recipe for forward pass needs to be defined within
-this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
-instead of this since the former takes care of running the
-registered hooks while the latter silently ignores them.</p>
-</div>
-</dd></dl>
-
-<dl class="py method">
-<dt id="geotorch.manifold.EmbeddedManifold.projection">
-<code class="sig-name descname">projection</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">X</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/manifold.html#EmbeddedManifold.projection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.manifold.EmbeddedManifold.projection" title="Permalink to this definition">¶</a></dt>
-<dd><p>Parametrizes the manifold in terms of a projection from the ambient space
-:param X: A tensor in the ambient space
-:type X: torch.nn.Tensor</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>A tensor on the manifold</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>tensor (torch.nn.Tensor)</p>
-</dd>
-</dl>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>This function should be surjective, otherwise not all the manifold
-will be explored</p>
-</div>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt id="geotorch.manifold.Fibration">
-<em class="property">class </em><code class="sig-prename descclassname">geotorch.manifold.</code><code class="sig-name descname">Fibration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dimensions</span></em>, <em class="sig-param"><span class="n">size</span></em>, <em class="sig-param"><span class="n">total_space</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/manifold.html#Fibration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.manifold.Fibration" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#geotorch.manifold.AbstractManifold" title="geotorch.manifold.AbstractManifold"><code class="xref py py-class docutils literal notranslate"><span class="pre">geotorch.manifold.AbstractManifold</span></code></a></p>
-<dl class="py method">
-<dt id="geotorch.manifold.Fibration.base">
-<em class="property">property </em><code class="sig-name descname">base</code><a class="headerlink" href="#geotorch.manifold.Fibration.base" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="geotorch.manifold.Fibration.embedding">
-<code class="sig-name descname">embedding</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">X</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/manifold.html#Fibration.embedding"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.manifold.Fibration.embedding" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="geotorch.manifold.Fibration.fibration">
-<code class="sig-name descname">fibration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">X</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/manifold.html#Fibration.fibration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.manifold.Fibration.fibration" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="geotorch.manifold.Fibration.forward">
-<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">X</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/manifold.html#Fibration.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.manifold.Fibration.forward" title="Permalink to this definition">¶</a></dt>
-<dd><p>Defines the computation performed at every call.</p>
-<p>Should be overridden by all subclasses.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Although the recipe for forward pass needs to be defined within
-this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
-instead of this since the former takes care of running the
-registered hooks while the latter silently ignores them.</p>
-</div>
-</dd></dl>
-
-<dl class="py method">
-<dt id="geotorch.manifold.Fibration.total_space">
-<em class="property">property </em><code class="sig-name descname">total_space</code><a class="headerlink" href="#geotorch.manifold.Fibration.total_space" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="geotorch.manifold.Fibration.update_base">
-<code class="sig-name descname">update_base</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">zero</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/manifold.html#Fibration.update_base"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.manifold.Fibration.update_base" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt id="geotorch.manifold.Manifold">
-<em class="property">class </em><code class="sig-prename descclassname">geotorch.manifold.</code><code class="sig-name descname">Manifold</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dimensions</span></em>, <em class="sig-param"><span class="n">size</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/manifold.html#Manifold"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.manifold.Manifold" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#geotorch.manifold.AbstractManifold" title="geotorch.manifold.AbstractManifold"><code class="xref py py-class docutils literal notranslate"><span class="pre">geotorch.manifold.AbstractManifold</span></code></a></p>
-<dl class="py method">
-<dt id="geotorch.manifold.Manifold.forward">
-<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">X</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/manifold.html#Manifold.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.manifold.Manifold.forward" title="Permalink to this definition">¶</a></dt>
-<dd><p>Defines the computation performed at every call.</p>
-<p>Should be overridden by all subclasses.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Although the recipe for forward pass needs to be defined within
-this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
-instead of this since the former takes care of running the
-registered hooks while the latter silently ignores them.</p>
-</div>
-</dd></dl>
-
-<dl class="py method">
-<dt id="geotorch.manifold.Manifold.trivialization">
-<code class="sig-name descname">trivialization</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">X</span></em>, <em class="sig-param"><span class="n">B</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/manifold.html#Manifold.trivialization"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.manifold.Manifold.trivialization" title="Permalink to this definition">¶</a></dt>
-<dd><p>Parametrizes the manifold in terms of a tangent space
-:param X: A tensor, usually living in T_B M
-:type X: torch.nn.Tensor
-:param B: Point on M at whose tangent space we are trivializing
-:type B: torch.nn.Tensor</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>A tensor on the manifold</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>tensor (torch.nn.Tensor)</p>
-</dd>
-</dl>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>This function should be surjective, otherwise not all the manifold
-will be explored</p>
-</div>
-</dd></dl>
-
-<dl class="py method">
-<dt id="geotorch.manifold.Manifold.update_base">
-<code class="sig-name descname">update_base</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">zero</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/manifold.html#Manifold.update_base"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.manifold.Manifold.update_base" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt id="geotorch.manifold.ProductManifold">
-<em class="property">class </em><code class="sig-prename descclassname">geotorch.manifold.</code><code class="sig-name descname">ProductManifold</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">manifolds</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/manifold.html#ProductManifold"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.manifold.ProductManifold" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#geotorch.manifold.AbstractManifold" title="geotorch.manifold.AbstractManifold"><code class="xref py py-class docutils literal notranslate"><span class="pre">geotorch.manifold.AbstractManifold</span></code></a></p>
-<dl class="py method">
-<dt id="geotorch.manifold.ProductManifold.chain">
-<code class="sig-name descname">chain</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">parametrization</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/manifold.html#ProductManifold.chain"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.manifold.ProductManifold.chain" title="Permalink to this definition">¶</a></dt>
-<dd><p>It modifies the current parametrization, parametrizing the original
-tensor in terms of the new parametrization</p>
-<p>The original parametrization is modified after chain is applied to it</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>parametrization</strong> (<em>nn.Parametrization</em>) – the parametrization to be chained</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>The original module with the parametrization module appended to it</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>Module</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="geotorch.manifold.ProductManifold.forward">
-<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">X</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/manifold.html#ProductManifold.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.manifold.ProductManifold.forward" title="Permalink to this definition">¶</a></dt>
-<dd><p>Defines the computation performed at every call.</p>
-<p>Should be overridden by all subclasses.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Although the recipe for forward pass needs to be defined within
-this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
-instead of this since the former takes care of running the
-registered hooks while the latter silently ignores them.</p>
-</div>
-</dd></dl>
-
-<dl class="py method">
-<dt id="geotorch.manifold.ProductManifold.update_base">
-<code class="sig-name descname">update_base</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">zero</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/manifold.html#ProductManifold.update_base"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.manifold.ProductManifold.update_base" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py function">
-<dt id="geotorch.manifold.parametrization_from_function">
-<code class="sig-prename descclassname">geotorch.manifold.</code><code class="sig-name descname">parametrization_from_function</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">f</span></em>, <em class="sig-param"><span class="n">name</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/manifold.html#parametrization_from_function"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.manifold.parametrization_from_function" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</div>
-<div class="section" id="module-geotorch.reals">
-<span id="geotorch-reals-module"></span><h2>geotorch.reals module<a class="headerlink" href="#module-geotorch.reals" title="Permalink to this headline">¶</a></h2>
-<dl class="py class">
-<dt id="geotorch.reals.Rn">
-<em class="property">class </em><code class="sig-prename descclassname">geotorch.reals.</code><code class="sig-name descname">Rn</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">size</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/reals.html#Rn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.reals.Rn" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#geotorch.manifold.Manifold" title="geotorch.manifold.Manifold"><code class="xref py py-class docutils literal notranslate"><span class="pre">geotorch.manifold.Manifold</span></code></a></p>
-<dl class="py method">
-<dt id="geotorch.reals.Rn.trivialization">
-<code class="sig-name descname">trivialization</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">X</span></em>, <em class="sig-param"><span class="n">B</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/reals.html#Rn.trivialization"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.reals.Rn.trivialization" title="Permalink to this definition">¶</a></dt>
-<dd><p>Parametrizes the manifold in terms of a tangent space
-:param X: A tensor, usually living in T_B M
-:type X: torch.nn.Tensor
-:param B: Point on M at whose tangent space we are trivializing
-:type B: torch.nn.Tensor</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>A tensor on the manifold</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>tensor (torch.nn.Tensor)</p>
-</dd>
-</dl>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>This function should be surjective, otherwise not all the manifold
-will be explored</p>
-</div>
-</dd></dl>
-
-</dd></dl>
-
-</div>
-<div class="section" id="module-geotorch.skew">
-<span id="geotorch-skew-module"></span><h2>geotorch.skew module<a class="headerlink" href="#module-geotorch.skew" title="Permalink to this headline">¶</a></h2>
-<dl class="py class">
-<dt id="geotorch.skew.Skew">
-<em class="property">class </em><code class="sig-prename descclassname">geotorch.skew.</code><code class="sig-name descname">Skew</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">size</span></em>, <em class="sig-param"><span class="n">lower</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/skew.html#Skew"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.skew.Skew" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#geotorch.manifold.AbstractManifold" title="geotorch.manifold.AbstractManifold"><code class="xref py py-class docutils literal notranslate"><span class="pre">geotorch.manifold.AbstractManifold</span></code></a></p>
-<dl class="py method">
-<dt id="geotorch.skew.Skew.extra_repr">
-<code class="sig-name descname">extra_repr</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/skew.html#Skew.extra_repr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.skew.Skew.extra_repr" title="Permalink to this definition">¶</a></dt>
-<dd><p>Set the extra representation of the module</p>
-<p>To print customized extra information, you should reimplement
-this method in your own modules. Both single-line and multi-line
-strings are acceptable.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="geotorch.skew.Skew.forward">
-<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">X</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/skew.html#Skew.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.skew.Skew.forward" title="Permalink to this definition">¶</a></dt>
-<dd><p>Defines the computation performed at every call.</p>
-<p>Should be overridden by all subclasses.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Although the recipe for forward pass needs to be defined within
-this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
-instead of this since the former takes care of running the
-registered hooks while the latter silently ignores them.</p>
-</div>
-</dd></dl>
-
-</dd></dl>
-
-</div>
-<div class="section" id="module-geotorch.so">
-<span id="geotorch-so-module"></span><h2>geotorch.so module<a class="headerlink" href="#module-geotorch.so" title="Permalink to this headline">¶</a></h2>
-<dl class="py class">
-<dt id="geotorch.so.SO">
-<em class="property">class </em><code class="sig-prename descclassname">geotorch.so.</code><code class="sig-name descname">SO</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">size</span></em>, <em class="sig-param"><span class="n">triv</span><span class="o">=</span><span class="default_value">'expm'</span></em>, <em class="sig-param"><span class="n">lower</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/so.html#SO"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.so.SO" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#geotorch.manifold.Manifold" title="geotorch.manifold.Manifold"><code class="xref py py-class docutils literal notranslate"><span class="pre">geotorch.manifold.Manifold</span></code></a></p>
-<dl class="py method">
-<dt id="geotorch.so.SO.extra_repr">
-<code class="sig-name descname">extra_repr</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/so.html#SO.extra_repr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.so.SO.extra_repr" title="Permalink to this definition">¶</a></dt>
-<dd><p>Set the extra representation of the module</p>
-<p>To print customized extra information, you should reimplement
-this method in your own modules. Both single-line and multi-line
-strings are acceptable.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="geotorch.so.SO.torus_init_">
-<code class="sig-name descname">torus_init_</code><span class="sig-paren">(</span><em class="sig-param">init_=None</em>, <em class="sig-param">triv=&lt;function expm&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/so.html#SO.torus_init_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.so.SO.torus_init_" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="geotorch.so.SO.trivialization">
-<code class="sig-name descname">trivialization</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">X</span></em>, <em class="sig-param"><span class="n">B</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/so.html#SO.trivialization"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.so.SO.trivialization" title="Permalink to this definition">¶</a></dt>
-<dd><p>Parametrizes the manifold in terms of a tangent space
-:param X: A tensor, usually living in T_B M
-:type X: torch.nn.Tensor
-:param B: Point on M at whose tangent space we are trivializing
-:type B: torch.nn.Tensor</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>A tensor on the manifold</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>tensor (torch.nn.Tensor)</p>
-</dd>
-</dl>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>This function should be surjective, otherwise not all the manifold
-will be explored</p>
-</div>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="geotorch.so.SO.trivializations">
-<code class="sig-name descname">trivializations</code><em class="property"> = {'cayley': &lt;function cayley_map&gt;, 'expm': &lt;function expm&gt;}</em><a class="headerlink" href="#geotorch.so.SO.trivializations" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="geotorch.so.SO.uniform_init_">
-<code class="sig-name descname">uniform_init_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/so.html#SO.uniform_init_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.so.SO.uniform_init_" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py function">
-<dt id="geotorch.so.cayley_map">
-<code class="sig-prename descclassname">geotorch.so.</code><code class="sig-name descname">cayley_map</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">X</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/so.html#cayley_map"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.so.cayley_map" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt id="geotorch.so.torus_init_">
-<code class="sig-prename descclassname">geotorch.so.</code><code class="sig-name descname">torus_init_</code><span class="sig-paren">(</span><em class="sig-param">tensor</em>, <em class="sig-param">init_=None</em>, <em class="sig-param">triv=&lt;function expm&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/so.html#torus_init_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.so.torus_init_" title="Permalink to this definition">¶</a></dt>
-<dd><p>Samples the 2D input <cite>tensor</cite> as a block-diagonal skew-symmetric matrix
-which is skew-symmetric in the main diagonal. The blocks are of the form
-<span class="math notranslate nohighlight">\(\begin{pmatrix} 0 &amp; b \\ -b &amp; 0\end{pmatrix}\)</span> where <span class="math notranslate nohighlight">\(b\)</span> is
-distributed according to <cite>init_</cite>. Then it is projected to the manifold using <cite>triv</cite>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>tensor</strong> (<em>torch.nn.Tensor</em>) – a 2-dimensional tensor</p></li>
-<li><p><strong>init_</strong> – Optional. A function that takes a tensor and fills
-it in place according to some distribution. Default:
-<span class="math notranslate nohighlight">\(\mathcal{U}(-\pi, \pi)\)</span></p></li>
-<li><p><strong>triv</strong> – Optional. A function that maps skew-symmetric matrices
-to orthogonal matrices.</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt id="geotorch.so.uniform_init_">
-<code class="sig-prename descclassname">geotorch.so.</code><code class="sig-name descname">uniform_init_</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tensor</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/so.html#uniform_init_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.so.uniform_init_" title="Permalink to this definition">¶</a></dt>
-<dd><p>Fills the input <cite>Tensor</cite> with an  orthogonal matrix. The matrix will have positive determinant.
-The input tensor must have at least 2 dimensions, and for tensors with more than 2
-dimensions the first dimensions are treated as batch dimensions.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>tensor</strong> (<em>torch.nn.Tensor</em>) – a 2-dimensional tensor or a batch of them</p>
-</dd>
-</dl>
-</dd></dl>
-
-</div>
-<div class="section" id="module-geotorch.sphere">
-<span id="geotorch-sphere-module"></span><h2>geotorch.sphere module<a class="headerlink" href="#module-geotorch.sphere" title="Permalink to this headline">¶</a></h2>
-<dl class="py class">
-<dt id="geotorch.sphere.Sphere">
-<em class="property">class </em><code class="sig-prename descclassname">geotorch.sphere.</code><code class="sig-name descname">Sphere</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">size</span></em>, <em class="sig-param"><span class="n">K</span><span class="o">=</span><span class="default_value">1.0</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/sphere.html#Sphere"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.sphere.Sphere" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#geotorch.manifold.Fibration" title="geotorch.manifold.Fibration"><code class="xref py py-class docutils literal notranslate"><span class="pre">geotorch.manifold.Fibration</span></code></a></p>
-<dl class="py method">
-<dt id="geotorch.sphere.Sphere.embedding">
-<code class="sig-name descname">embedding</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/sphere.html#Sphere.embedding"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.sphere.Sphere.embedding" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="geotorch.sphere.Sphere.extra_repr">
-<code class="sig-name descname">extra_repr</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/sphere.html#Sphere.extra_repr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.sphere.Sphere.extra_repr" title="Permalink to this definition">¶</a></dt>
-<dd><p>Set the extra representation of the module</p>
-<p>To print customized extra information, you should reimplement
-this method in your own modules. Both single-line and multi-line
-strings are acceptable.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="geotorch.sphere.Sphere.fibration">
-<code class="sig-name descname">fibration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/sphere.html#Sphere.fibration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.sphere.Sphere.fibration" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="geotorch.sphere.Sphere.uniform_init_">
-<code class="sig-name descname">uniform_init_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/sphere.html#Sphere.uniform_init_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.sphere.Sphere.uniform_init_" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt id="geotorch.sphere.SphereEmbedded">
-<em class="property">class </em><code class="sig-prename descclassname">geotorch.sphere.</code><code class="sig-name descname">SphereEmbedded</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">size</span></em>, <em class="sig-param"><span class="n">projection</span><span class="o">=</span><span class="default_value">'project'</span></em>, <em class="sig-param"><span class="n">K</span><span class="o">=</span><span class="default_value">1.0</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/sphere.html#SphereEmbedded"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.sphere.SphereEmbedded" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#geotorch.manifold.EmbeddedManifold" title="geotorch.manifold.EmbeddedManifold"><code class="xref py py-class docutils literal notranslate"><span class="pre">geotorch.manifold.EmbeddedManifold</span></code></a></p>
-<dl class="py method">
-<dt id="geotorch.sphere.SphereEmbedded.extra_repr">
-<code class="sig-name descname">extra_repr</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/sphere.html#SphereEmbedded.extra_repr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.sphere.SphereEmbedded.extra_repr" title="Permalink to this definition">¶</a></dt>
-<dd><p>Set the extra representation of the module</p>
-<p>To print customized extra information, you should reimplement
-this method in your own modules. Both single-line and multi-line
-strings are acceptable.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="geotorch.sphere.SphereEmbedded.projection">
-<code class="sig-name descname">projection</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/sphere.html#SphereEmbedded.projection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.sphere.SphereEmbedded.projection" title="Permalink to this definition">¶</a></dt>
-<dd><p>Parametrizes the manifold in terms of a projection from the ambient space
-:param X: A tensor in the ambient space
-:type X: torch.nn.Tensor</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>A tensor on the manifold</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>tensor (torch.nn.Tensor)</p>
-</dd>
-</dl>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>This function should be surjective, otherwise not all the manifold
-will be explored</p>
-</div>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="geotorch.sphere.SphereEmbedded.projections">
-<code class="sig-name descname">projections</code><em class="property"> = {'project': &lt;function project&gt;}</em><a class="headerlink" href="#geotorch.sphere.SphereEmbedded.projections" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="geotorch.sphere.SphereEmbedded.uniform_init_">
-<code class="sig-name descname">uniform_init_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/sphere.html#SphereEmbedded.uniform_init_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.sphere.SphereEmbedded.uniform_init_" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py function">
-<dt id="geotorch.sphere.project">
-<code class="sig-prename descclassname">geotorch.sphere.</code><code class="sig-name descname">project</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/sphere.html#project"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.sphere.project" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</div>
-<div class="section" id="module-geotorch.stiefel">
-<span id="geotorch-stiefel-module"></span><h2>geotorch.stiefel module<a class="headerlink" href="#module-geotorch.stiefel" title="Permalink to this headline">¶</a></h2>
-<dl class="py class">
-<dt id="geotorch.stiefel.Stiefel">
-<em class="property">class </em><code class="sig-prename descclassname">geotorch.stiefel.</code><code class="sig-name descname">Stiefel</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">size</span></em>, <em class="sig-param"><span class="n">triv</span><span class="o">=</span><span class="default_value">'expm'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/stiefel.html#Stiefel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.stiefel.Stiefel" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#geotorch.manifold.Fibration" title="geotorch.manifold.Fibration"><code class="xref py py-class docutils literal notranslate"><span class="pre">geotorch.manifold.Fibration</span></code></a></p>
-<p>Implement everything as the fibration SO(n) -&gt; St(n,k)</p>
-<dl class="py method">
-<dt id="geotorch.stiefel.Stiefel.embedding">
-<code class="sig-name descname">embedding</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">A</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/stiefel.html#Stiefel.embedding"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.stiefel.Stiefel.embedding" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="geotorch.stiefel.Stiefel.extra_repr">
-<code class="sig-name descname">extra_repr</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/stiefel.html#Stiefel.extra_repr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.stiefel.Stiefel.extra_repr" title="Permalink to this definition">¶</a></dt>
-<dd><p>Set the extra representation of the module</p>
-<p>To print customized extra information, you should reimplement
-this method in your own modules. Both single-line and multi-line
-strings are acceptable.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="geotorch.stiefel.Stiefel.fibration">
-<code class="sig-name descname">fibration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">X</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/stiefel.html#Stiefel.fibration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.stiefel.Stiefel.fibration" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="geotorch.stiefel.Stiefel.size_so">
-<em class="property">static </em><code class="sig-name descname">size_so</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">size</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/stiefel.html#Stiefel.size_so"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.stiefel.Stiefel.size_so" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="geotorch.stiefel.Stiefel.uniform_init_">
-<code class="sig-name descname">uniform_init_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/stiefel.html#Stiefel.uniform_init_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.stiefel.Stiefel.uniform_init_" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt id="geotorch.stiefel.StiefelTall">
-<em class="property">class </em><code class="sig-prename descclassname">geotorch.stiefel.</code><code class="sig-name descname">StiefelTall</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">size</span></em>, <em class="sig-param"><span class="n">triv</span><span class="o">=</span><span class="default_value">'expm'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/stiefel.html#StiefelTall"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.stiefel.StiefelTall" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#geotorch.manifold.Manifold" title="geotorch.manifold.Manifold"><code class="xref py py-class docutils literal notranslate"><span class="pre">geotorch.manifold.Manifold</span></code></a></p>
-<p>Implements St(n,k), 1 &lt;= k &lt;= n/2</p>
-<dl class="py method">
-<dt id="geotorch.stiefel.StiefelTall.extra_repr">
-<code class="sig-name descname">extra_repr</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/stiefel.html#StiefelTall.extra_repr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.stiefel.StiefelTall.extra_repr" title="Permalink to this definition">¶</a></dt>
-<dd><p>Set the extra representation of the module</p>
-<p>To print customized extra information, you should reimplement
-this method in your own modules. Both single-line and multi-line
-strings are acceptable.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="geotorch.stiefel.StiefelTall.trivialization">
-<code class="sig-name descname">trivialization</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">X</span></em>, <em class="sig-param"><span class="n">B</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/stiefel.html#StiefelTall.trivialization"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.stiefel.StiefelTall.trivialization" title="Permalink to this definition">¶</a></dt>
-<dd><p>Parametrizes the manifold in terms of a tangent space
-:param X: A tensor, usually living in T_B M
-:type X: torch.nn.Tensor
-:param B: Point on M at whose tangent space we are trivializing
-:type B: torch.nn.Tensor</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>A tensor on the manifold</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>tensor (torch.nn.Tensor)</p>
-</dd>
-</dl>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>This function should be surjective, otherwise not all the manifold
-will be explored</p>
-</div>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="geotorch.stiefel.StiefelTall.trivializations">
-<code class="sig-name descname">trivializations</code><em class="property"> = {'cayley': &lt;function cayley_map&gt;, 'expm': &lt;function expm&gt;}</em><a class="headerlink" href="#geotorch.stiefel.StiefelTall.trivializations" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="geotorch.stiefel.StiefelTall.uniform_init_">
-<code class="sig-name descname">uniform_init_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/stiefel.html#StiefelTall.uniform_init_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.stiefel.StiefelTall.uniform_init_" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="geotorch.stiefel.StiefelTall.update_base">
-<code class="sig-name descname">update_base</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">zero</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/stiefel.html#StiefelTall.update_base"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.stiefel.StiefelTall.update_base" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py function">
-<dt id="geotorch.stiefel.non_singular_">
-<code class="sig-prename descclassname">geotorch.stiefel.</code><code class="sig-name descname">non_singular_</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">X</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/stiefel.html#non_singular_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.stiefel.non_singular_" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt id="geotorch.stiefel.stable_qr">
-<code class="sig-prename descclassname">geotorch.stiefel.</code><code class="sig-name descname">stable_qr</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">X</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/stiefel.html#stable_qr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.stiefel.stable_qr" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</div>
-<div class="section" id="module-geotorch.sym">
-<span id="geotorch-sym-module"></span><h2>geotorch.sym module<a class="headerlink" href="#module-geotorch.sym" title="Permalink to this headline">¶</a></h2>
-<dl class="py class">
-<dt id="geotorch.sym.Sym">
-<em class="property">class </em><code class="sig-prename descclassname">geotorch.sym.</code><code class="sig-name descname">Sym</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">size</span></em>, <em class="sig-param"><span class="n">lower</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/sym.html#Sym"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.sym.Sym" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#geotorch.manifold.AbstractManifold" title="geotorch.manifold.AbstractManifold"><code class="xref py py-class docutils literal notranslate"><span class="pre">geotorch.manifold.AbstractManifold</span></code></a></p>
-<dl class="py method">
-<dt id="geotorch.sym.Sym.extra_repr">
-<code class="sig-name descname">extra_repr</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/sym.html#Sym.extra_repr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.sym.Sym.extra_repr" title="Permalink to this definition">¶</a></dt>
-<dd><p>Set the extra representation of the module</p>
-<p>To print customized extra information, you should reimplement
-this method in your own modules. Both single-line and multi-line
-strings are acceptable.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="geotorch.sym.Sym.forward">
-<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">X</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/sym.html#Sym.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.sym.Sym.forward" title="Permalink to this definition">¶</a></dt>
-<dd><p>Defines the computation performed at every call.</p>
-<p>Should be overridden by all subclasses.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Although the recipe for forward pass needs to be defined within
-this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
-instead of this since the former takes care of running the
-registered hooks while the latter silently ignores them.</p>
-</div>
-</dd></dl>
-
-</dd></dl>
-
+<div class="section" id="geotorch-manifold-module">
+<h2>geotorch.manifold module<a class="headerlink" href="#geotorch-manifold-module" title="Permalink to this headline">¶</a></h2>
 </div>
 <div class="section" id="module-geotorch">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-geotorch" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="geotorch.AbstractManifold">
 <em class="property">class </em><code class="sig-prename descclassname">geotorch.</code><code class="sig-name descname">AbstractManifold</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dimensions</span></em>, <em class="sig-param"><span class="n">size</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/manifold.html#AbstractManifold"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.AbstractManifold" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">geotorch.parametrize.Parametrization</span></code></p>
+<dd><p>Initializes internal Module state, shared by both nn.Module and ScriptModule.</p>
 <dl class="py method">
 <dt id="geotorch.AbstractManifold.extra_repr">
 <code class="sig-name descname">extra_repr</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/manifold.html#AbstractManifold.extra_repr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.AbstractManifold.extra_repr" title="Permalink to this definition">¶</a></dt>
@@ -844,17 +187,12 @@ this method in your own modules. Both single-line and multi-line
 strings are acceptable.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="geotorch.AbstractManifold.orig_dim">
-<em class="property">property </em><code class="sig-name descname">orig_dim</code><a class="headerlink" href="#geotorch.AbstractManifold.orig_dim" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 </dd></dl>
 
 <dl class="py class">
 <dt id="geotorch.Manifold">
 <em class="property">class </em><code class="sig-prename descclassname">geotorch.</code><code class="sig-name descname">Manifold</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dimensions</span></em>, <em class="sig-param"><span class="n">size</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/manifold.html#Manifold"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.Manifold" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#geotorch.manifold.AbstractManifold" title="geotorch.manifold.AbstractManifold"><code class="xref py py-class docutils literal notranslate"><span class="pre">geotorch.manifold.AbstractManifold</span></code></a></p>
+<dd><p>Initializes internal Module state, shared by both nn.Module and ScriptModule.</p>
 <dl class="py method">
 <dt id="geotorch.Manifold.forward">
 <code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">X</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/manifold.html#Manifold.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.Manifold.forward" title="Permalink to this definition">¶</a></dt>
@@ -874,15 +212,15 @@ registered hooks while the latter silently ignores them.</p>
 <code class="sig-name descname">trivialization</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">X</span></em>, <em class="sig-param"><span class="n">B</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/manifold.html#Manifold.trivialization"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.Manifold.trivialization" title="Permalink to this definition">¶</a></dt>
 <dd><p>Parametrizes the manifold in terms of a tangent space
 :param X: A tensor, usually living in T_B M
-:type X: torch.nn.Tensor
+:type X: torch.Tensor
 :param B: Point on M at whose tangent space we are trivializing
-:type B: torch.nn.Tensor</p>
+:type B: torch.Tensor</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p>A tensor on the manifold</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p>tensor (torch.nn.Tensor)</p>
+<dd class="field-even"><p>tensor (torch.Tensor)</p>
 </dd>
 </dl>
 <div class="admonition note">
@@ -892,32 +230,12 @@ will be explored</p>
 </div>
 </dd></dl>
 
-<dl class="py method">
-<dt id="geotorch.Manifold.update_base">
-<code class="sig-name descname">update_base</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">zero</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/manifold.html#Manifold.update_base"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.Manifold.update_base" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 </dd></dl>
 
 <dl class="py class">
 <dt id="geotorch.Fibration">
 <em class="property">class </em><code class="sig-prename descclassname">geotorch.</code><code class="sig-name descname">Fibration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dimensions</span></em>, <em class="sig-param"><span class="n">size</span></em>, <em class="sig-param"><span class="n">total_space</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/manifold.html#Fibration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.Fibration" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#geotorch.manifold.AbstractManifold" title="geotorch.manifold.AbstractManifold"><code class="xref py py-class docutils literal notranslate"><span class="pre">geotorch.manifold.AbstractManifold</span></code></a></p>
-<dl class="py method">
-<dt id="geotorch.Fibration.base">
-<em class="property">property </em><code class="sig-name descname">base</code><a class="headerlink" href="#geotorch.Fibration.base" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="geotorch.Fibration.embedding">
-<code class="sig-name descname">embedding</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">X</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/manifold.html#Fibration.embedding"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.Fibration.embedding" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="geotorch.Fibration.fibration">
-<code class="sig-name descname">fibration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">X</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/manifold.html#Fibration.fibration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.Fibration.fibration" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
+<dd><p>Initializes internal Module state, shared by both nn.Module and ScriptModule.</p>
 <dl class="py method">
 <dt id="geotorch.Fibration.forward">
 <code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">X</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/manifold.html#Fibration.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.Fibration.forward" title="Permalink to this definition">¶</a></dt>
@@ -932,22 +250,12 @@ registered hooks while the latter silently ignores them.</p>
 </div>
 </dd></dl>
 
-<dl class="py method">
-<dt id="geotorch.Fibration.total_space">
-<em class="property">property </em><code class="sig-name descname">total_space</code><a class="headerlink" href="#geotorch.Fibration.total_space" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="geotorch.Fibration.update_base">
-<code class="sig-name descname">update_base</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">zero</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/manifold.html#Fibration.update_base"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.Fibration.update_base" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 </dd></dl>
 
 <dl class="py class">
 <dt id="geotorch.ProductManifold">
 <em class="property">class </em><code class="sig-prename descclassname">geotorch.</code><code class="sig-name descname">ProductManifold</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">manifolds</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/manifold.html#ProductManifold"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.ProductManifold" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#geotorch.manifold.AbstractManifold" title="geotorch.manifold.AbstractManifold"><code class="xref py py-class docutils literal notranslate"><span class="pre">geotorch.manifold.AbstractManifold</span></code></a></p>
+<dd><p>Initializes internal Module state, shared by both nn.Module and ScriptModule.</p>
 <dl class="py method">
 <dt id="geotorch.ProductManifold.chain">
 <code class="sig-name descname">chain</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">parametrization</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/manifold.html#ProductManifold.chain"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.ProductManifold.chain" title="Permalink to this definition">¶</a></dt>
@@ -981,24 +289,31 @@ registered hooks while the latter silently ignores them.</p>
 </div>
 </dd></dl>
 
-<dl class="py method">
-<dt id="geotorch.ProductManifold.update_base">
-<code class="sig-name descname">update_base</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">zero</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/manifold.html#ProductManifold.update_base"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.ProductManifold.update_base" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 </dd></dl>
 
 <dl class="py class">
 <dt id="geotorch.Grassmannian">
 <em class="property">class </em><code class="sig-prename descclassname">geotorch.</code><code class="sig-name descname">Grassmannian</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">size</span></em>, <em class="sig-param"><span class="n">triv</span><span class="o">=</span><span class="default_value">'expm'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/grassmannian.html#Grassmannian"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.Grassmannian" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#geotorch.manifold.Fibration" title="geotorch.manifold.Fibration"><code class="xref py py-class docutils literal notranslate"><span class="pre">geotorch.manifold.Fibration</span></code></a></p>
-<p>Implement everything as the fibration St(n,k) -&gt; Gr(n,k)
-G(n,k) iso St(n,k) / O(k)</p>
-<dl class="py method">
-<dt id="geotorch.Grassmannian.embedding">
-<code class="sig-name descname">embedding</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">A</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/grassmannian.html#Grassmannian.embedding"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.Grassmannian.embedding" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
+<dd><p>Grassmannian manifold as a projection from the orthogonal
+matrices <span class="math notranslate nohighlight">\(\operatorname{St}(n,k)\)</span>.
+The metric considered is the canonical.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This class is equivalent to <a class="reference internal" href="#geotorch.GrassmannianTall" title="geotorch.GrassmannianTall"><code class="xref py py-class docutils literal notranslate"><span class="pre">GrassmannianTall</span></code></a>, but it is faster
+for the case when <span class="math notranslate nohighlight">\(n\)</span> is of a similar size of <cite>k</cite>. For example,
+<span class="math notranslate nohighlight">\(n \leq 4k\)</span>.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>size</strong> (<em>torch.size</em>) – Size of the tensor to be applied to</p></li>
+<li><p><strong>triv</strong> (<em>str</em><em> or </em><em>callable</em>) – Optional.
+A map that maps <span class="math notranslate nohighlight">\(\operatorname{Skew}(n)\)</span> onto the orthogonal
+matrices surjectively. It can be one of <cite>[“expm”, “cayley”]</cite> or a custom
+callable. Default: <cite>“expm”</cite></p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py method">
 <dt id="geotorch.Grassmannian.extra_repr">
 <code class="sig-name descname">extra_repr</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/grassmannian.html#Grassmannian.extra_repr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.Grassmannian.extra_repr" title="Permalink to this definition">¶</a></dt>
@@ -1009,72 +324,84 @@ strings are acceptable.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="geotorch.Grassmannian.fibration">
-<code class="sig-name descname">fibration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">X</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/grassmannian.html#Grassmannian.fibration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.Grassmannian.fibration" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="geotorch.Grassmannian.size_st">
-<em class="property">static </em><code class="sig-name descname">size_st</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">size</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/grassmannian.html#Grassmannian.size_st"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.Grassmannian.size_st" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
 <dt id="geotorch.Grassmannian.uniform_init_">
 <code class="sig-name descname">uniform_init_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/grassmannian.html#Grassmannian.uniform_init_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.Grassmannian.uniform_init_" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Samples an orthogonal matrix uniformly at random according
+to the Haar measure on <span class="math notranslate nohighlight">\(\operatorname{Gr}(n,k)\)</span>.</p>
+</dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
 <dt id="geotorch.GrassmannianTall">
 <em class="property">class </em><code class="sig-prename descclassname">geotorch.</code><code class="sig-name descname">GrassmannianTall</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">size</span></em>, <em class="sig-param"><span class="n">triv</span><span class="o">=</span><span class="default_value">'expm'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/grassmannian.html#GrassmannianTall"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.GrassmannianTall" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#geotorch.stiefel.StiefelTall" title="geotorch.stiefel.StiefelTall"><code class="xref py py-class docutils literal notranslate"><span class="pre">geotorch.stiefel.StiefelTall</span></code></a></p>
+<dd><p>Grassmannian manifold parametrized from is tangent space using the orthogonal
+projection from the ambient space <span class="math notranslate nohighlight">\(\mathbb{R}^{n \times k}\)</span>.
+The metric considered is the canonical.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This class is equivalent to <a class="reference internal" href="#geotorch.Grassmannian" title="geotorch.Grassmannian"><code class="xref py py-class docutils literal notranslate"><span class="pre">Grassmannian</span></code></a>, but it is faster for the case
+when <span class="math notranslate nohighlight">\(n\)</span> is of a much larger than <cite>k</cite>. For example, <span class="math notranslate nohighlight">\(n &gt; 4k\)</span>.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>size</strong> (<em>torch.size</em>) – Size of the tensor to be applied to</p></li>
+<li><p><strong>triv</strong> (<em>str</em><em> or </em><em>callable</em>) – Optional.
+A map that maps <span class="math notranslate nohighlight">\(\operatorname{Skew}(n)\)</span> onto the orthogonal
+matrices surjectively. It can be one of <cite>[“expm”, “cayley”]</cite> or a custom
+callable. Default: <cite>“expm”</cite></p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="geotorch.GrassmannianTall.uniform_init_">
+<code class="sig-name descname">uniform_init_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/grassmannian.html#GrassmannianTall.uniform_init_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.GrassmannianTall.uniform_init_" title="Permalink to this definition">¶</a></dt>
+<dd><p>Samples an orthogonal matrix uniformly at random according
+to the Haar measure on <span class="math notranslate nohighlight">\(\operatorname{Gr}(n,k)\)</span>.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
 <dt id="geotorch.LowRank">
 <em class="property">class </em><code class="sig-prename descclassname">geotorch.</code><code class="sig-name descname">LowRank</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">size</span></em>, <em class="sig-param"><span class="n">rank</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/lowrank.html#LowRank"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.LowRank" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#geotorch.manifold.Fibration" title="geotorch.manifold.Fibration"><code class="xref py py-class docutils literal notranslate"><span class="pre">geotorch.manifold.Fibration</span></code></a></p>
-<dl class="py method">
-<dt id="geotorch.LowRank.cls_stiefel">
-<em class="property">static </em><code class="sig-name descname">cls_stiefel</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">size</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/lowrank.html#LowRank.cls_stiefel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.LowRank.cls_stiefel" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="geotorch.LowRank.embedding">
-<code class="sig-name descname">embedding</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">X</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/lowrank.html#LowRank.embedding"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.LowRank.embedding" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="geotorch.LowRank.fibration">
-<code class="sig-name descname">fibration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">X</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/lowrank.html#LowRank.fibration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.LowRank.fibration" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="geotorch.LowRank.size_usv">
-<em class="property">static </em><code class="sig-name descname">size_usv</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">size</span></em>, <em class="sig-param"><span class="n">rank</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/lowrank.html#LowRank.size_usv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.LowRank.size_usv" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
+<dd><p>Variety of the matrices of rank <span class="math notranslate nohighlight">\(r\)</span> or less.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>size</strong> (<em>torch.size</em>) – Size of the tensor to be applied to</p></li>
+<li><p><strong>rank</strong> (<em>int</em>) – Rank of the matrices.
+It has to be less than
+<span class="math notranslate nohighlight">\(\min\(\texttt{size}[-1], \texttt{size}[-2]\)\)</span></p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py class">
 <dt id="geotorch.Rn">
 <em class="property">class </em><code class="sig-prename descclassname">geotorch.</code><code class="sig-name descname">Rn</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">size</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/reals.html#Rn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.Rn" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#geotorch.manifold.Manifold" title="geotorch.manifold.Manifold"><code class="xref py py-class docutils literal notranslate"><span class="pre">geotorch.manifold.Manifold</span></code></a></p>
+<dd><p>Vector space of unconstrained vectors.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>size</strong> (<em>torch.size</em>) – Size of the tensor to be applied to</p>
+</dd>
+</dl>
 <dl class="py method">
 <dt id="geotorch.Rn.trivialization">
 <code class="sig-name descname">trivialization</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">X</span></em>, <em class="sig-param"><span class="n">B</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/reals.html#Rn.trivialization"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.Rn.trivialization" title="Permalink to this definition">¶</a></dt>
 <dd><p>Parametrizes the manifold in terms of a tangent space
 :param X: A tensor, usually living in T_B M
-:type X: torch.nn.Tensor
+:type X: torch.Tensor
 :param B: Point on M at whose tangent space we are trivializing
-:type B: torch.nn.Tensor</p>
+:type B: torch.Tensor</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p>A tensor on the manifold</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p>tensor (torch.nn.Tensor)</p>
+<dd class="field-even"><p>tensor (torch.Tensor)</p>
 </dd>
 </dl>
 <div class="admonition note">
@@ -1089,7 +416,17 @@ will be explored</p>
 <dl class="py class">
 <dt id="geotorch.Skew">
 <em class="property">class </em><code class="sig-prename descclassname">geotorch.</code><code class="sig-name descname">Skew</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">size</span></em>, <em class="sig-param"><span class="n">lower</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/skew.html#Skew"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.Skew" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#geotorch.manifold.AbstractManifold" title="geotorch.manifold.AbstractManifold"><code class="xref py py-class docutils literal notranslate"><span class="pre">geotorch.manifold.AbstractManifold</span></code></a></p>
+<dd><p>Vector space of skew-symmetric matrices, parametrized in terms of the upper or
+lower triangular part of the matrix.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>size</strong> (<em>torch.size</em>) – Size of the tensor to be applied to</p></li>
+<li><p><strong>lower</strong> (<em>bool</em>) – Optional. Uses the lower triangular part of the matrix to parametrize
+the matrix. Default: <cite>True</cite></p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py method">
 <dt id="geotorch.Skew.extra_repr">
 <code class="sig-name descname">extra_repr</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/skew.html#Skew.extra_repr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.Skew.extra_repr" title="Permalink to this definition">¶</a></dt>
@@ -1118,7 +455,21 @@ registered hooks while the latter silently ignores them.</p>
 <dl class="py class">
 <dt id="geotorch.SO">
 <em class="property">class </em><code class="sig-prename descclassname">geotorch.</code><code class="sig-name descname">SO</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">size</span></em>, <em class="sig-param"><span class="n">triv</span><span class="o">=</span><span class="default_value">'expm'</span></em>, <em class="sig-param"><span class="n">lower</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/so.html#SO"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.SO" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#geotorch.manifold.Manifold" title="geotorch.manifold.Manifold"><code class="xref py py-class docutils literal notranslate"><span class="pre">geotorch.manifold.Manifold</span></code></a></p>
+<dd><p>Manifold of square orthogonal matrices with positive determinant parametrized
+in terms of its Lie algebra, the skew-symmetric matrices.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>size</strong> (<em>torch.size</em>) – Size of the tensor to be applied to</p></li>
+<li><p><strong>triv</strong> (<em>str</em><em> or </em><em>callable</em>) – Optional.
+A map that maps <span class="math notranslate nohighlight">\(\operatorname{Skew}(n)\)</span> onto the orthogonal
+matrices surjectively. It can be one of <cite>[“expm”, “cayley”]</cite> or a custom
+callable. Default: <cite>“expm”</cite></p></li>
+<li><p><strong>lower</strong> (<em>bool</em>) – Optional. Uses the lower triangular part of the matrix to parametrize
+the skew-symmetric matrices. Default: <cite>True</cite></p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py method">
 <dt id="geotorch.SO.extra_repr">
 <code class="sig-name descname">extra_repr</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/so.html#SO.extra_repr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.SO.extra_repr" title="Permalink to this definition">¶</a></dt>
@@ -1131,22 +482,41 @@ strings are acceptable.</p>
 <dl class="py method">
 <dt id="geotorch.SO.torus_init_">
 <code class="sig-name descname">torus_init_</code><span class="sig-paren">(</span><em class="sig-param">init_=None</em>, <em class="sig-param">triv=&lt;function expm&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/so.html#SO.torus_init_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.SO.torus_init_" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Samples the 2D input <cite>tensor</cite> as a block-diagonal skew-symmetric matrix
+which is skew-symmetric in the main diagonal. The blocks are of the form
+<span class="math notranslate nohighlight">\(\begin{pmatrix} 0 &amp; b \\ -b &amp; 0\end{pmatrix}\)</span> where <span class="math notranslate nohighlight">\(b\)</span> is
+distributed according to <cite>init_</cite>. Then it is projected to the manifold using <cite>triv</cite>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This initialization is particularly useful for regularizing RNNs.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>init_</strong> – Optional. A function that takes a tensor and fills
+it in place according to some distribution. See <cite>torch.init</cite>. Default:
+<span class="math notranslate nohighlight">\(\operatorname{Uniform}(-\pi, \pi)\)</span></p></li>
+<li><p><strong>triv</strong> – Optional. A function that maps skew-symmetric matrices
+to orthogonal matrices.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt id="geotorch.SO.trivialization">
 <code class="sig-name descname">trivialization</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">X</span></em>, <em class="sig-param"><span class="n">B</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/so.html#SO.trivialization"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.SO.trivialization" title="Permalink to this definition">¶</a></dt>
 <dd><p>Parametrizes the manifold in terms of a tangent space
 :param X: A tensor, usually living in T_B M
-:type X: torch.nn.Tensor
+:type X: torch.Tensor
 :param B: Point on M at whose tangent space we are trivializing
-:type B: torch.nn.Tensor</p>
+:type B: torch.Tensor</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p>A tensor on the manifold</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p>tensor (torch.nn.Tensor)</p>
+<dd class="field-even"><p>tensor (torch.Tensor)</p>
 </dd>
 </dl>
 <div class="admonition note">
@@ -1156,27 +526,28 @@ will be explored</p>
 </div>
 </dd></dl>
 
-<dl class="py attribute">
-<dt id="geotorch.SO.trivializations">
-<code class="sig-name descname">trivializations</code><em class="property"> = {'cayley': &lt;function cayley_map&gt;, 'expm': &lt;function expm&gt;}</em><a class="headerlink" href="#geotorch.SO.trivializations" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 <dl class="py method">
 <dt id="geotorch.SO.uniform_init_">
 <code class="sig-name descname">uniform_init_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/so.html#SO.uniform_init_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.SO.uniform_init_" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Samples an orthogonal matrix uniformly at random according
+to the Haar measure on <span class="math notranslate nohighlight">\(\operatorname{SO}(n)\)</span>.</p>
+</dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
 <dt id="geotorch.Sphere">
-<em class="property">class </em><code class="sig-prename descclassname">geotorch.</code><code class="sig-name descname">Sphere</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">size</span></em>, <em class="sig-param"><span class="n">K</span><span class="o">=</span><span class="default_value">1.0</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/sphere.html#Sphere"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.Sphere" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#geotorch.manifold.Fibration" title="geotorch.manifold.Fibration"><code class="xref py py-class docutils literal notranslate"><span class="pre">geotorch.manifold.Fibration</span></code></a></p>
-<dl class="py method">
-<dt id="geotorch.Sphere.embedding">
-<code class="sig-name descname">embedding</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/sphere.html#Sphere.embedding"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.Sphere.embedding" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
+<em class="property">class </em><code class="sig-prename descclassname">geotorch.</code><code class="sig-name descname">Sphere</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">size</span></em>, <em class="sig-param"><span class="n">r</span><span class="o">=</span><span class="default_value">1.0</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/sphere.html#Sphere"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.Sphere" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sphere as a map from the tangent space onto the sphere using the exponential map.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>size</strong> (<em>torch.size</em>) – Size of the tensor to be applied to</p></li>
+<li><p><strong>r</strong> (<em>float</em>) – Optional.
+Radius of the sphere. It has to be positive. Default: 1.</p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py method">
 <dt id="geotorch.Sphere.extra_repr">
 <code class="sig-name descname">extra_repr</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/sphere.html#Sphere.extra_repr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.Sphere.extra_repr" title="Permalink to this definition">¶</a></dt>
@@ -1187,27 +558,36 @@ strings are acceptable.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="geotorch.Sphere.fibration">
-<code class="sig-name descname">fibration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/sphere.html#Sphere.fibration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.Sphere.fibration" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
 <dt id="geotorch.Sphere.uniform_init_">
 <code class="sig-name descname">uniform_init_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/sphere.html#Sphere.uniform_init_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.Sphere.uniform_init_" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Samples a point uniformly on the sphere</p>
+</dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
 <dt id="geotorch.Stiefel">
 <em class="property">class </em><code class="sig-prename descclassname">geotorch.</code><code class="sig-name descname">Stiefel</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">size</span></em>, <em class="sig-param"><span class="n">triv</span><span class="o">=</span><span class="default_value">'expm'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/stiefel.html#Stiefel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.Stiefel" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#geotorch.manifold.Fibration" title="geotorch.manifold.Fibration"><code class="xref py py-class docutils literal notranslate"><span class="pre">geotorch.manifold.Fibration</span></code></a></p>
-<p>Implement everything as the fibration SO(n) -&gt; St(n,k)</p>
-<dl class="py method">
-<dt id="geotorch.Stiefel.embedding">
-<code class="sig-name descname">embedding</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">A</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/stiefel.html#Stiefel.embedding"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.Stiefel.embedding" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
+<dd><p>Manifold of rectangular orthogonal matrices parametrized as a projection from
+the square orthogonal matrices <span class="math notranslate nohighlight">\(\operatorname{SO}(n)\)</span>.
+The metric considered is the canonical.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This class is equivalent to <code class="xref py py-class docutils literal notranslate"><span class="pre">StiefelTall</span></code>, but it is faster for the
+case when <span class="math notranslate nohighlight">\(n\)</span> is of a similar size of <cite>k</cite>. For example,
+<span class="math notranslate nohighlight">\(n \leq 4k\)</span>.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>size</strong> (<em>torch.size</em>) – Size of the tensor to be applied to</p></li>
+<li><p><strong>triv</strong> (<em>str</em><em> or </em><em>callable</em>) – Optional.
+A map that maps <span class="math notranslate nohighlight">\(\operatorname{Skew}(n)\)</span> onto the orthogonal
+matrices surjectively. It can be one of <cite>[“expm”, “cayley”]</cite> or a custom
+callable. Default: <cite>“expm”</cite></p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py method">
 <dt id="geotorch.Stiefel.extra_repr">
 <code class="sig-name descname">extra_repr</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/stiefel.html#Stiefel.extra_repr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.Stiefel.extra_repr" title="Permalink to this definition">¶</a></dt>
@@ -1218,19 +598,11 @@ strings are acceptable.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="geotorch.Stiefel.fibration">
-<code class="sig-name descname">fibration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">X</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/stiefel.html#Stiefel.fibration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.Stiefel.fibration" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="geotorch.Stiefel.size_so">
-<em class="property">static </em><code class="sig-name descname">size_so</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">size</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/stiefel.html#Stiefel.size_so"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.Stiefel.size_so" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
 <dt id="geotorch.Stiefel.uniform_init_">
 <code class="sig-name descname">uniform_init_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/geotorch/stiefel.html#Stiefel.uniform_init_"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#geotorch.Stiefel.uniform_init_" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Samples an orthogonal matrix uniformly at random according
+to the Haar measure on <span class="math notranslate nohighlight">\(\operatorname{St}(n,k)\)</span>.</p>
+</dd></dl>
 
 </dd></dl>
 
@@ -1242,13 +614,6 @@ strings are acceptable.</p>
            
           </div>
           <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-      
-        <a href="intro.html" class="btn btn-neutral float-left" title="Introduction" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
-    </div>
   
 
   <hr/>

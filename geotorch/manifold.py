@@ -6,6 +6,18 @@ import geotorch.parametrize as P
 
 class AbstractManifold(P.Parametrization):
     def __init__(self, dimensions, size):
+        r"""
+        Base class for all the manifolds. This class implements some basic printing
+        and creates some helper attributes to handle the dimensions of the mainfolds
+        such as `self.n` and `self.k` for matrix manifolds
+
+        Args:
+            dimensions (int): Number of dimensions of the manifold as a tensor.
+                For example, a matrix manifold would have 2 dimensions, while a
+                vector would have 1. It should be a positive number
+            size (torch.size): Size of the tensor to be applied to
+        """
+
         super().__init__()
         if dimensions != "product" and (
             not isinstance(dimensions, int) or dimensions < 0
@@ -48,16 +60,37 @@ class AbstractManifold(P.Parametrization):
 
 
 class EmbeddedManifold(AbstractManifold):
+    def __init__(self, *args, **kwargs):
+        r"""
+        Base class for an embedded manifold. The class that implements the manifold
+        should implement :meth:`projection`.
+
+        This class implements a simple manifold parametrized by some ambient space,
+        projecting that point onto the manifold.
+
+        Args:
+            dimensions (int): Number of dimensions of the manifold as a tensor.
+                For example, a matrix manifold would have 2 dimensions, while a
+                vector would have 1. It should be a positive number
+            size (torch.size): Size of the tensor to be applied to
+        """
+        super().__init__(*args, **kwargs)
+
     def projection(self, X):  # pragma: no cover
         r"""
         Parametrizes the manifold in terms of a projection from the ambient space
-        Args:
-            X (torch.nn.Tensor): A tensor in the ambient space
-        Returns:
-            tensor (torch.nn.Tensor): A tensor on the manifold
-        Note:
+
+        .. note:
+
             This function should be surjective, otherwise not all the manifold
             will be explored
+
+        Args:
+            X (torch.Tensor): A tensor in the ambient space
+
+        Returns:
+            tensor (torch.Tensor): A tensor on the manifold
+
         """
         raise NotImplementedError()
 
@@ -72,6 +105,26 @@ class EmbeddedManifold(AbstractManifold):
 
 class Manifold(AbstractManifold):
     def __init__(self, dimensions, size):
+        r"""
+        Base class for a manifold. The class that implements the manifold
+        should implement :meth:`trivialization`.
+
+        This class automatically implement the framework of dynamic trivializations
+        describe in `Trivializations for Gradient-Based Optimization on Manifolds` -
+        Lezcano-Casado, M. (2019) allowing to perform Riemannian gradient descent
+        by calling after each SGD step to :meth:`update_base`.
+
+        For matrix manifolds, this class identifies :math:`\mathbb{R}^{k \times n}`
+        with :math:`\mathbb{R}^{n \times k}` for :math:`k > n` by transposing
+        the matrix before and after applying the trivialization.
+
+        Args:
+            dimensions (int): Number of dimensions of the manifold as a tensor.
+                For example, a matrix manifold would have 2 dimensions, while a
+                vector would have 1. It should be a positive number
+            size (torch.size): Size of the tensor to be applied to
+        """
+
         super().__init__(dimensions, size)
         self.register_buffer("base", torch.empty(*size))
         if self.transpose:
@@ -80,12 +133,16 @@ class Manifold(AbstractManifold):
     def trivialization(self, X, B):  # pragma: no cover
         r"""
         Parametrizes the manifold in terms of a tangent space
+
         Args:
-            X (torch.nn.Tensor): A tensor, usually living in T_B M
-            B (torch.nn.Tensor): Point on M at whose tangent space we are trivializing
+            X (torch.Tensor): A tensor from the tangent space :math:`T_B M`
+            B (torch.Tensor): A point on the manifold :math:`M` at whose
+                tangent space we are trivializing
         Returns:
-            tensor (torch.nn.Tensor): A tensor on the manifold
-        Note:
+            tensor (torch.Tensor): A tensor on the manifold
+
+        .. note::
+
             This function should be surjective, otherwise not all the manifold
             will be explored
         """
@@ -100,6 +157,14 @@ class Manifold(AbstractManifold):
         return X
 
     def update_base(self, zero=True):
+        r""" Changes `self.base` to the current output of `self.original`. It allows
+        for the implementation of dynamic trivializations and RGD. If `zero == True`
+        it also zeros-out the original parametrized tensor
+
+        Args:
+            zero (bool,Optional): If `True`, this method will zero-out the parametrized
+                tensor. Default: `True`.
+        """
         if not self.is_registered():
             raise ValueError(
                 "Cannot update the base before registering the Parametrization"
@@ -119,6 +184,42 @@ def parametrization_from_function(f, name):
 
 class Fibration(AbstractManifold):
     def __init__(self, dimensions, size, total_space):
+        r"""
+        Base class for a fibration for parametrizing a manifold :math:`M` in terms
+        of another manifold :math:`E` through :math:`\pi \colon E \to M`. The class
+        that implements this one should implement :meth:`embedding` and
+        :meth:`fibration`
+
+        .. note::
+
+            This class is a bit abstract at first sight, so it might be best understand
+            it through exmaples.
+            The simplest non-trivial example of this construction is the parametrization
+            of the Stiefel manifold :math:`\operatorname{St}(n,k)` in terms of
+            :math:`\operatorname{SO}(n)` where
+            :math:`\pi \colon \operatorname{SO}(n) \to \operatorname{St}(n,k)` is the
+            map that takes the first :math:`k` columns of the orthogonal matrix
+            (see :class:`geotorch.Stiefel` and :class:`geotorch.LowRank`).
+
+        This class automatically implement the framework of dynamic trivializations
+        describe in `Trivializations for Gradient-Based Optimization on Manifolds` -
+        Lezcano-Casado, M. (2019) allowing to perform Riemannian gradient descent
+        by calling after each SGD step to :meth:`update_base`.
+
+        For matrix manifolds, this class identifies :math:`\mathbb{R}^{k \times n}`
+        with :math:`\mathbb{R}^{n \times k}` for :math:`k > n` by transposing
+        the matrix before and after applying the trivialization.
+
+        Args:
+            dimensions (int): Number of dimensions of the manifold as a tensor.
+                For example, a matrix manifold would have 2 dimensions, while a
+                vector would have 1. It should be a positive number
+            size (torch.size): Size of the tensor to be applied to
+            total_space (geotorch.AbstractManifold): The :class:`geotorch.Manifold`,
+                :class:`geotorch.Fibration` of :class:`geotorch.ProductManifold`
+                that acts as a total space for the fibration
+        """
+
         super().__init__(dimensions, size)
         if not isinstance(total_space, AbstractManifold):
             raise TypeError(
@@ -141,10 +242,32 @@ class Fibration(AbstractManifold):
         total_space.chain(Embedding())
         self.chain(total_space)
 
-    def embedding(self, X):  # pragma: no cover
+    def embedding(self, X, B):  # pragma: no cover
+        r"""
+        Embeds a vector :math:`X \in T_B M` in the tangent space of :math:`M`
+        onto the tangent space of the total space :math:`T_{\pi^{-1}(B)}E` via
+        a local section of :math:`\mathrm{d}\pi`.
+
+        Args:
+            X (torch.Tensor): A tensor from the tangent space :math:`T_B M`
+            B (torch.Tensor): A point on the manifold :math:`M` at whose
+                tangent space we are trivializing
+        Returns:
+            tensor (torch.Tensor): A tensor on a tangent space to the total
+                space at :math:`\pi^{-1}(B)`
+        """
         raise NotImplementedError()
 
     def fibration(self, X):  # pragma: no cover
+        r"""
+        Parametrizes the manifold in terms of the total space. This map should,
+        when possible, be a submersion (surjective with full rank differential)
+
+        Args:
+            X (torch.Tensor): A point on the total space
+        Returns:
+            tensor (torch.Tensor): A tensor on the manifold
+        """
         raise NotImplementedError()
 
     def forward(self, X):
@@ -163,11 +286,34 @@ class Fibration(AbstractManifold):
         return self.total_space.base
 
     def update_base(self, zero=True):
+        r""" Updates the base of total space
+
+        Args:
+            zero (bool,Optional): If `True`, this method will zero-out the parametrized
+                tensor. Default: `True`.
+        """
         self.total_space.update_base(zero)
 
 
 class ProductManifold(AbstractManifold):
     def __init__(self, manifolds):
+        r"""
+        Product manifold. It can be indexed like a regular Python list, but it cannot
+        be modified
+
+        This class automatically implement the framework of dynamic trivializations
+        describe in `Trivializations for Gradient-Based Optimization on Manifolds` -
+        Lezcano-Casado, M. (2019) allowing to perform Riemannian gradient descent
+        by calling after each SGD step to :meth:`update_base`.
+
+        .. note::
+
+            This manifold is mostly useful in combination with :class:`~geotorch.Fibration`,
+            to create quotients of product manifolds, such as :class:`~geotorch.LowRank`
+
+        Args:
+            manifolds (iterable): an iterable of manifolds
+        """
         super().__init__(dimensions="product", size=ProductManifold._size(manifolds))
         self.manifolds = nn.ModuleList(manifolds)
 
@@ -195,11 +341,18 @@ class ProductManifold(AbstractManifold):
                 mani.chain(projection)
 
     def forward(self, X):
-        # This is not quite right, but I don't think we can do better with the current API
-        # In practice it's really not a problem
+        # This is re-evaluates the previous trivialization for each maifold,
+        # but I don't think we can do better with the current API.
+        # In practice it is not really a problem
         return tuple(mani.evaluate() for mani in self)
 
     def update_base(self, zero=True):
+        r""" Updates the base of all the manifolds in the product
+
+        Args:
+            zero (bool,Optional): If `True`, this method will zero-out the parametrized
+                tensor. Default: `True`.
+        """
         if not self.is_registered():
             raise ValueError(
                 "Cannot update the base before registering the Parametrization"
