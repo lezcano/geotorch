@@ -89,7 +89,7 @@ class EmbeddedManifold(AbstractManifold):
             X (torch.Tensor): A tensor in the ambient space
 
         Returns:
-            tensor (torch.Tensor): A tensor on the manifold
+            tensor (torch.Tensor): A tensor in the manifold
 
         """
         raise NotImplementedError()
@@ -136,10 +136,10 @@ class Manifold(AbstractManifold):
 
         Args:
             X (torch.Tensor): A tensor from the tangent space :math:`T_B M`
-            B (torch.Tensor): A point on the manifold :math:`M` at whose
+            B (torch.Tensor): A point in the manifold :math:`M` at whose
                 tangent space we are trivializing
         Returns:
-            tensor (torch.Tensor): A tensor on the manifold
+            tensor (torch.Tensor): A tensor in the manifold
 
         .. note::
 
@@ -250,11 +250,11 @@ class Fibration(AbstractManifold):
 
         Args:
             X (torch.Tensor): A tensor from the tangent space :math:`T_B M`
-            B (torch.Tensor): A point on the manifold :math:`M` at whose
+            B (torch.Tensor): A point in the manifold :math:`M` at whose
                 tangent space we are trivializing
         Returns:
-            tensor (torch.Tensor): A tensor on a tangent space to the total
-                space at :math:`\pi^{-1}(B)`
+            tensor (torch.Tensor): A tensor in a tangent space to the total space at
+            :math:`\pi^{-1}(B)`
         """
         raise NotImplementedError()
 
@@ -264,9 +264,9 @@ class Fibration(AbstractManifold):
         when possible, be a submersion (surjective with full rank differential)
 
         Args:
-            X (torch.Tensor): A point on the total space
+            X (torch.Tensor): A point in the total space
         Returns:
-            tensor (torch.Tensor): A tensor on the manifold
+            tensor (torch.Tensor): A tensor in the manifold
         """
         raise NotImplementedError()
 

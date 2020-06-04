@@ -1,8 +1,0 @@
-Product Manifold: :math:`M_1 \times \dots \times M_k`
-=====================================================
-
-.. currentmodule:: geotorch.manifold
-
-Serves to construct a product manifold from :math:`k` different manifolds.
-
-.. autoclass:: ProductManifold

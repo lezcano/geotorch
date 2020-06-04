@@ -4,3 +4,4 @@ __pycache__/
 .git/
 .coverage
 geotorch.egg-info/
+build/
