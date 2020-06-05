@@ -29,6 +29,7 @@ jobs:
       run: pytest --cov=geotorch test/ --cov-report term-missing
 
     - name: Codecov
+      if: success()
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       run: codecov
