@@ -22,14 +22,13 @@ if sys.version_info < (REQUIRED_MAJOR, REQUIRED_MINOR):
     sys.exit(error)
 
 
-TEST_REQUIRES = ["pytest", "pytest-cov"]
+TEST_REQUIRES = ["pytest"]
 
 DEV_REQUIRES = TEST_REQUIRES + [
     "black",
     "flake8",
     "sphinx",
-    "sphinx-autodoc-typehints",
-    "codecov",
+    "sphinx-autodoc-typehints"
 ]
 
 
