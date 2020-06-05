@@ -2,6 +2,7 @@
 ![Windows MacOS Linux](https://github.com/Lezcano/geotorch/workflows/Windows%20MacOS%20Linux/badge.svg)
 [![codecov](https://codecov.io/gh/Lezcano/geotorch/branch/master/graph/badge.svg?token=1AKM2EQ7RT)](https://codecov.io/gh/Lezcano/geotorch)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 # GeoTorch
 > A library for constrained optimization and manifold optimization for deep learning in Pytorch
