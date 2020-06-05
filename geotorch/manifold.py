@@ -298,8 +298,8 @@ class Fibration(AbstractManifold):
 class ProductManifold(AbstractManifold):
     def __init__(self, manifolds):
         r"""
-        Product manifold. It can be indexed like a regular Python list, but it cannot
-        be modified
+        Product manifold :math:`M_1 \times \dots \times M_k`. It can be indexed like a
+        regular Python list, but it cannot be modified
 
         This class automatically implement the framework of dynamic trivializations
         describe in `Trivializations for Gradient-Based Optimization on Manifolds` -
