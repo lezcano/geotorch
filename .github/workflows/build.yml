@@ -40,7 +40,7 @@ jobs:
       run: pytest test
 
     - name: Coverage tests
-      run: pytest --cov=geotorch test/ --cov-report term-missing
+      run: pytest --cov=geotorch test --cov-report term-missing
 
     - name: Codecov
       env:
