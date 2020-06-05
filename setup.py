@@ -13,7 +13,7 @@ with open("README.md", "r", encoding="utf8") as fh:
     long_description = fh.read()
 
 # get version string from module
-init_path = (os.path.join(os.path.dirname(__file__), "geotorch/__init__.py"),)
+init_path = os.path.join(os.path.dirname(__file__), "geotorch/__init__.py")
 with open(init_path, "r", encoding="utf8") as f:
     version = re.search(r"__version__ = ['\"]([^'\"]*)['\"]", f.read(), re.M).group(1)
 
