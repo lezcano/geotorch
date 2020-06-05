@@ -23,7 +23,7 @@ setup(
     description="Constrained Optimization in Pytorch",
     author="Mario Lezcano Casado",
     license="MIT",
-    long_description=long_description,  # Optional
+    long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/Lezcano/geotorch",
     classifiers=[
