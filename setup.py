@@ -6,7 +6,7 @@ import os
 import re
 
 REQUIRED_MAJOR = 3
-REQUIRED_MINOR = 6
+REQUIRED_MINOR = 5
 
 # Check for python version
 if sys.version_info < (REQUIRED_MAJOR, REQUIRED_MINOR):
@@ -33,11 +33,11 @@ DEV_REQUIRES = TEST_REQUIRES + [
 
 
 # Get the long description from the README file
-with open("README.md", "r") as fh:
+with open("README.md", 'r', encoding="utf8") as fh:
     long_description = fh.read()
 
 # get version string from module
-with open(os.path.join(os.path.dirname(__file__), "geotorch/__init__.py"), "r") as f:
+with open(os.path.join(os.path.dirname(__file__), "geotorch/__init__.py"), 'r', encoding="utf8") as f:
     version = re.search(r"__version__ = ['\"]([^'\"]*)['\"]", f.read(), re.M).group(1)
 
 setup(
