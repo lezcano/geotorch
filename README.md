@@ -1,4 +1,5 @@
-![](https://github.com/lezcano/geotorch/workflows/Build/badge.svg)
+![Python package](https://github.com/Lezcano/geotorch/workflows/Python%20package/badge.svg)
+![Windows MacOS Linux](https://github.com/Lezcano/geotorch/workflows/Windows%20MacOS%20Linux/badge.svg)
 [![codecov](https://codecov.io/gh/Lezcano/geotorch/branch/master/graph/badge.svg?token=1AKM2EQ7RT)](https://codecov.io/gh/Lezcano/geotorch)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
