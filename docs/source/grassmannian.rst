@@ -1,11 +1,11 @@
 Grassmannian Manifold: :math:`\operatorname{Gr}(n,k)`
 ======================================================
 
-.. currentmodule:: geotorch.grassmannian
+.. currentmodule:: geotorch
 
 :math:`\operatorname{Gr}(n,k)` is the Grassmannian manifold, that is, the subspaces of dimension
-`k` in `\mathbb{R}^n`. A subspace is represented by an orthonormal basis, that is, by an element
-in `\operatorname{St}(n,k)`.
+:math:`k` in :math:`\mathbb{R}^n`. A subspace is represented by an orthonormal basis, that is, by an element
+of the :ref:`Stiefel Manifold <RST Stiefel>`
 
 
 .. autoclass:: Grassmannian

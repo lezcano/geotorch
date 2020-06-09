@@ -1,16 +1,16 @@
-from .manifold import AbstractManifold
+from .constructions import AbstractManifold
 
 
 class Sym(AbstractManifold):
     def __init__(self, size, lower=True):
         r"""
-        Vector space of symmetric matrices, parametrized in terms of the upper or lower triangular
-        part of a matrix.
+        Vector space of symmetric matrices, parametrized in terms of the upper or lower
+        triangular part of a matrix.
 
         Args:
             size (torch.size): Size of the tensor to be applied to
-            lower (bool): Optional. Uses the lower triangular part of the matrix to parametrize
-                the matrix. Default: `True`
+            lower (bool): Optional. Uses the lower triangular part of the matrix to
+                parametrize the matrix. Default: `True`
         """
         super().__init__(dimensions=2, size=size)
         if self.n != self.k:

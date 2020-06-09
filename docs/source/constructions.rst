@@ -1,13 +1,12 @@
 Constructions
 =============
 
-.. currentmodule:: geotorch.manifold
+.. currentmodule:: geotorch.constructions
 
 These are the baseclasses that conform `GeoTorch`. In particular,
-every manifold is either a :class:`Manifold` or a :class:`Fibration`
-or an :class:`EmbeddedManifold`. They can be used to easily implement
-new manifolds in terms a function that parametrizes the particular manifold in
-terms of another manifold or an unconstrained space.
+every manifold is either a :class:`Manifold` or a :class:`Fibration`.
+They can be used to easily implement new manifolds in terms a function
+that parametrizes the particular manifold in terms of another manifold or an unconstrained space.
 Their implementation is in terms of `Parametrizations` in `PyTorch`. This directly
 allows for the composition of these functions, as done in :class:`Fibration`.
 
@@ -23,10 +22,6 @@ of differentiable mainfolds as a `cartesian monoidal category
 
    .. automethod:: trivialization
    .. automethod:: update_base
-
-.. autoclass:: EmbeddedManifold
-
-   .. automethod:: projection
 
 .. autoclass:: Fibration
 

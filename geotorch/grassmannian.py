@@ -1,6 +1,6 @@
 import torch
 
-from .manifold import Fibration
+from .constructions import Fibration
 from .stiefel import Stiefel, StiefelTall
 
 

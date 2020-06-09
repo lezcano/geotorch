@@ -1,6 +1,6 @@
 import torch
 
-from .manifold import EmbeddedManifold, Fibration
+from .constructions import Manifold, Fibration
 from .stiefel import StiefelTall
 
 
@@ -8,10 +8,10 @@ def project(x):
     return x / x.norm(dim=-1, keepdim=True)
 
 
-class SphereEmbedded(EmbeddedManifold):
-    projections = {"project": project}
+class SphereEmbedded(Manifold):
+    trivializations = {"project": project}
 
-    def __init__(self, size, projection="project", r=1.0):
+    def __init__(self, size, triv="project", r=1.0):
         r"""
         Sphere as a map from :math:`\mathbb{R}^n` to :math:`\mathbb{S}^{n-1}`.
         By default it uses the orthogonal projection
@@ -19,27 +19,25 @@ class SphereEmbedded(EmbeddedManifold):
 
         Args:
             size (torch.size): Size of the tensor to be applied to
-            projection (str or callable): Optional.
-                It can be `"projection"` or a map that from :math:`\mathbb{R}^n`
-                onto the sphere :math`\mathbb{S}^{n-1}`.
+            triv (str or callable): Optional.
+                A map that maps :math:`\mathbb{R}^n` onto the sphere surjectively.
+                It can be either `"project"` or a custom callable. Default: `"project"`
             r (float): Optional.
                 Radius of the sphere. It has to be positive. Default: 1.
         """
-        super().__init__(dimensions=1, size=size)
+        super().__init__(dimensions=1, size=size, dynamic=False)
 
-        if projection not in SphereEmbedded.projections.keys() and not callable(
-            projection
-        ):
+        if triv not in SphereEmbedded.trivializations.keys() and not callable(triv):
             raise ValueError(
-                "Argument projection was not recognized and is "
+                "Argument triv was not recognized and is "
                 "not callable. Should be one of {}. Found {}".format(
-                    list(SphereEmbedded.projections.keys()), projection
+                    list(SphereEmbedded.trivializations.keys()), triv
                 )
             )
-        if callable(projection):
-            self.proj = projection
+        if callable(triv):
+            self.triv = triv
         else:
-            self.proj = SphereEmbedded.projections[projection]
+            self.triv = SphereEmbedded.trivializations[triv]
 
         if r <= 0.0:
             raise ValueError(
@@ -48,8 +46,8 @@ class SphereEmbedded(EmbeddedManifold):
         self.r = r
         self.uniform_init_()
 
-    def projection(self, x):
-        return self.r * self.proj(x)
+    def trivialization(self, x):
+        return self.r * self.triv(x)
 
     def uniform_init_(self):
         r"""Samples a point uniformly on the sphere"""
@@ -60,8 +58,8 @@ class SphereEmbedded(EmbeddedManifold):
                 x.data = project(x.data)
 
     def extra_repr(self):
-        return "n={}, r={}, projection={}".format(
-            self.n, self.r, self.projection.__name__
+        return "n={}, r={}, triv={}".format(
+            self.n, self.r, self.triv.__name__
         )
 
 

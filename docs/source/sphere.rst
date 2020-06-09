@@ -1,7 +1,7 @@
 Sphere: :math:`\mathbb{S}^n`
 =============================
 
-.. currentmodule:: geotorch.sphere
+.. currentmodule:: geotorch
 
 :math:`\operatorname{Sphere}(n, r)` is the sphere in :math:`\mathbb{R}^n`
 with radius :math:`r`:

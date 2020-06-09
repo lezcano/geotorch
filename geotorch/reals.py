@@ -1,4 +1,4 @@
-from .manifold import Manifold
+from .constructions import Manifold
 
 
 class Rn(Manifold):
@@ -13,4 +13,5 @@ class Rn(Manifold):
         self.base.zero_()
 
     def trivialization(self, X):
+        # We implement it with a base to be able to use it within a fibration
         return X + self.base

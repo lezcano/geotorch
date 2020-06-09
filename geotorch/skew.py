@@ -1,4 +1,4 @@
-from .manifold import AbstractManifold
+from .constructions import AbstractManifold
 
 
 class Skew(AbstractManifold):

@@ -1,7 +1,7 @@
 import math
 import torch
 
-from .manifold import Manifold
+from .constructions import Manifold
 from .skew import Skew
 from .linalg.expm import expm
 
@@ -83,8 +83,9 @@ class SO(Manifold):
 
         Args:
             init_: Optional. A function that takes a tensor and fills
-                    it in place according to some distribution. See `torch.init`. Default:
-                    :math:`\operatorname{Uniform}(-\pi, \pi)`
+                    it in place according to some distribution. See
+                    `torch.init <https://pytorch.org/docs/stable/nn.init.html?highlight=init>`_.
+                    Default: :math:`\operatorname{Uniform}(-\pi, \pi)`
             triv: Optional. A function that maps skew-symmetric matrices
                     to orthogonal matrices.
         """

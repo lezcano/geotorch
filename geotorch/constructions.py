@@ -59,52 +59,8 @@ class AbstractManifold(P.Parametrization):
         return ret
 
 
-class EmbeddedManifold(AbstractManifold):
-    def __init__(self, *args, **kwargs):
-        r"""
-        Base class for an embedded manifold. The class that implements the manifold
-        should implement :meth:`projection`.
-
-        This class implements a simple manifold parametrized by some ambient space,
-        projecting that point onto the manifold.
-
-        Args:
-            dimensions (int): Number of dimensions of the manifold as a tensor.
-                For example, a matrix manifold would have 2 dimensions, while a
-                vector would have 1. It should be a positive number
-            size (torch.size): Size of the tensor to be applied to
-        """
-        super().__init__(*args, **kwargs)
-
-    def projection(self, X):  # pragma: no cover
-        r"""
-        Parametrizes the manifold in terms of a projection from the ambient space
-
-        .. note::
-
-            This function should be surjective, otherwise not all the manifold
-            will be explored
-
-        Args:
-            X (torch.Tensor): A tensor in the ambient space
-
-        Returns:
-            tensor (torch.Tensor): A tensor in the manifold
-
-        """
-        raise NotImplementedError()
-
-    def forward(self, X):
-        if self.transpose:
-            X = X.transpose(-2, -1)
-        X = self.projection(X)
-        if self.transpose:
-            X = X.transpose(-2, -1)
-        return X
-
-
 class Manifold(AbstractManifold):
-    def __init__(self, dimensions, size):
+    def __init__(self, dimensions, size, dynamic=True):
         r"""
         Base class for a manifold. The class that implements the manifold
         should implement :meth:`trivialization`.
@@ -124,17 +80,22 @@ class Manifold(AbstractManifold):
                 For example, a matrix manifold would have 2 dimensions, while a
                 vector would have 1. It should be a positive number
             size (torch.size): Size of the tensor to be applied to
+            dynamic (bool): Registers a tensor called `base` that is used to implement
+                the dynamic trivialization framework
         """
 
         super().__init__(dimensions, size)
-        self.register_buffer("base", torch.empty(*size))
-        if self.transpose:
-            self.base = self.base.transpose(-2, -1)
+        self.register_buffer("base", None)
+        if dynamic:
+            self.base = torch.empty(*size)
+            if self.transpose:
+                self.base = self.base.transpose(-2, -1)
 
     def trivialization(self, X):  # pragma: no cover
         r"""
         Parametrizes the manifold in terms of a tangent space at the point
-        `self.base`
+        `self.base`, or any given vector space in the case of the static
+        trivializations
 
         .. note::
 
@@ -169,13 +130,14 @@ class Manifold(AbstractManifold):
             raise ValueError(
                 "Cannot update the base before registering the Parametrization"
             )
-        with torch.no_grad():
-            X = self(self.original)
-            if self.transpose:
-                X = X.transpose(-2, -1)
-            self.base.data.copy_(X)
-            if zero:
-                self.original_tensor().zero_()
+        if self.base is not None:
+            with torch.no_grad():
+                X = self(self.original)
+                if self.transpose:
+                    X = X.transpose(-2, -1)
+                self.base.data.copy_(X)
+                if zero:
+                    self.original_tensor().zero_()
 
 
 def parametrization_from_function(f, name):
@@ -283,12 +245,22 @@ class Fibration(AbstractManifold):
     # Expose the parameters from total_space
     @property
     def total_space(self):
-        r""" geotorch.AbstractManifold: The total space of the fibration """
+        """
+        The total space of the fibration
+
+        Returns:
+            manifold (geotorch.AbstractManifold)
+        """
         return self.parametrizations.original
 
     @property
     def base(self):
-        r""" torch.Tensor: The base of the total space of the fibration """
+        """
+        The base of the total space of the fibration
+
+        Returns:
+            tensor (torch.Tensor):
+        """
         return self.total_space.base
 
     def update_base(self, zero=True):

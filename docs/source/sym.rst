@@ -1,7 +1,7 @@
 Symmetric Matrices: :math:`\operatorname{Sym}(n)`
 ========================================================
 
-.. currentmodule:: geotorch.sym
+.. currentmodule:: geotorch
 
 :math:`\operatorname{Sym}(n)` is the vector space of symmetric matrices:
 

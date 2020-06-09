@@ -1,7 +1,7 @@
 Variety of Low Rank Matrices: :math:`\operatorname{LowRank}(n,k,r)`
 ===================================================================
 
-.. currentmodule:: geotorch.lowrank
+.. currentmodule:: geotorch
 
 :math:`\operatorname{LowRank}(n,k,r)` is the algebraic variety of matrices of rank less or equal
 to :math:`r`, with :math:`r \leq \min\{n, k\}`:

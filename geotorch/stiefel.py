@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 
-from .manifold import Manifold, Fibration
+from .constructions import Manifold, Fibration
 from .so import SO, uniform_init_, cayley_map
 from .linalg.expm import expm
 

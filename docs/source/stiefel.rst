@@ -1,7 +1,9 @@
+.. _RST Stiefel:
+
 Stiefel Manifold: :math:`\operatorname{St}(n,k)`
 ======================================================
 
-.. currentmodule:: geotorch.stiefel
+.. currentmodule:: geotorch
 
 :math:`\operatorname{St}(n,k)` is the Stiefel manifold, that is, the rectangular matrices with
 orthonormal columns for :math:`n \geq k`.

@@ -1,7 +1,7 @@
 Skew-symmetric Matrices: :math:`\operatorname{Skew}(n)`
 ========================================================
 
-.. currentmodule:: geotorch.skew
+.. currentmodule:: geotorch
 
 :math:`\operatorname{Skew}(n)` is the vector space of skew-symmetric matrices:
 

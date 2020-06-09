@@ -1,4 +1,4 @@
-from .manifold import Fibration, ProductManifold
+from .constructions import Fibration, ProductManifold
 from .stiefel import Stiefel, StiefelTall
 from .reals import Rn
 
@@ -12,7 +12,7 @@ class LowRank(Fibration):
             size (torch.size): Size of the tensor to be applied to
             rank (int): Rank of the matrices.
                 It has to be less than
-                :math:`\min\(\texttt{size}[-1], \texttt{size}[-2]\)`
+                :math:`\min(\texttt{size}[-1], \texttt{size}[-2])`
         """
 
         size_u, size_s, size_v = LowRank.size_usv(size, rank)
