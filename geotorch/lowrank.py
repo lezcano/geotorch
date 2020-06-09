@@ -29,7 +29,9 @@ class LowRank(Fibration):
 
     @staticmethod
     def size_usv(size, rank):
-        n, k = size[-1], size[-2]
+        # Split the size and transpose
+        tensorial_size = size[:-2]
+        n, k = size[-2:]
         if n < k:
             n, k = k, n
         if rank > min(n, k) or rank < 1:
@@ -38,13 +40,10 @@ class LowRank(Fibration):
                     n, k, rank
                 )
             )
-        size_u = list(size)
-        size_u[-2], size_u[-1] = n, rank
-        size_s = list(size[:-1])
-        size_s[-1] = rank
-        size_v = list(size)
-        size_v[-2], size_v[-1] = k, rank
-        return tuple(size_u), tuple(size_s), tuple(size_v)
+        size_u = tensorial_size + (n, rank)
+        size_s = tensorial_size + (rank,)
+        size_v = tensorial_size + (k, rank)
+        return size_u, size_s, size_v
 
     @staticmethod
     def cls_stiefel(size):
