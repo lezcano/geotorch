@@ -12,5 +12,5 @@ class Rn(Manifold):
         super().__init__(dimensions=1, size=size)
         self.base.zero_()
 
-    def trivialization(self, X, B):
-        return X + B
+    def trivialization(self, X):
+        return X + self.base

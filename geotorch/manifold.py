@@ -80,7 +80,7 @@ class EmbeddedManifold(AbstractManifold):
         r"""
         Parametrizes the manifold in terms of a projection from the ambient space
 
-        .. note:
+        .. note::
 
             This function should be surjective, otherwise not all the manifold
             will be explored
@@ -109,10 +109,11 @@ class Manifold(AbstractManifold):
         Base class for a manifold. The class that implements the manifold
         should implement :meth:`trivialization`.
 
-        This class automatically implement the framework of dynamic trivializations
-        describe in `Trivializations for Gradient-Based Optimization on Manifolds` -
-        Lezcano-Casado, M. (2019) allowing to perform Riemannian gradient descent
-        by calling after each SGD step to :meth:`update_base`.
+        This class automatically implements the framework of dynamic trivializations
+        described in `Trivializations for Gradient-Based Optimization on Manifolds
+        - Lezcano-Casado, M. (NeurIPS 2019) <https://arxiv.org/abs/1909.09501>`_ allowing
+        to perform Riemannian gradient descent by calling after each SGD step to
+        :meth:`update_base`.
 
         For matrix manifolds, this class identifies :math:`\mathbb{R}^{k \times n}`
         with :math:`\mathbb{R}^{n \times k}` for :math:`k > n` by transposing
@@ -130,28 +131,27 @@ class Manifold(AbstractManifold):
         if self.transpose:
             self.base = self.base.transpose(-2, -1)
 
-    def trivialization(self, X, B):  # pragma: no cover
+    def trivialization(self, X):  # pragma: no cover
         r"""
-        Parametrizes the manifold in terms of a tangent space
-
-        Args:
-            X (torch.Tensor): A tensor from the tangent space :math:`T_B M`
-            B (torch.Tensor): A point in the manifold :math:`M` at whose
-                tangent space we are trivializing
-        Returns:
-            tensor (torch.Tensor): A tensor in the manifold
+        Parametrizes the manifold in terms of a tangent space at the point
+        `self.base`
 
         .. note::
 
             This function should be surjective, otherwise not all the manifold
             will be explored
+
+        Args:
+            X (torch.Tensor): A tensor from the tangent space :math:`T_B M`
+        Returns:
+            tensor (torch.Tensor): A tensor in the manifold
         """
         raise NotImplementedError()
 
     def forward(self, X):
         if self.transpose:
             X = X.transpose(-2, -1)
-        X = self.trivialization(X, self.base)
+        X = self.trivialization(X)
         if self.transpose:
             X = X.transpose(-2, -1)
         return X
@@ -170,7 +170,7 @@ class Manifold(AbstractManifold):
                 "Cannot update the base before registering the Parametrization"
             )
         with torch.no_grad():
-            X = self.evaluate()
+            X = self(self.original)
             if self.transpose:
                 X = X.transpose(-2, -1)
             self.base.data.copy_(X)
@@ -192,23 +192,24 @@ class Fibration(AbstractManifold):
 
         .. note::
 
-            This class is a bit abstract at first sight, so it might be best understand
+            This class is a bit abstract at first sight, so it might be best to understand
             it through exmaples.
             The simplest non-trivial example of this construction is the parametrization
             of the Stiefel manifold :math:`\operatorname{St}(n,k)` in terms of
             :math:`\operatorname{SO}(n)` where
             :math:`\pi \colon \operatorname{SO}(n) \to \operatorname{St}(n,k)` is the
-            map that takes the first :math:`k` columns of the orthogonal matrix
+            map that returns the first :math:`k` columns of a given orthogonal matrix
             (see :class:`geotorch.Stiefel` and :class:`geotorch.LowRank`).
 
-        This class automatically implement the framework of dynamic trivializations
-        describe in `Trivializations for Gradient-Based Optimization on Manifolds` -
-        Lezcano-Casado, M. (2019) allowing to perform Riemannian gradient descent
-        by calling after each SGD step to :meth:`update_base`.
+        This class automatically implements the framework of dynamic trivializations
+        described in `Trivializations for Gradient-Based Optimization on Manifolds
+        - Lezcano-Casado, M. (NeurIPS 2019) <https://arxiv.org/abs/1909.09501>`_ allowing
+        to perform Riemannian gradient descent by calling after each SGD step to
+        :meth:`update_base`.
 
         For matrix manifolds, this class identifies :math:`\mathbb{R}^{k \times n}`
         with :math:`\mathbb{R}^{n \times k}` for :math:`k > n` by transposing
-        the matrix before and after applying the trivialization.
+        the matrix before and after applying the trivialization
 
         Args:
             dimensions (int): Number of dimensions of the manifold as a tensor.
@@ -216,8 +217,10 @@ class Fibration(AbstractManifold):
                 vector would have 1. It should be a positive number
             size (torch.size): Size of the tensor to be applied to
             total_space (geotorch.AbstractManifold): The :class:`geotorch.Manifold`,
-                :class:`geotorch.Fibration` of :class:`geotorch.ProductManifold`
-                that acts as a total space for the fibration
+                :class:`geotorch.Fibration` or :class:`geotorch.ProductManifold`
+                object that acts as a total space for the fibration. More generally,
+                it could be any :class:`geotroch.AbstractManifold` that implements
+                :meth:`forward`.
         """
 
         super().__init__(dimensions, size)
@@ -229,11 +232,10 @@ class Fibration(AbstractManifold):
                 )
             )
 
-        f_embedding = self.embedding
-        if self.transpose:
-
-            def f_embedding(_, X):
-                return self.embedding(X.transpose(-2, -1))
+        def f_embedding(_, X):
+            if self.transpose:
+                X = X.transpose(-2, -1)
+            return self.embedding(X)
 
         Embedding = parametrization_from_function(
             f_embedding, name="Embedding" + self.__class__.__name__
@@ -242,26 +244,28 @@ class Fibration(AbstractManifold):
         total_space.chain(Embedding())
         self.chain(total_space)
 
-    def embedding(self, X, B):  # pragma: no cover
-        r"""
-        Embeds a vector :math:`X \in T_B M` in the tangent space of :math:`M`
-        onto the tangent space of the total space :math:`T_{\pi^{-1}(B)}E` via
-        a local section of :math:`\mathrm{d}\pi`.
+    def embedding(self, X):  # pragma: no cover
+        r""" Embeds a vector :math:`X \in T_B M` where
+
+        .. math::
+
+            B = \pi(\texttt{self.base}) = \texttt{self.projection}(\texttt{self.base})
+
+        into the tangent space of the total space :math:`T_{\texttt{self.base}} E`
+        via a local section of :math:`\mathrm{d}\pi`.
 
         Args:
-            X (torch.Tensor): A tensor from the tangent space :math:`T_B M`
-            B (torch.Tensor): A point in the manifold :math:`M` at whose
-                tangent space we are trivializing
+            X (torch.Tensor): A tensor from :math:`T_B M`
         Returns:
-            tensor (torch.Tensor): A tensor in a tangent space to the total space at
-            :math:`\pi^{-1}(B)`
+            tensor (torch.Tensor): A tensor from :math:`T_{\texttt{self.base}} E`
         """
         raise NotImplementedError()
 
     def fibration(self, X):  # pragma: no cover
         r"""
-        Parametrizes the manifold in terms of the total space. This map should,
-        when possible, be a submersion (surjective with full rank differential)
+        Parametrizes the manifold in terms of the total space via a mapping
+        :math:`\pi`. This map should, when possible, be a submersion (surjective
+        with full rank differential)
 
         Args:
             X (torch.Tensor): A point in the total space
@@ -279,10 +283,12 @@ class Fibration(AbstractManifold):
     # Expose the parameters from total_space
     @property
     def total_space(self):
+        r""" geotorch.AbstractManifold: The total space of the fibration """
         return self.parametrizations.original
 
     @property
     def base(self):
+        r""" torch.Tensor: The base of the total space of the fibration """
         return self.total_space.base
 
     def update_base(self, zero=True):
@@ -301,10 +307,11 @@ class ProductManifold(AbstractManifold):
         Product manifold :math:`M_1 \times \dots \times M_k`. It can be indexed like a
         regular Python list, but it cannot be modified
 
-        This class automatically implement the framework of dynamic trivializations
-        describe in `Trivializations for Gradient-Based Optimization on Manifolds` -
-        Lezcano-Casado, M. (2019) allowing to perform Riemannian gradient descent
-        by calling after each SGD step to :meth:`update_base`.
+        This class automatically implements the framework of dynamic trivializations
+        described in `Trivializations for Gradient-Based Optimization on Manifolds
+        - Lezcano-Casado, M. (NeurIPS 2019) <https://arxiv.org/abs/1909.09501>`_ allowing
+        to perform Riemannian gradient descent by calling after each SGD step to
+        :meth:`update_base`.
 
         .. note::
 
@@ -332,6 +339,9 @@ class ProductManifold(AbstractManifold):
         is_chained = self.is_chained()
         super().chain(parametrization)
         # We do this just the first time
+        # Note that this product manifold always has to be chained first, as
+        # the parametrization of multiple elements with one parametrization is not
+        # allowed
         if not is_chained:
             for i, mani in enumerate(self):
                 projection = parametrization_from_function(
@@ -341,9 +351,8 @@ class ProductManifold(AbstractManifold):
                 mani.chain(projection)
 
     def forward(self, X):
-        # This is re-evaluates the previous trivialization for each maifold,
-        # but I don't think we can do better with the current API.
-        # In practice it is not really a problem
+        # TODO Fix it via some property injection
+        # This re-evaluates X for each manifold (it shouldn't)
         return tuple(mani.evaluate() for mani in self)
 
     def update_base(self, zero=True):

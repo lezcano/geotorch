@@ -124,18 +124,19 @@ class StiefelTall(Manifold):
         self.register_parameter("fibr_aux", nn.Parameter(torch.zeros(*size_z)))
         self.uniform_init_()
 
-    def trivialization(self, X, B):
+    def trivialization(self, X):
         # We compute the exponential map as per Edelman
         # This also works for the Cayley
         # Note that this Cayley map is not the same as that of Wen & Yin
 
+        if torch.is_grad_enabled():
+            non_singular_(X)
         # Equivalent to (in the paper):
         # Id = torch.eye(n)
         # IBBt = Id - B @ B.t()
         # delta = B @ A + IBBt @ X
         # Q, R = torch.qr(IBBt @ delta)
-        if torch.is_grad_enabled():
-            non_singular_(X)
+        B = self.base
         Q, R = stable_qr(X - B @ (B.transpose(-2, -1) @ X))
         # Form
         # A \in Skew(k)

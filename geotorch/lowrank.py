@@ -29,7 +29,7 @@ class LowRank(Fibration):
 
     @staticmethod
     def size_usv(size, rank):
-        # Split the size and transpose
+        # Split the size and transpose if necessary
         tensorial_size = size[:-2]
         n, k = size[-2:]
         if n < k:
@@ -47,7 +47,8 @@ class LowRank(Fibration):
 
     @staticmethod
     def cls_stiefel(size):
-        return StiefelTall if size[-2] > 4 * size[-1] else Stiefel
+        n, k = size[-2:]
+        return StiefelTall if n > 4 * k else Stiefel
 
     def embedding(self, X):
         U = X.tril(-1)[..., :, : self.rank]

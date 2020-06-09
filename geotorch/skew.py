@@ -4,8 +4,8 @@ from .manifold import AbstractManifold
 class Skew(AbstractManifold):
     def __init__(self, size, lower=True):
         r"""
-        Vector space of skew-symmetric matrices, parametrized in terms of the upper or
-        lower triangular part of the matrix.
+        Vector space of skew-symmetric matrices, parametrized in terms of the upper or lower triangular
+        part of a matrix.
 
         Args:
             size (torch.size): Size of the tensor to be applied to

@@ -60,8 +60,8 @@ class SO(Manifold):
         else:
             return size
 
-    def trivialization(self, X, B):
-        return B @ self.triv(X)
+    def trivialization(self, X):
+        return self.base @ self.triv(X)
 
     def uniform_init_(self):
         r""" Samples an orthogonal matrix uniformly at random according

@@ -4,8 +4,8 @@ from .manifold import AbstractManifold
 class Sym(AbstractManifold):
     def __init__(self, size, lower=True):
         r"""
-        Vector space of matrices, parametrized in terms of the upper or
-        lower triangular part of the matrix.
+        Vector space of symmetric matrices, parametrized in terms of the upper or lower triangular
+        part of a matrix.
 
         Args:
             size (torch.size): Size of the tensor to be applied to
@@ -24,10 +24,9 @@ class Sym(AbstractManifold):
 
     def forward(self, X):
         if self.lower:
-            X = X.tril(-1)
+            return X.tril(0) + X.tril(-1).transpose(-2, -1)
         else:
-            X = X.triu(1)
-        return X + X.transpose(-2, -1)
+            return X.triu(0) + X.triu(1).transpose(-2, -1)
 
     def extra_repr(self):
         return "n={}".format(self.n)

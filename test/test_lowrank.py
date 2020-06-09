@@ -89,7 +89,7 @@ class TestLowRank(TestCase):
                     P.register_parametrization(layer, "weight", LR)
                     print(LR)
                     self.assertTrue(P.is_parametrized(layer, "weight"))
-                    U_orig, S_orig, V_orig = LR.total_space.evaluate()
+                    U_orig, S_orig, V_orig = LR.original
                     self.assertIsOrthogonal(U_orig)
                     self.assertIsOrthogonal(V_orig)
                     self.assertHasSingularValues(layer.weight, S_orig)
@@ -108,7 +108,7 @@ class TestLowRank(TestCase):
                         loss.backward()
                         optim.step()
 
-                        U_orig, S_orig, V_orig = LR.total_space.evaluate()
+                        U_orig, S_orig, V_orig = LR.original
                         self.assertIsOrthogonal(U_orig)
                         self.assertIsOrthogonal(V_orig)
                         self.assertHasSingularValues(layer.weight, S_orig)
