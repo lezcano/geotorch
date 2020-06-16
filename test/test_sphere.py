@@ -13,7 +13,7 @@ class TestSphere(TestCase):
         norm = X.norm(dim=-1)
         ones = torch.ones_like(norm)
         self.assertAlmostEqual(
-            torch.norm(norm - ones, p=float("inf")).item(), 0.0, places=4
+            torch.norm(norm - ones, p=float("inf")).item(), 0.0, places=5
         )
 
     def test_backprop(self):
