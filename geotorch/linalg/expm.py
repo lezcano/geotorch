@@ -146,10 +146,10 @@ def expm_taylor(A):
         else:
             thetas = thetas_dict["single"]
 
+        normA = torch.max(torch.sum(torch.abs(A), axis=0)).item()
+
         # No scale-square needed
         # This could be done marginally faster if iterated in reverse
-        normA = torch.max(torch.sum(torch.abs(A), axis=0)).item()
-        #normA = torch.norm(A, p=1).item()
         for deg, theta in zip(degs, thetas):
             if normA <= theta:
                 return taylor_approx(A, deg)
@@ -172,7 +172,6 @@ def expm_taylor(A):
             thetas = thetas_dict["single"]
 
         normA = torch.max(torch.sum(torch.abs(A), axis=-2), axis=-1).values
-        #normA = torch.norm(A, p=1, dim=(-2, -1))
 
         # Handle trivial case
         if (normA == 0.0).all():
