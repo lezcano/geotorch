@@ -132,7 +132,7 @@ def matrix_power_two_batch(A, k):
 
 def expm_taylor(A):
     if A.ndimension() < 2 or A.size(-2) != A.size(-1):
-        raise ValueError("Expected a square matrix or a batch of squared matrices")
+        raise ValueError("Expected a square matrix or a batch of square matrices")
 
     if A.ndimension() == 2:
         # Just one matrix
