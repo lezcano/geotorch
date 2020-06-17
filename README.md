@@ -64,7 +64,7 @@ It also implements the following constructions:
 
 ## Beyond Optimization: Normalizing Flows
 
-As every manifold in GeoTorch is, at its core, a map from a flat space into a manifold, the tools implemented here also serve as a building block in normalizing flows. Using a factorized manifold such as `LowdRank` it is direct to compute the determinan to the transformation it defines with no extra computation.
+As every manifold in GeoTorch is, at its core, a map from a flat space into a manifold, the tools implemented here also serve as a building block in normalizing flows. Using a factorized manifold such as `LowRank` it is direct to compute the determinan to the transformation it defines with no extra computation.
 
 ## Bibliography
 
