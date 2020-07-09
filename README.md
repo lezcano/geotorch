@@ -8,7 +8,7 @@
 
 ## Overview
 
-GeoTorch provides a way to perform constrained optimization and optimization on manifolds in a non-intrusive way. It is compatible with any layer and model implemented in Pytorch and any optimizer with no modifications.
+GeoTorch provides a way to perform constrained optimization and optimization on manifolds in a way that is compatible with all the layers, models, and optimizers  implemented in Pytorch with no modifications.
 
 ```python
 from torch import nn
