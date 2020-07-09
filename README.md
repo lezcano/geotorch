@@ -31,13 +31,13 @@ class Model(nn.Module):
 # Use the model as you'd normally do, everything works as in a non-parametrized model
 model = Model()
 
-# Use your optimizer of choice. Any optimizer works out of the box on any manifold
+# Use your optimizer of choice. All the optimizers work out of the box!
 optim = torch.optim.Adam(model.parameters(), lr=lr)
 ```
 
-## Manifolds
+## Supported Spaces
 
-GeoTorch currently supports the following manifolds:
+GeoTorch currently supports the following spaces:
 - `Rn(n)`: Rⁿ. Unrestricted optimization
 - `Sym(n)`: Vector space of symmetric matrices
 - `Skew(n)`: Vector space of skew-symmetric matrices
@@ -47,7 +47,7 @@ GeoTorch currently supports the following manifolds:
 - `Grassmannian(n,k)`: Manifold of k-dimensional subspaces in Rⁿ
 - `LowRank(n,k,r)`: Variety of n×k matrices of rank r or less
 
-Every manifold of dimension `(n, k)`can be applied to tensors of shape `(*, n, k)`, so we also get efficient parallel implementations of product manifolds such as
+Every space of dimension `(n, k)`can be applied to tensors of shape `(*, n, k)`, so we also get efficient parallel implementations of product spaces such as
 - `ObliqueManifold(n,k)`: Matrix with unit length columns, Sⁿ⁻¹ × ...ᵏ⁾ × Sⁿ⁻¹
 
 It also implements the following constructions:
@@ -55,7 +55,7 @@ It also implements the following constructions:
 - `Fibration`: Fibred space π : E → M, constructed from a `Manifold` E, a submersion π and local sections of dπ. For example the `Stiefel` manifold π : SO(n) → St(n, k) or the `Grassmannian` π : St(n, k) → Gr(n, k)
 - `ProductManifold`: M₁ × ... × Mₖ
 
-The following manifolds will be implemented soon. Open an issue if you really need some of these or you would like other manifolds to be implemented!
+The following spaces will be implemented soon. Open an issue if you really need some of these or you would like other spaces to be implemented!
 - `AlmostOrthogonal(n,k,t)`: Manifold of n×k matrices with singular values in the interval (1-t, 1+t)
 - `FixedRank(n,k,r)`: Manifold of n×k matrices of rank r
 - `PD(n)`: Cone of n×n symmetric positive definite matrices
@@ -77,7 +77,7 @@ Of course, this `with` statement may be used simply inside the forward function 
 
 ## Beyond Optimization: Normalizing Flows
 
-As every manifold in GeoTorch is, at its core, a map from a flat space into a manifold, the tools implemented here also serve as a building block in normalizing flows. Using a factorized manifold such as `LowRank` it is direct to compute the determinant of the transformation it defines, as we have direct access to the signular values of the layer.
+As every space in GeoTorch is, at its core, a map from a flat space into a manifold, the tools implemented here also serve as a building block in normalizing flows. Using a factorized space such as `LowRank` it is direct to compute the determinant of the transformation it defines, as we have direct access to the signular values of the layer.
 
 ## Bibliography
 
