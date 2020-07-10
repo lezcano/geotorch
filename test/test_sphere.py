@@ -78,6 +78,7 @@ class TestSphere(TestCase):
         # Custom trivialization
         def proj(x):
             return x / x.norm()
+
         try:
             SphereEmbedded(size=(3,), triv=proj)
         except Exception as e:

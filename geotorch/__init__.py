@@ -33,5 +33,5 @@ __all__ = [
     "sphere",
     "orthogonal",
     "grassmannian",
-    "lowrank"
+    "lowrank",
 ]
