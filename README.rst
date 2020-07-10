@@ -1,4 +1,5 @@
-.. rubric:: GeoTorch
+GeoTorch
+========
 
 |Build| |Codecov| |Codestyle Black| |License|
 
@@ -91,8 +92,8 @@ It also implements the following constructions:
 - ``SymF(n, f)``: Symmetric positive definite matrices with eigenvalues in the image of a map ``f``. If the map ``f`` is an embedding, this is a manifold. NotImplemented
 
 
-Sharing Weights, Parametrizations and Normalizing Flows
--------------------------------------------------------
+Sharing Weights, Parametrizations, and Normalizing Flows
+--------------------------------------------------------
 
 If one wants to use a parametrized tensor in different places in their model, or uses one parametrized layer many times, for example in an RNN, it is recommended to wrap the forward pass as follows to avoid each parametrization to be computed many times:
 
@@ -103,7 +104,7 @@ If one wants to use a parametrized tensor in different places in their model, or
 
 Of course, this ``with`` statement may be used simply inside the forward function where the parametrized layer is used several times.
 
-These ideas fall in the context of general parametrizations, where one wraps a tensor with a function, and rather than using a tensor ``X``, uses ``f(X)``. Particular examples of these are pruning, weight normalization and spectral normalization among others. This repository implements a framework to approach these kind of problems, which is currently a `PR #33344 <https://github.com/pytorch/pytorch/pull/33344>`_ in PyTorch.
+These ideas fall in the context of general parametrizations, where one wraps a tensor with a function, and rather than using a tensor ``X``, uses ``f(X)``. Particular examples of these are pruning, weight normalization and spectral normalization among others. This repository implements a framework to approach these kind of problems, which is currently a `PR #33344 <https://github.com/pytorch/pytorch/pull/33344>`_ in PyTorch. All the functionality of this PR is located in :example:`geotorch/parametrizations.py`.
 
 As every space in GeoTorch is, at its core, a map from a flat space into a manifold, the tools implemented here also serve as a building block in normalizing flows. Using a factorized space such as LowRank it is direct to compute the determinant of the transformation it defines, as we have direct access to the signular values of the layer.
 
@@ -121,13 +122,10 @@ If you have installed PyTorch v1.4 at least, you may try GeoTorch installing it 
 GeoTorch is tested in Linux, Mac, and Windows environments for Python >= 3.6.
 
 
-Beyond Optimization: Normalizing Flows
---------------------------------------
-
 Bibliography
 ------------
 
-Please cite the following work if you found GeoTorch useful. This paper exposes a simplified mathematical explanation of part of the inner-workings of GeoTorch
+Please cite the following work if you found GeoTorch useful. This paper exposes a simplified mathematical explanation of part of the inner-workings of GeoTorch.
 
 .. code:: bibtex
 
