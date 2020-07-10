@@ -28,8 +28,8 @@ of differentiable mainfolds as a `cartesian monoidal category
    .. automethod:: embedding
    .. automethod:: fibration
    .. automethod:: update_base
-   .. automethod:: total_space
-   .. automethod:: base
+   .. autoattribute:: total_space
+   .. autoattribute:: base
 
 .. autoclass:: ProductManifold
 

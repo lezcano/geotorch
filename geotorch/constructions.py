@@ -259,7 +259,7 @@ class Fibration(AbstractManifold):
         The base of the total space of the fibration
 
         Returns:
-            tensor (torch.Tensor):
+            tensor (torch.Tensor)
         """
         return self.total_space.base
 
