@@ -1,4 +1,4 @@
-Variety of Low Rank Matrices: :math:`\operatorname{LowRank}(n,k,r)`
+Low Rank Matrices: :math:`\operatorname{LowRank}(n,k,r)`
 ===================================================================
 
 .. currentmodule:: geotorch

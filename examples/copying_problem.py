@@ -1,8 +1,9 @@
 import torch
 from torch import nn
 import torch.nn.functional as F
+
+import geotorch
 import geotorch.parametrize as P
-import geotorch.so as Ort
 
 batch_size = 128
 hidden_size = 190
@@ -50,9 +51,7 @@ class ExpRNNCell(nn.Module):
         self.nonlinearity = modrelu(hidden_size)
 
         # Make recurrent_kernel orthogonal
-        P.register_parametrization(
-            self.recurrent_kernel, "weight", Ort.SO(self.recurrent_kernel.weight.size())
-        )
+        geotorch.orthogonal(self.recurrent_kernel, "weight")
 
         self.reset_parameters()
 
@@ -135,7 +134,7 @@ def main():
     )
 
     if RGD:
-        # DTRIV1 + SGD = Stochstic Riemannian Gradient Descent
+        # Implement Stochstic Riemannian Gradient Descent via SGD
         optim = torch.optim.SGD(
             [{"params": non_orth_params}, {"params": orth_params, "lr": lr_orth}], lr=lr
         )
@@ -170,8 +169,8 @@ def main():
 
         print("Iter {} Loss: {:.6f}, Accuracy: {:.5f}".format(step, loss, accuracy))
 
-    # The evaluation in this model is not quite necessary, as we do not repeat any element
-    # of the training batch, but we leave it for completeness
+    # The evaluation in this model is not quite necessary, as we do not repeat any
+    # element of the training batch, but we leave it for completeness
     model.eval()
     with torch.no_grad():
         test_x, test_y = copy_data(batch_size)

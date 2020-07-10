@@ -34,7 +34,25 @@ model = Model()
 optim = torch.optim.Adam(model.parameters(), lr=lr)
 ```
 
+## Constraints
+
+The following constraints are implemented and may be used as in the example above:
+- `geotorch.skew`. Skew-symmetric matrices
+- `geotorch.symmetric`. Symmetric matrices
+- `geotorch.sphere`. Vectors of norm `1`
+- `geotorch.orthogonal`. Matrices with orthogonal columns
+- `geotorch.grassmannian`. Skew-symmetric matrices
+- `geotorch.lowrank(r)`. Matrices of rank at most `r`
+
+Each of these constraints have some extra parameters which can be used to tailor the
+behavior of each constraint to the problem in hand. For more on this, see the constructions
+section in the documentation.
+
 ## Manifolds
+
+The constraints in GeoTorch are implemented as manifolds. These give the user more flexibility
+on the options that they choose for each parametrization. All these support Riemannian Gradient
+Descent by default, but they also support optimization via any other optimizer.
 
 GeoTorch currently supports the following manifolds:
 - `Rn(n)`: Rⁿ. Unrestricted optimization
@@ -62,6 +80,16 @@ It also implements the following constructions:
 - `Fibration`: Fibred space π : E → M, constructed from a `Manifold` E, a submersion π and local sections of dπ
 - `ProductManifold`: M₁ × ... × Mₖ
 - `SymF(n, f)`: Symmetric positive definite matrices with eigenvalues in the image of a map `f`. If the map `f` is an embedding, this is a manifold. NotImplemented
+
+## Try GeoTorch!
+
+If you have installed PyTorch v.1.4.0 at least, you may try GeoTorch installing it via
+
+```bash
+pip install git+https://github.com/Lezcano/geotorch/
+```
+
+GeoTorch is tested in Linux, Mac, and Windows environments for Python >= 3.6.
 
 ## Beyond Optimization: Normalizing Flows
 

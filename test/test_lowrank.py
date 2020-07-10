@@ -10,29 +10,19 @@ from geotorch.lowrank import LowRank
 
 class TestLowRank(TestCase):
     def assertIsOrthogonal(self, X):
-        if X.ndimension() == 2:
-            self._assertIsOrthogonal(X)
-        elif X.ndimension() > 2:
-            # Sample a few elements and see that they are orthogonal
-            for _ in range(4):
-                coords = [
-                    torch.randint(low=0, high=s, size=(1,)).item()
-                    for s in X.size()[:-2]
-                ]
-                coords.append(...)
-                self._assertIsOrthogonal(X[coords])
-
-    def _assertIsOrthogonal(self, X):
-        if X.size(0) < X.size(1):
-            X = X.t()
-        Id = torch.eye(X.size(1))
-        self.assertAlmostEqual(torch.norm(X.t() @ X - Id).item(), 0.0, places=2)
+        if X.size(-2) < X.size(-1):
+            X = X.transpose(-2, -1)
+        Id = torch.eye(X.size(-1))
+        if X.dim() > 2:
+            Id = Id.repeat(*(X.size()[:-2] + (1, 1)))
+        norm = torch.norm(X.transpose(-2, -1) @ X - Id, dim=(-2, -1))
+        self.assertTrue((norm < 1e-3).all())
 
     def assertHasSingularValues(self, X, S_orig):
         if X.ndimension() == 2:
             self._assertHasSingularValues(X, S_orig)
         elif X.ndimension() > 2:
-            # Sample a few elements and see that they are orthogonal
+            # Sample a few elements and see that they have the correct sing values
             for _ in range(4):
                 coords = [
                     torch.randint(low=0, high=s, size=(1,)).item()
@@ -57,7 +47,7 @@ class TestLowRank(TestCase):
         if idx != 0:
             # Delete zero values to reveal true rank
             S = S[:-idx]
-        # Rather lax as this is quite unstable
+        # Rather lax as the SVD is quite unstable
         self.assertAlmostEqual((S_orig - S).abs().max().item(), 0.0, places=1)
 
     def test_lowrank(self):

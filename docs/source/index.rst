@@ -12,6 +12,8 @@ Welcome to GeoTorch's documentation!
    :maxdepth: 2
    :caption: General Constrained Optimization:
 
+   constraints
+
 
 .. toctree::
    :maxdepth: 2
