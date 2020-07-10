@@ -58,9 +58,7 @@ class SphereEmbedded(Manifold):
                 x.data = project(x.data)
 
     def extra_repr(self):
-        return "n={}, r={}, triv={}".format(
-            self.n, self.r, self.triv.__name__
-        )
+        return "n={}, r={}, triv={}".format(self.n, self.r, self.triv.__name__)
 
 
 class Sphere(Fibration):

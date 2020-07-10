@@ -48,5 +48,6 @@ class TestManifold(TestCase):
         with self.assertRaises(ValueError):
             constructions.AbstractManifold(dimensions=-1, size=(2, 4))
 
-        # Passing zero should work
-        constructions.AbstractManifold(dimensions=0, size=(2, 4))
+        # Passing zero should raise
+        with self.assertRaises(ValueError):
+            constructions.AbstractManifold(dimensions=0, size=(2, 4))

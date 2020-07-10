@@ -1,7 +1,7 @@
 from .constructions import AbstractManifold
 
 
-class Sym(AbstractManifold):
+class Symmetric(AbstractManifold):
     def __init__(self, size, lower=True):
         r"""
         Vector space of symmetric matrices, parametrized in terms of the upper or lower

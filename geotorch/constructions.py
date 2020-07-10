@@ -20,11 +20,17 @@ class AbstractManifold(P.Parametrization):
 
         super().__init__()
         if dimensions != "product" and (
-            not isinstance(dimensions, int) or dimensions < 0
+            not isinstance(dimensions, int) or dimensions < 1
         ):
             raise ValueError(
                 "dimensions should be a non-negative integer or 'product'. Got {}".format(
                     dimensions
+                )
+            )
+        if dimensions != "product" and len(size) < dimensions:
+            raise ValueError(
+                "Cannot instantiate {} on a tensor of less than {} dimensions. Got size {}".format(
+                    type(self), dimensions, size
                 )
             )
 

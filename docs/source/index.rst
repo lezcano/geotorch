@@ -18,7 +18,7 @@ Welcome to GeoTorch's documentation!
    :caption: Manifolds:
 
    reals
-   sym
+   symmetric
    skew
    sphere
    so

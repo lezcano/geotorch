@@ -9,4 +9,4 @@ Symmetric Matrices: :math:`\operatorname{Sym}(n)`
 
     \operatorname{Sym}(n) = \{X \in \mathbb{R}^{n \times n}\:\mid\: X^\intercal = X \}
 
-.. autoclass:: Sym
+.. autoclass:: Symmetric

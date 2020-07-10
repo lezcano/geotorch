@@ -127,3 +127,7 @@ class TestLowRank(TestCase):
             LowRank(size=(4, 3), rank=5)
         with self.assertRaises(ValueError):
             LowRank(size=(2, 3), rank=3)
+        # Try to instantiate it in a vector rather than a matrix
+        with self.assertRaises(ValueError):
+            LowRank(size=(5,), rank=1)
+

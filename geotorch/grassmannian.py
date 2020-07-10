@@ -30,6 +30,11 @@ class Grassmannian(Fibration):
 
     @staticmethod
     def size_st(size):
+        if len(size) < 2:
+            raise ValueError(
+                "Cannot instantiate Grassmannian on a tensor of less than 2 dimensions."
+                "Got size {}".format(size)
+            )
         if size[-2] < size[-1]:
             size = list(size)
             size[-1], size[-2] = size[-2], size[-1]

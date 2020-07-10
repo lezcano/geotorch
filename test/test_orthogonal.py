@@ -138,6 +138,16 @@ class TestOrthogonal(TestCase):
         except ValueError:
             self.fail("{} raised ValueError unexpectedly!".format(cls_tall))
 
+        # Try to instantiate it in a vector rather than a matrix
+        with self.assertRaises(ValueError):
+            cls(size=(7,))
+
+        with self.assertRaises(ValueError):
+            cls_tall(size=(7,))
+
+        with self.assertRaises(ValueError):
+            SO(size=(7,))
+
     def _test_initializations(self, cls, cls_tall):
         for layers in self._test_layers(cls, cls_tall):
             for layer in layers:
@@ -239,3 +249,4 @@ class TestOrthogonal(TestCase):
                 norm1 = (results[i][1] - results[j][1]).abs().max().item()
                 self.assertAlmostEqual(norm0, 0.0, places=3)
                 self.assertAlmostEqual(norm1, 0.0, places=2)
+
