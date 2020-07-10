@@ -13,7 +13,8 @@ GeoTorch provides a way to perform constrained optimization and optimization on 
 
 .. code:: python
 
-    from torch import nn
+    import torch
+    import torch.nn as nn
     import geotorch
 
     class Model(nn.Module):
@@ -104,7 +105,7 @@ If one wants to use a parametrized tensor in different places in their model, or
 
 Of course, this ``with`` statement may be used simply inside the forward function where the parametrized layer is used several times.
 
-These ideas fall in the context of general parametrizations, where one wraps a tensor with a function, and rather than using a tensor ``X``, uses ``f(X)``. Particular examples of these are pruning, weight normalization and spectral normalization among others. This repository implements a framework to approach these kind of problems, which is currently a `PR #33344 <https://github.com/pytorch/pytorch/pull/33344>`_ in PyTorch. All the functionality of this PR is located in :example:`geotorch/parametrizations.py`.
+These ideas fall in the context of general parametrizations, where one wraps a tensor with a function, and rather than using a tensor ``X``, uses ``f(X)``. Particular examples of these are pruning, weight normalization and spectral normalization among others. This repository implements a framework to approach these kind of problems, which is currently a `PR #33344 <https://github.com/pytorch/pytorch/pull/33344>`_ in PyTorch. All the functionality of this PR is located in `geotorch/parametrize.py`__.
 
 As every space in GeoTorch is, at its core, a map from a flat space into a manifold, the tools implemented here also serve as a building block in normalizing flows. Using a factorized space such as LowRank it is direct to compute the determinant of the transformation it defines, as we have direct access to the signular values of the layer.
 
@@ -136,6 +137,8 @@ Please cite the following work if you found GeoTorch useful. This paper exposes 
         pages = {9154--9164},
         year = {2019},
     }
+
+.. __: https://github.com/Lezcano/geotorch/blob/master/geotorch/parametrize.py
 
 .. |Build| image:: https://github.com/lezcano/geotorch/workflows/Build/badge.svg
 .. |Codecov| image:: https://codecov.io/gh/Lezcano/geotorch/branch/master/graph/badge.svg?token=1AKM2EQ7RT

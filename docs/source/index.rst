@@ -1,19 +1,29 @@
 Welcome to GeoTorch's documentation!
 ====================================
 
+.. toctree::
+   :caption: GeoTorch
+   :hidden:
+
+   Introduction <self>
+
+
 .. include:: ../../README.rst
+    :start-line: 2
 
 
 .. toctree::
    :maxdepth: 2
-   :caption: General Constrained Optimization:
+   :caption: Constrained Optimization
+   :hidden:
 
    constraints
 
 
 .. toctree::
    :maxdepth: 2
-   :caption: Manifolds:
+   :caption: Manifolds
+   :hidden:
 
    reals
    symmetric
