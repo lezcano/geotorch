@@ -1,11 +1,7 @@
 Welcome to GeoTorch's documentation!
 ====================================
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Introduction:
-
-   intro
+.. include:: ../../README.rst
 
 
 .. toctree::
