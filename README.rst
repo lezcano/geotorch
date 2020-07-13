@@ -1,7 +1,7 @@
 GeoTorch
 ========
 
-|Build| |Codecov| |Codestyle Black| |License|
+|Build| |Docs| |Codecov| |Codestyle Black| |License|
 
     A library for constrained optimization and manifold optimization for deep learning in PyTorch
 
@@ -137,6 +137,8 @@ Please cite the following work if you found GeoTorch useful. This paper exposes 
 .. |Build| image:: https://github.com/lezcano/geotorch/workflows/Build/badge.svg
    :target: https://github.com/lezcano/geotorch/workflows/Build/badge.svg
    :alt: Build
+.. |Docs| image:: https://readthedocs.org/projects/geotorch/badge/?version=latest
+   :target: https://geotorch.readthedocs.io/en/latest/?badge=latest
 .. |Codecov| image:: https://codecov.io/gh/Lezcano/geotorch/branch/master/graph/badge.svg?token=1AKM2EQ7RT
    :target: https://codecov.io/gh/Lezcano/geotorch/branch/master/graph/badge.svg?token=1AKM2EQ7RT
    :alt: Code coverage
