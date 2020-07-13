@@ -11,7 +11,7 @@ class LowRank(Fibration):
         Args:
             size (torch.size): Size of the tensor to be applied to
             rank (int): Rank of the matrices.
-                It has to be less than
+                It has to be less or equal to
                 :math:`\min(\texttt{size}[-1], \texttt{size}[-2])`
         """
 
