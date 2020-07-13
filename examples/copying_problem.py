@@ -60,16 +60,14 @@ class ExpRNNCell(nn.Module):
         # Initialize the recurrent kernel
         self.recurrent_kernel.parametrizations.weight.torus_init_()
 
-    def default_hidden(self, input):
-        return input.new_zeros(input.size(0), self.hidden_size, requires_grad=False)
+    def default_hidden(self, input_):
+        return input_.new_zeros(input_.size(0), self.hidden_size, requires_grad=False)
 
-    def forward(self, input, hidden):
-        input = self.input_kernel(input)
+    def forward(self, input_, hidden):
+        input_ = self.input_kernel(input_)
         hidden = self.recurrent_kernel(hidden)
-        out = input + hidden
-        out = self.nonlinearity(out)
-
-        return out, out
+        out = input_ + hidden
+        return self.nonlinearity(out)
 
 
 class Model(nn.Module):
@@ -86,11 +84,11 @@ class Model(nn.Module):
         nn.init.constant_(self.lin.bias.data, 0)
 
     def forward(self, inputs):
-        state = self.rnn.default_hidden(inputs[:, 0, ...])
+        out_rnn = self.rnn.default_hidden(inputs[:, 0, ...])
         outputs = []
         with P.cached():
             for input in torch.unbind(inputs, dim=1):
-                out_rnn, state = self.rnn(input, state)
+                out_rnn, self.rnn(input, out_rnn)
                 outputs.append(self.lin(out_rnn))
         return torch.stack(outputs, dim=1)
 

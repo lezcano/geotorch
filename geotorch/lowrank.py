@@ -1,4 +1,5 @@
 from .constructions import Fibration, ProductManifold
+from .so import SO
 from .stiefel import Stiefel, StiefelTall
 from .reals import Rn
 
@@ -48,7 +49,12 @@ class LowRank(Fibration):
     @staticmethod
     def cls_stiefel(size):
         n, k = size[-2:]
-        return StiefelTall if n > 4 * k else Stiefel
+        if n == k:
+            return SO
+        elif n > 4 * k:
+            return StiefelTall
+        else:
+            return Stiefel
 
     def embedding(self, X):
         U = X.tril(-1)[..., :, : self.rank]

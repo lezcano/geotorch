@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 
 from .constructions import Manifold, Fibration
-from .so import SO, uniform_init_, cayley_map
+from .so import SO, uniform_init_, torus_init_, cayley_map
 from .linalg.expm import expm
 
 
@@ -61,6 +61,39 @@ class Stiefel(Fibration):
         r""" Samples an orthogonal matrix uniformly at random according
         to the Haar measure on :math:`\operatorname{St}(n,k)`."""
         self.total_space.uniform_init_()
+
+    def torus_init_(self, init_=None, triv=expm):
+        r"""Samples the 2D input `tensor` as a block-diagonal skew-symmetric matrix
+        which is skew-symmetric in the main diagonal. The blocks are of the form
+        :math:`\begin{pmatrix} 0 & b \\ -b & 0\end{pmatrix}` where :math:`b` is
+        distributed according to `init_`. Then it is projected to the manifold using `triv`.
+
+        .. warning::
+
+            This initialization is just accessible whenever the underlaying matrix is square
+
+        .. note::
+
+            This initialization is particularly useful for regularizing RNNs.
+
+        Args:
+            init_: Optional. A function that takes a tensor and fills
+                    it in place according to some distribution. See
+                    `torch.init <https://pytorch.org/docs/stable/nn.init.html?highlight=init>`_.
+                    Default: :math:`\operatorname{Uniform}(-\pi, \pi)`
+            triv: Optional. A function that maps skew-symmetric matrices
+                    to orthogonal matrices.
+        """
+        if self.k != self.n:
+            raise RuntimeError(
+                "This initialization is just available in square matrices."
+                "This matrix has dimensions ({}, {})".format(self.n, self.k)
+            )
+
+        with torch.no_grad():
+            torus_init_(self.base, init_, triv)
+            if self.is_registered():
+                self.original_tensor().zero_()
 
     def extra_repr(self):
         return super().extra_repr() + ", triv={}".format(self.triv)
@@ -174,6 +207,39 @@ class StiefelTall(Manifold):
             if self.is_registered():
                 self.original_tensor().zero_()
             self.fibr_aux.zero_()
+
+    def torus_init_(self, init_=None, triv=expm):
+        r"""Samples the 2D input `tensor` as a block-diagonal skew-symmetric matrix
+        which is skew-symmetric in the main diagonal. The blocks are of the form
+        :math:`\begin{pmatrix} 0 & b \\ -b & 0\end{pmatrix}` where :math:`b` is
+        distributed according to `init_`. Then it is projected to the manifold using `triv`.
+
+        .. warning::
+
+            This initialization is just accessible whenever the underlaying matrix is square
+
+        .. note::
+
+            This initialization is particularly useful for regularizing RNNs.
+
+        Args:
+            init_: Optional. A function that takes a tensor and fills
+                    it in place according to some distribution. See
+                    `torch.init <https://pytorch.org/docs/stable/nn.init.html?highlight=init>`_.
+                    Default: :math:`\operatorname{Uniform}(-\pi, \pi)`
+            triv: Optional. A function that maps skew-symmetric matrices
+                    to orthogonal matrices.
+        """
+        if self.k != self.n:
+            raise RuntimeError(
+                "This initialization is just available in square matrices."
+                "This matrix has dimensions ({}, {})".format(self.n, self.k)
+            )
+
+        with torch.no_grad():
+            torus_init_(self.base, init_, triv)
+            if self.is_registered():
+                self.original_tensor().zero_()
 
     def extra_repr(self):
         return super().extra_repr() + ", triv={}".format(self.triv.__name__)

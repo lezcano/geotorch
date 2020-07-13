@@ -1,10 +1,12 @@
 import geotorch.parametrize as P
-from geotorch.sphere import Sphere
-from geotorch.stiefel import Stiefel, StiefelTall
-from geotorch.grassmannian import Grassmannian, GrassmannianTall
-from geotorch.lowrank import LowRank
-from geotorch.symmetric import Symmetric
-from geotorch.skew import Skew
+from .sphere import Sphere
+from .so import SO
+from .stiefel import Stiefel, StiefelTall
+from .grassmannian import Grassmannian, GrassmannianTall
+from .lowrank import LowRank
+from .almostorthogonal import AlmostOrthogonal
+from .symmetric import Symmetric
+from .skew import Skew
 
 
 def symmetric(module, tensor_name, lower=True):
@@ -130,7 +132,12 @@ def orthogonal(module, tensor_name, triv="expm"):
         )
     n, k = size[-2:]
     n, k = max(n, k), min(n, k)
-    cls = StiefelTall if n > 4 * k else Stiefel
+    if n == k:
+        cls = SO
+    elif n > 4 * k:
+        cls = StiefelTall
+    else:
+        cls = Stiefel
     P.register_parametrization(module, tensor_name, cls(size, triv))
 
 
@@ -213,3 +220,34 @@ def lowrank(module, tensor_name, rank):
     """
     size = getattr(module, tensor_name).size()
     P.register_parametrization(module, tensor_name, LowRank(size, rank))
+
+
+def almost_orthogonal(module, tensor_name, r, f="sigmoid"):
+    r""" Adds an almost orthogonal parametrization to the tensor ``module[tensor_name]``.
+
+    When accessing ``module[tensor_name]``, the module will return the
+    parametrized version :math:`X` will have its singular values in the interval
+    :math:`[1-t, 1+t]`
+
+    If the tensor has more than two dimensions, the parametrization will be
+    applied to the last two dimensions.
+
+    Examples::
+
+        >>> layer = nn.Linear(20, 30)
+        >>> geotorch.almost_orthogonal(layer, "weight", 0.5)
+        >>> S = torch.svd(layer.weight).S
+        >>> all(S >= 0.5 and S <= 1.5)
+        True
+
+    Args:
+        module (nn.Module): module on which to register the parametrization
+        tensor_name (string): name of the parameter, buffer, or parametrization
+            on which the parametrization will be applied
+        r (float): Radius. A float in the interval [0, 1]
+        f (str or callable): Optional. One of `["sigmoid", "tanh", "sin"]`
+            or a callable that maps real numbers to the interval [-1, 1].
+            Default: `"sigmoid"`
+    """
+    size = getattr(module, tensor_name).size()
+    P.register_parametrization(module, tensor_name, AlmostOrthogonal(size, r, f))

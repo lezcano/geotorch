@@ -1,5 +1,5 @@
 import torch
-from lowrank import LowRank
+from .lowrank import LowRank
 
 
 def sigmoid(t):
