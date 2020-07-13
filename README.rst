@@ -5,7 +5,6 @@ GeoTorch
 
     A library for constrained optimization and manifold optimization for deep learning in PyTorch
 
-
 Overview
 --------
 
@@ -38,7 +37,6 @@ the layers or optimizers and without any kind of boilerplate.
     # Use your optimizer of choice. Any optimizer works out of the box with any parametrization
     optim = torch.optim.Adam(model.parameters(), lr=lr)
 
-
 Constraints
 -----------
 
@@ -55,13 +53,12 @@ Each of these constraints have some extra parameters which can be used to tailor
 behavior of each constraint to the problem in hand. For more on this, see the constructions
 section in the documentation.
 
-
 Supported Spaces
 ----------------
 
 The constraints in GeoTorch are implemented as manifolds. These give the user more flexibility
 on the options that they choose for each parametrization. All these support Riemannian Gradient
-Descent by default (more on this `here`__), but they also support optimization via any other optimizer.
+Descent by default (more on this `here`_), but they also support optimization via any other optimizer.
 
 GeoTorch currently supports the following spaces:
 
@@ -94,7 +91,6 @@ It also implements the following constructions:
 - ``Fibration``: Fibred space π : E → M, constructed from a ``Manifold`` E, a submersion π and local sections of dπ
 - ``ProductManifold``: M₁ × ... × Mₖ
 
-
 Sharing Weights, Parametrizations, and Normalizing Flows
 --------------------------------------------------------
 
@@ -107,10 +103,9 @@ If one wants to use a parametrized tensor in different places in their model, or
 
 Of course, this ``with`` statement may be used simply inside the forward function where the parametrized layer is used several times.
 
-These ideas fall in the context of parametrized optimization, where one wraps a tensor ``X`` with a function ``f``, and rather than using ``X``, we use ``f(X)``. Particular examples of this idea are pruning, weight normalization, and spectral normalization among others. This repository implements a framework to approach this kind of problems. The framework is currently `PR #33344 <https://github.com/pytorch/pytorch/pull/33344>`_ in PyTorch. All the functionality of this PR is located in `geotorch/parametrize.py`__.
+These ideas fall in the context of parametrized optimization, where one wraps a tensor ``X`` with a function ``f``, and rather than using ``X``, we use ``f(X)``. Particular examples of this idea are pruning, weight normalization, and spectral normalization among others. This repository implements a framework to approach this kind of problems. The framework is currently `PR #33344`_ in PyTorch. All the functionality of this PR is located in `geotorch/parametrize.py`_.
 
 As every space in GeoTorch is, at its core, a map from a flat space into a manifold, the tools implemented here also serve as a building block in normalizing flows. Using a factorized space such as LowRank it is direct to compute the determinant of the transformation it defines, as we have direct access to the signular values of the layer.
-
 
 Try GeoTorch!
 -------------
@@ -122,7 +117,6 @@ If you have installed PyTorch v1.5 at least, you may try GeoTorch installing it 
     pip install git+https://github.com/Lezcano/geotorch/
 
 GeoTorch is tested in Linux, Mac, and Windows environments for Python >= 3.6.
-
 
 Bibliography
 ------------
@@ -139,11 +133,21 @@ Please cite the following work if you found GeoTorch useful. This paper exposes 
         year = {2019},
     }
 
-.. __: https://github.com/Lezcano/geotorch/blob/master/examples/copying_problem.py#L16
-.. __: https://github.com/Lezcano/geotorch/blob/master/geotorch/parametrize.py
 
 .. |Build| image:: https://github.com/lezcano/geotorch/workflows/Build/badge.svg
+   :target: https://github.com/lezcano/geotorch/workflows/Build/badge.svg
+   :alt: Build
 .. |Codecov| image:: https://codecov.io/gh/Lezcano/geotorch/branch/master/graph/badge.svg?token=1AKM2EQ7RT
+   :target: https://codecov.io/gh/Lezcano/geotorch/branch/master/graph/badge.svg?token=1AKM2EQ7RT
+   :alt: Code coverage
 .. |Codestyle Black| image:: https://img.shields.io/badge/code%20style-black-000000.svg
    :target: https://github.com/ambv/black
+   :alt: Codestyle Black
 .. |License| image:: https://img.shields.io/badge/license-MIT-green.svg
+   :target: https://github.com/Lezcano/geotorch/blob/master/LICENSE
+   :alt: License
+
+.. _here: https://github.com/Lezcano/geotorch/blob/master/examples/copying_problem.py#L16
+.. _PR #33344: https://github.com/pytorch/pytorch/pull/33344
+.. _geotorch/parametrize.py: https://github.com/Lezcano/geotorch/blob/master/geotorch/parametrize.py
+
