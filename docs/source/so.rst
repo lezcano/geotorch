@@ -4,7 +4,7 @@ Special Orthogonal Group: :math:`\operatorname{SO}(n)`
 .. currentmodule:: geotorch
 
 :math:`\operatorname{SO}(n)` is the special orthogonal group, that is, the square matrices with
-orthonormal columns and positive determinant
+orthonormal columns and positive determinant:
 
 .. math::
 

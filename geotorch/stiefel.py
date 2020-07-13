@@ -46,6 +46,11 @@ class Stiefel(Fibration):
         return tuple(size_so)
 
     def embedding(self, X):
+        # Returns the matrix
+        # A = [ X 0 ] \in R^{n x n}
+        # The skew symmetric embedding will make it into A - A^t, which is an
+        # identification of T_pSt(n,k) as a subset of Skew(n) via left-invariant
+        # vector fields
         size_z = self.tensorial_size + (self.n, self.n - self.k)
         return torch.cat([X, X.new_zeros(*size_z)], dim=-1)
 

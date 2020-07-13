@@ -8,7 +8,7 @@ from geotorch.skew import Skew
 
 
 def symmetric(module, tensor_name, lower=True):
-    r""" Adds a symmetric parametrization to the matrix ``module[tensor_name]``
+    r""" Adds a symmetric parametrization to the matrix ``module[tensor_name]``.
 
     When accessing ``module[tensor_name]``, the module will return the parametrized
     version :math:`X` so that :math:`X^\intercal = X`.
@@ -35,7 +35,7 @@ def symmetric(module, tensor_name, lower=True):
 
 
 def skew(module, tensor_name, lower=True):
-    r""" Adds a skew-symmetric parametrization to the matrix ``module[tensor_name]``
+    r""" Adds a skew-symmetric parametrization to the matrix ``module[tensor_name]``.
 
     When accessing ``module[tensor_name]``, the module will return the parametrized
     version :math:`X` so that :math:`X^\intercal = -X`.
@@ -63,7 +63,7 @@ def skew(module, tensor_name, lower=True):
 
 def sphere(module, tensor_name, r=1.0):
     r""" Adds a spherical parametrization to the vector (or tensor)
-    ``module[tensor_name]``
+    ``module[tensor_name]``.
 
     When accessing ``module[tensor_name]``, the module will return the parametrized
     version :math:`v` so that :math:`\lVert v \rVert = 1`.
@@ -93,10 +93,10 @@ def sphere(module, tensor_name, r=1.0):
 
 
 def orthogonal(module, tensor_name, triv="expm"):
-    r""" Adds an orthogonal parametrization to the tensor ``module[tensor_name]``
+    r""" Adds an orthogonal parametrization to the tensor ``module[tensor_name]``.
 
     When accessing ``module[tensor_name]``, the module will return the
-    parametrized version :math:`X` so that :math:`X^\intercal X = \operatorname{Id}`
+    parametrized version :math:`X` so that :math:`X^\intercal X = \operatorname{Id}`.
 
     If the tensor has more than two dimensions, the orthogonal parametrization will be
     applied to the last two dimensions.
@@ -188,7 +188,7 @@ def grassmannian(module, tensor_name, triv="expm"):
 
 
 def lowrank(module, tensor_name, rank):
-    r""" Adds a low rank parametrization to the tensor ``module[tensor_name]``
+    r""" Adds a low rank parametrization to the tensor ``module[tensor_name]``.
 
     When accessing ``module[tensor_name]``, the module will return the
     parametrized version :math:`X` will have rank at most ``rank``.
