@@ -80,6 +80,7 @@ And the following spaces are planed to be implemented in the near future:
 - ``PSD(n)``: Cone of n×n symmetric positive semi-definite matrices
 - ``PSDLowRank(n,k)``: Variety of n×n symmetric positive semi-definite matrices of rank k or less
 - ``PSDFixedRank(n,k)``: Manifold of n×n symmetric positive semi-definite matrices of rank k
+- ``SymF(n, f)``: Symmetric positive definite matrices with eigenvalues in the image of a map ``f``. If the map ``f`` is an embedding, this is a manifold
 
 Every manifold of dimension ``(n, k)`` can be applied to tensors of shape ``(*, n, k)``, so we also get efficient parallel implementations of product manifolds such as
 
@@ -90,7 +91,6 @@ It also implements the following constructions:
 - ``Manifold``: Manifold that supports Riemannian Gradient Descent and trivializations
 - ``Fibration``: Fibred space π : E → M, constructed from a ``Manifold`` E, a submersion π and local sections of dπ
 - ``ProductManifold``: M₁ × ... × Mₖ
-- ``SymF(n, f)``: Symmetric positive definite matrices with eigenvalues in the image of a map ``f``. If the map ``f`` is an embedding, this is a manifold. NotImplemented
 
 
 Sharing Weights, Parametrizations, and Normalizing Flows
