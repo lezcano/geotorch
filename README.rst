@@ -28,12 +28,12 @@ GeoTorch provides a way to perform constrained optimization and optimization on 
             geotorch.orthogonal(self.cnn, "weight")
 
         def forward(self, x):
-            # self.linear is lowrank and every kernel of the CNN is orthogonal
+            # self.linear is has rank at most 10 and every 3x3 kernel in the CNN is orthogonal
 
-    # Use the model as you'd normally do, everything works as in a non-parametrized model
+    # Nothing fancy from here on. Use the model as you'd normally do.
     model = Model()
 
-    # Use your optimizer of choiceas you would normally do. Any optimizer works out of the box on any manifold
+    # Use your optimizer of choice. Any optimizer works out of the box with any parametrization
     optim = torch.optim.Adam(model.parameters(), lr=lr)
 
 
@@ -59,7 +59,7 @@ Supported Spaces
 
 The constraints in GeoTorch are implemented as manifolds. These give the user more flexibility
 on the options that they choose for each parametrization. All these support Riemannian Gradient
-Descent by default, but they also support optimization via any other optimizer.
+Descent by default (more on this `here`__), but they also support optimization via any other optimizer.
 
 GeoTorch currently supports the following spaces:
 
@@ -138,6 +138,7 @@ Please cite the following work if you found GeoTorch useful. This paper exposes 
         year = {2019},
     }
 
+.. __: https://github.com/Lezcano/geotorch/blob/master/examples/copying_problem.py#L16
 .. __: https://github.com/Lezcano/geotorch/blob/master/geotorch/parametrize.py
 
 .. |Build| image:: https://github.com/lezcano/geotorch/workflows/Build/badge.svg

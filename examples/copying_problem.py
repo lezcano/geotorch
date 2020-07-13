@@ -162,6 +162,9 @@ def main():
         optim.step()
 
         if RGD:
+            # Updating the base after every step and using SGD gives us
+            # Riemannian Gradient Descent. More on this in Section 5
+            # https://arxiv.org/abs/1909.09501
             model.rnn.recurrent_kernel.parametrizations.weight.update_base()
 
         with torch.no_grad():
