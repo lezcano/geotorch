@@ -114,7 +114,7 @@ As every space in GeoTorch is, at its core, a map from a flat space into a manif
 Try GeoTorch!
 -------------
 
-If you have installed PyTorch v1.4 at least, you may try GeoTorch installing it via
+If you have installed PyTorch v1.5 at least, you may try GeoTorch installing it via
 
 .. code:: bash
 

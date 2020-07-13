@@ -6,7 +6,7 @@ import os
 import re
 
 REQUIRED_MAJOR = 3
-REQUIRED_MINOR = 6
+REQUIRED_MINOR = 5
 
 # Check for python version
 if sys.version_info < (REQUIRED_MAJOR, REQUIRED_MINOR):
@@ -22,7 +22,7 @@ if sys.version_info < (REQUIRED_MAJOR, REQUIRED_MINOR):
     sys.exit(error)
 
 
-TEST_REQUIRES = ["pytest", "pytest-cov"]
+TEST_REQUIRES = ["pytest"]
 
 DEV_REQUIRES = TEST_REQUIRES + [
     "black",
@@ -35,20 +35,21 @@ DEV_REQUIRES = TEST_REQUIRES + [
 
 
 # Get the long description from the README file
-with open("README.md", "r") as fh:
+with open("README.rst", "r", encoding="utf8") as fh:
     long_description = fh.read()
 
 # get version string from module
-with open(os.path.join(os.path.dirname(__file__), "geotorch/__init__.py"), "r") as f:
+init_path = os.path.join(os.path.dirname(__file__), "geotorch/__init__.py")
+with open(init_path, "r", encoding="utf8") as f:
     version = re.search(r"__version__ = ['\"]([^'\"]*)['\"]", f.read(), re.M).group(1)
 
 setup(
     name="geotorch",
-    version="0.1.0",
-    description="Constrained Optimization in Pytorch",
+    version=version,
+    description="Constrained Optimization and Manifold Optimization in Pytorch",
     author="Mario Lezcano Casado",
     license="MIT",
-    long_description=long_description,  # Optional
+    long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/Lezcano/geotorch",
     classifiers=[
@@ -61,7 +62,7 @@ setup(
     ],
     keywords=["Constrained Optimization", "Optimization on Manifolds", "Pytorch"],
     packages=find_packages(),
-    python_requires=">=3.6,",
-    install_requires=["torch>=1.4"],
+    python_requires=">={}.{}".format(REQUIRED_MAJOR, REQUIRED_MINOR),
+    install_requires=["torch>=1.5"],
     extras_require={"dev": DEV_REQUIRES, "test": TEST_REQUIRES},
 )
