@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 from setuptools import setup, find_packages
-import sys
 import os
 import re
 
@@ -43,7 +42,7 @@ setup(
     version=version,
     description="Constrained Optimization and Manifold Optimization in Pytorch",
     author="Mario Lezcano Casado",
-    author_email='lezcano-93@hotmail.com',
+    author_email="lezcano-93@hotmail.com",
     license="MIT",
     long_description=long_description,
     long_description_content_type="text/x-rst",
