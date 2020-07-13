@@ -49,5 +49,9 @@ class TestSkew(TestCase):
         with self.assertRaises(ValueError):
             Skew(size=(1, 3))
 
+        # Try to instantiate it in a vector rather than a matrix
+        with self.assertRaises(ValueError):
+            Skew(size=(4,))
+
     def test_repr(self):
         print(Skew(size=(4, 4)))

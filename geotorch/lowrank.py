@@ -1,10 +1,20 @@
-from .manifold import Fibration, ProductManifold
+from .constructions import Fibration, ProductManifold
 from .stiefel import Stiefel, StiefelTall
 from .reals import Rn
 
 
 class LowRank(Fibration):
     def __init__(self, size, rank):
+        r"""
+        Variety of the matrices of rank :math:`r` or less.
+
+        Args:
+            size (torch.size): Size of the tensor to be applied to
+            rank (int): Rank of the matrices.
+                It has to be less than
+                :math:`\min(\texttt{size}[-1], \texttt{size}[-2])`
+        """
+
         size_u, size_s, size_v = LowRank.size_usv(size, rank)
         Stiefel_u = LowRank.cls_stiefel(size_u)
         Stiefel_v = LowRank.cls_stiefel(size_v)
@@ -19,7 +29,9 @@ class LowRank(Fibration):
 
     @staticmethod
     def size_usv(size, rank):
-        n, k = size[-1], size[-2]
+        # Split the size and transpose if necessary
+        tensorial_size = size[:-2]
+        n, k = size[-2:]
         if n < k:
             n, k = k, n
         if rank > min(n, k) or rank < 1:
@@ -28,17 +40,15 @@ class LowRank(Fibration):
                     n, k, rank
                 )
             )
-        size_u = list(size)
-        size_u[-2], size_u[-1] = n, rank
-        size_s = list(size[:-1])
-        size_s[-1] = rank
-        size_v = list(size)
-        size_v[-2], size_v[-1] = k, rank
-        return tuple(size_u), tuple(size_s), tuple(size_v)
+        size_u = tensorial_size + (n, rank)
+        size_s = tensorial_size + (rank,)
+        size_v = tensorial_size + (k, rank)
+        return size_u, size_s, size_v
 
     @staticmethod
     def cls_stiefel(size):
-        return StiefelTall if size[-2] > 2 * size[-1] else Stiefel
+        n, k = size[-2:]
+        return StiefelTall if n > 4 * k else Stiefel
 
     def embedding(self, X):
         U = X.tril(-1)[..., :, : self.rank]

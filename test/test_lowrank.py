@@ -10,35 +10,25 @@ from geotorch.lowrank import LowRank
 
 class TestLowRank(TestCase):
     def assertIsOrthogonal(self, X):
-        if X.ndimension() == 2:
-            self._assertIsOrthogonal(X)
-        elif X.ndimension() > 2:
-            # Sample a few elements and see that they are orthogonal
-            for _ in range(4):
-                coords = [
-                    torch.randint(low=0, high=s, size=(1,)).item()
-                    for s in X.size()[:-2]
-                ]
-                coords = coords + [...]
-                self._assertIsOrthogonal(X[coords])
-
-    def _assertIsOrthogonal(self, X):
-        if X.size(0) < X.size(1):
-            X = X.t()
-        Id = torch.eye(X.size(1))
-        self.assertAlmostEqual(torch.norm(X.t() @ X - Id).item(), 0.0, places=3)
+        if X.size(-2) < X.size(-1):
+            X = X.transpose(-2, -1)
+        Id = torch.eye(X.size(-1))
+        if X.dim() > 2:
+            Id = Id.repeat(*(X.size()[:-2] + (1, 1)))
+        norm = torch.norm(X.transpose(-2, -1) @ X - Id, dim=(-2, -1))
+        self.assertTrue((norm < 1e-3).all())
 
     def assertHasSingularValues(self, X, S_orig):
         if X.ndimension() == 2:
             self._assertHasSingularValues(X, S_orig)
         elif X.ndimension() > 2:
-            # Sample a few elements and see that they are orthogonal
+            # Sample a few elements and see that they have the correct sing values
             for _ in range(4):
                 coords = [
                     torch.randint(low=0, high=s, size=(1,)).item()
                     for s in X.size()[:-2]
                 ]
-                coords = coords + [...]
+                coords.append(...)
                 self._assertHasSingularValues(X[coords], S_orig[coords])
 
     def _assertHasSingularValues(self, X, S_orig):
@@ -57,7 +47,7 @@ class TestLowRank(TestCase):
         if idx != 0:
             # Delete zero values to reveal true rank
             S = S[:-idx]
-        # Rather lax as this is quite unstable
+        # Rather lax as the SVD is quite unstable
         self.assertAlmostEqual((S_orig - S).abs().max().item(), 0.0, places=1)
 
     def test_lowrank(self):
@@ -89,7 +79,7 @@ class TestLowRank(TestCase):
                     P.register_parametrization(layer, "weight", LR)
                     print(LR)
                     self.assertTrue(P.is_parametrized(layer, "weight"))
-                    U_orig, S_orig, V_orig = LR.total_space.evaluate()
+                    U_orig, S_orig, V_orig = LR.original
                     self.assertIsOrthogonal(U_orig)
                     self.assertIsOrthogonal(V_orig)
                     self.assertHasSingularValues(layer.weight, S_orig)
@@ -108,7 +98,7 @@ class TestLowRank(TestCase):
                         loss.backward()
                         optim.step()
 
-                        U_orig, S_orig, V_orig = LR.total_space.evaluate()
+                        U_orig, S_orig, V_orig = LR.original
                         self.assertIsOrthogonal(U_orig)
                         self.assertIsOrthogonal(V_orig)
                         self.assertHasSingularValues(layer.weight, S_orig)
@@ -127,3 +117,6 @@ class TestLowRank(TestCase):
             LowRank(size=(4, 3), rank=5)
         with self.assertRaises(ValueError):
             LowRank(size=(2, 3), rank=3)
+        # Try to instantiate it in a vector rather than a matrix
+        with self.assertRaises(ValueError):
+            LowRank(size=(5,), rank=1)

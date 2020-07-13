@@ -1,7 +1,7 @@
 import math
 import torch
 
-from .manifold import Manifold
+from .constructions import Manifold
 from .skew import Skew
 from .linalg.expm import expm
 
@@ -16,6 +16,19 @@ class SO(Manifold):
     trivializations = {"expm": expm, "cayley": cayley_map}
 
     def __init__(self, size, triv="expm", lower=True):
+        r"""
+        Manifold of square orthogonal matrices with positive determinant parametrized
+        in terms of its Lie algebra, the skew-symmetric matrices.
+
+        Args:
+            size (torch.size): Size of the tensor to be applied to
+            triv (str or callable): Optional.
+                A map that maps :math:`\operatorname{Skew}(n)` onto the orthogonal
+                matrices surjectively. It can be one of `["expm", "cayley"]` or a custom
+                callable. Default: `"expm"`
+            lower (bool): Optional. Uses the lower triangular part of the matrix to parametrize
+                the skew-symmetric matrices. Default: `True`
+        """
         size = SO._parse_size(size)
         super().__init__(dimensions=2, size=size)
         if self.n != self.k:
@@ -47,16 +60,35 @@ class SO(Manifold):
         else:
             return size
 
-    def trivialization(self, X, B):
-        return B @ self.triv(X)
+    def trivialization(self, X):
+        return self.base @ self.triv(X)
 
     def uniform_init_(self):
+        r""" Samples an orthogonal matrix uniformly at random according
+        to the Haar measure on :math:`\operatorname{SO}(n)`."""
         with torch.no_grad():
             uniform_init_(self.base)
             if self.is_registered():
                 self.original_tensor().zero_()
 
     def torus_init_(self, init_=None, triv=expm):
+        r"""Samples the 2D input `tensor` as a block-diagonal skew-symmetric matrix
+        which is skew-symmetric in the main diagonal. The blocks are of the form
+        :math:`\begin{pmatrix} 0 & b \\ -b & 0\end{pmatrix}` where :math:`b` is
+        distributed according to `init_`. Then it is projected to the manifold using `triv`.
+
+        .. note::
+
+            This initialization is particularly useful for regularizing RNNs.
+
+        Args:
+            init_: Optional. A function that takes a tensor and fills
+                    it in place according to some distribution. See
+                    `torch.init <https://pytorch.org/docs/stable/nn.init.html?highlight=init>`_.
+                    Default: :math:`\operatorname{Uniform}(-\pi, \pi)`
+            triv: Optional. A function that maps skew-symmetric matrices
+                    to orthogonal matrices.
+        """
         with torch.no_grad():
             torus_init_(self.base, init_, triv)
             if self.is_registered():
@@ -67,12 +99,12 @@ class SO(Manifold):
 
 
 def uniform_init_(tensor):
-    r"""Fills the input `Tensor` with an  orthogonal matrix. The matrix will have positive determinant.
-    The input tensor must have at least 2 dimensions, and for tensors with more than 2
-    dimensions the first dimensions are treated as batch dimensions.
+    r"""Fills the input with an orthogonal matrix. If square, the matrix will have positive
+    determinant.  The input tensor must have at least 2 dimensions, and for tensors with more
+    than 2 dimensions the first dimensions are treated as batch dimensions.
 
     Args:
-        tensor (torch.nn.Tensor): a 2-dimensional tensor or a batch of them
+        tensor (torch.Tensor): a 2-dimensional tensor or a batch of them
     """
     # We re-implement torch.nn.init.orthogonal_, as their treatment of batches
     # is not in a per-matrix base
@@ -112,12 +144,12 @@ def torus_init_(tensor, init_=None, triv=expm):
     distributed according to `init_`. Then it is projected to the manifold using `triv`.
 
     Args:
-        tensor (torch.nn.Tensor): a 2-dimensional tensor
-        triv: Optional. A function that maps skew-symmetric matrices
-                to orthogonal matrices.
+        tensor (torch.Tensor): a 2-dimensional tensor
         init_: Optional. A function that takes a tensor and fills
                 it in place according to some distribution. Default:
-               :math:`\mathcal{U}(-\pi, \pi)
+                :math:`\mathcal{U}(-\pi, \pi)`
+        triv: Optional. A function that maps skew-symmetric matrices
+                to orthogonal matrices.
     """
     if tensor.ndimension() < 2 or tensor.size(-1) != tensor.size(-2):
         raise ValueError(

@@ -138,6 +138,16 @@ class TestOrthogonal(TestCase):
         except ValueError:
             self.fail("{} raised ValueError unexpectedly!".format(cls_tall))
 
+        # Try to instantiate it in a vector rather than a matrix
+        with self.assertRaises(ValueError):
+            cls(size=(7,))
+
+        with self.assertRaises(ValueError):
+            cls_tall(size=(7,))
+
+        with self.assertRaises(ValueError):
+            SO(size=(7,))
+
     def _test_initializations(self, cls, cls_tall):
         for layers in self._test_layers(cls, cls_tall):
             for layer in layers:
@@ -212,23 +222,13 @@ class TestOrthogonal(TestCase):
                 yield layers
 
     def assertIsOrthogonal(self, X):
-        if X.ndimension() == 2:
-            self._assertIsOrthogonal(X)
-        elif X.ndimension() > 2:
-            # Sample a few elements and see that they are orthogonal
-            for _ in range(4):
-                coords = [
-                    torch.randint(low=0, high=s, size=(1,)).item()
-                    for s in X.size()[:-2]
-                ]
-                coords = coords + [...]
-                self._assertIsOrthogonal(X[coords])
-
-    def _assertIsOrthogonal(self, X):
-        if X.size(0) < X.size(1):
-            X = X.t()
-        Id = torch.eye(X.size(1))
-        self.assertAlmostEqual(torch.norm(X.t() @ X - Id).item(), 0.0, places=3)
+        if X.size(-2) < X.size(-1):
+            X = X.transpose(-2, -1)
+        Id = torch.eye(X.size(-1))
+        if X.dim() > 2:
+            Id = Id.repeat(*(X.size()[:-2] + (1, 1)))
+        norm = torch.norm(X.transpose(-2, -1) @ X - Id, dim=(-2, -1))
+        self.assertTrue((norm < 1e-4).all())
 
     def assertPairwiseEqual(self, results):
         # Check pairwise equality

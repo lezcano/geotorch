@@ -1,17 +1,32 @@
 import torch
 import torch.nn as nn
 
-from .manifold import Manifold, Fibration
+from .constructions import Manifold, Fibration
 from .so import SO, uniform_init_, cayley_map
 from .linalg.expm import expm
 
 
 class Stiefel(Fibration):
-    r"""
-    Implement everything as the fibration SO(n) -> St(n,k)
-    """
-
     def __init__(self, size, triv="expm"):
+        r"""
+        Manifold of rectangular orthogonal matrices parametrized as a projection from
+        the square orthogonal matrices :math:`\operatorname{SO}(n)`.
+        The metric considered is the canonical.
+
+        .. note::
+
+            This class is equivalent to :class:`StiefelTall`, but it is faster for the
+            case when :math:`n` is of a similar size of `k`. For example,
+            :math:`n \leq 4k`.
+
+        Args:
+            size (torch.size): Size of the tensor to be applied to
+            triv (str or callable): Optional.
+                A map that maps :math:`\operatorname{Skew}(n)` onto the orthogonal
+                matrices surjectively. It can be one of `["expm", "cayley"]` or a custom
+                callable. Default: `"expm"`
+        """
+
         super().__init__(
             dimensions=2,
             size=size,
@@ -21,18 +36,30 @@ class Stiefel(Fibration):
 
     @staticmethod
     def size_so(size):
+        if len(size) < 2:
+            raise ValueError(
+                "Cannot instantiate Stiefel on a tensor of less than 2 dimensions."
+                "Got size {}".format(size)
+            )
         size_so = list(size)
         size_so[-1] = size_so[-2] = max(size[-1], size[-2])
         return tuple(size_so)
 
-    def embedding(self, A):
+    def embedding(self, X):
+        # Returns the matrix
+        # A = [ X 0 ] \in R^{n x n}
+        # The skew symmetric embedding will make it into A - A^t, which is an
+        # identification of T_pSt(n,k) as a subset of Skew(n) via left-invariant
+        # vector fields
         size_z = self.tensorial_size + (self.n, self.n - self.k)
-        return torch.cat([A, A.new_zeros(*size_z)], dim=-1)
+        return torch.cat([X, X.new_zeros(*size_z)], dim=-1)
 
     def fibration(self, X):
         return X[..., :, : self.k]
 
     def uniform_init_(self):
+        r""" Samples an orthogonal matrix uniformly at random according
+        to the Haar measure on :math:`\operatorname{St}(n,k)`."""
         self.total_space.uniform_init_()
 
     def extra_repr(self):
@@ -69,13 +96,26 @@ def non_singular_(X):
 
 
 class StiefelTall(Manifold):
-    """
-    Implements St(n,k), 1 <= k <= n/2
-    """
-
     trivializations = {"expm": expm, "cayley": cayley_map}
 
     def __init__(self, size, triv="expm"):
+        r"""
+        Manifold of rectangular orthogonal matrices parametrized using its tangent space.
+        To parametrize this tangent space we use the orthogonal projection from the ambient
+        space :math:`\mathbb{R}^{n \times k}`. The metric considered is the canonical.
+
+        .. note::
+
+            This class is equivalent to :class:`Stiefel`, but it is faster for the case
+            when :math:`n` is of a much larger than `k`. For example, :math:`n > 4k`.
+
+        Args:
+            size (torch.size): Size of the tensor to be applied to
+            triv (str or callable): Optional.
+                A map that maps :math:`\operatorname{Skew}(n)` onto the orthogonal
+                matrices surjectively. It can be one of `["expm", "cayley"]` or a custom
+                callable. Default: `"expm"`
+        """
         super().__init__(dimensions=2, size=size)
         if triv not in StiefelTall.trivializations.keys() and not callable(triv):
             raise ValueError(
@@ -94,18 +134,19 @@ class StiefelTall(Manifold):
         self.register_parameter("fibr_aux", nn.Parameter(torch.zeros(*size_z)))
         self.uniform_init_()
 
-    def trivialization(self, X, B):
+    def trivialization(self, X):
         # We compute the exponential map as per Edelman
         # This also works for the Cayley
         # Note that this Cayley map is not the same as that of Wen & Yin
 
+        if torch.is_grad_enabled():
+            non_singular_(X)
         # Equivalent to (in the paper):
         # Id = torch.eye(n)
         # IBBt = Id - B @ B.t()
         # delta = B @ A + IBBt @ X
         # Q, R = torch.qr(IBBt @ delta)
-        if torch.is_grad_enabled():
-            non_singular_(X)
+        B = self.base
         Q, R = stable_qr(X - B @ (B.transpose(-2, -1) @ X))
         # Form
         # A \in Skew(k)
@@ -126,6 +167,8 @@ class StiefelTall(Manifold):
             self.fibr_aux.zero_()
 
     def uniform_init_(self):
+        r""" Samples an orthogonal matrix uniformly at random according
+        to the Haar measure on :math:`\operatorname{St}(n,k)`."""
         with torch.no_grad():
             uniform_init_(self.base)
             if self.is_registered():

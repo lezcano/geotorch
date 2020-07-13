@@ -3,3 +3,5 @@ __pycache__/
 .pytest_cache/
 .git/
 .coverage
+geotorch.egg-info/
+build/

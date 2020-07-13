@@ -67,19 +67,22 @@ class TestSphere(TestCase):
     def test_construction(self):
         # Negative curvature
         with self.assertRaises(ValueError):
-            Sphere(size=(5,), K=-1.0)
+            Sphere(size=(5,), r=-1.0)
         with self.assertRaises(ValueError):
-            SphereEmbedded(size=(4,), K=-1.0)
+            SphereEmbedded(size=(4,), r=-1.0)
 
-        # Wrong projection
+        # Wrong trivialization
         with self.assertRaises(ValueError):
-            SphereEmbedded(size=(5,), projection="wrong")
+            SphereEmbedded(size=(5,), triv="wrong")
 
-        # Custom projection
+        # Custom trivialization
+        def proj(x):
+            return x / x.norm()
+
         try:
-            SphereEmbedded(size=(3,), projection=lambda: 3)
-        except ValueError:
-            self.fail("SphereEmbedded.__init__ raised ValueError unexpectedly!")
+            SphereEmbedded(size=(3,), triv=proj)
+        except Exception as e:
+            self.fail("SphereEmbedded.__init__ raised {} unexpectedly!".format(type(e)))
 
     def test_repr(self):
         print(SphereEmbedded(size=(3,)))
