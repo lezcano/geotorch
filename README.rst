@@ -9,7 +9,8 @@ GeoTorch
 Overview
 --------
 
-GeoTorch provides a way to perform constrained optimization and optimization on manifolds in a non-intrusive way. It is compatible with any layer and model implemented in Pytorch and any optimizer with no modifications.
+GeoTorch provides a way to perform constrained optimization and optimization on manifolds with just one line of code.
+It is compatible with any layer and model implemented in Pytorch and any optimizer with no modifications.
 
 .. code:: python
 
@@ -108,7 +109,6 @@ Of course, this ``with`` statement may be used simply inside the forward functio
 These ideas fall in the context of general parametrizations, where one wraps a tensor with a function, and rather than using a tensor ``X``, uses ``f(X)``. Particular examples of these are pruning, weight normalization and spectral normalization among others. This repository implements a framework to approach these kind of problems, which is currently a `PR #33344 <https://github.com/pytorch/pytorch/pull/33344>`_ in PyTorch. All the functionality of this PR is located in `geotorch/parametrize.py`__.
 
 As every space in GeoTorch is, at its core, a map from a flat space into a manifold, the tools implemented here also serve as a building block in normalizing flows. Using a factorized space such as LowRank it is direct to compute the determinant of the transformation it defines, as we have direct access to the signular values of the layer.
-
 
 
 Try GeoTorch!
