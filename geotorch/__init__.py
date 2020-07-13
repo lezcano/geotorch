@@ -9,7 +9,7 @@ from .so import SO
 from .sphere import Sphere, SphereEmbedded
 from .stiefel import Stiefel, StiefelTall
 
-__version__ = "0.1.0"
+__version__ = "0.0.1"
 
 
 __all__ = [
