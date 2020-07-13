@@ -237,5 +237,5 @@ class TestOrthogonal(TestCase):
                 # Compute the infinity norm
                 norm0 = (results[i][0] - results[j][0]).abs().max().item()
                 norm1 = (results[i][1] - results[j][1]).abs().max().item()
-                self.assertAlmostEqual(norm0, 0.0, places=3)
+                self.assertAlmostEqual(norm0, 0.0, places=4)
                 self.assertAlmostEqual(norm1, 0.0, places=2)

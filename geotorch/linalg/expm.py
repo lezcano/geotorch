@@ -132,7 +132,7 @@ def matrix_power_two_batch(A, k):
 
 def expm_taylor(A):
     if A.ndimension() < 2 or A.size(-2) != A.size(-1):
-        raise ValueError("Expected a square matrix or a batch of squared matrices")
+        raise ValueError("Expected a square matrix or a batch of square matrices")
 
     if A.ndimension() == 2:
         # Just one matrix
@@ -146,9 +146,10 @@ def expm_taylor(A):
         else:
             thetas = thetas_dict["single"]
 
+        normA = torch.max(torch.sum(torch.abs(A), axis=0)).item()
+
         # No scale-square needed
         # This could be done marginally faster if iterated in reverse
-        normA = torch.norm(A, 1).item()
         for deg, theta in zip(degs, thetas):
             if normA <= theta:
                 return taylor_approx(A, deg)
@@ -170,7 +171,7 @@ def expm_taylor(A):
         else:
             thetas = thetas_dict["single"]
 
-        normA = torch.norm(A, dim=(-2, -1))
+        normA = torch.max(torch.sum(torch.abs(A), axis=-2), axis=-1).values
 
         # Handle trivial case
         if (normA == 0.0).all():
