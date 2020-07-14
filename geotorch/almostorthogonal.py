@@ -21,7 +21,7 @@ class AlmostOrthogonal(LowRank):
                 or a callable that maps real numbers to the interval [-1, 1].
                 Default: `"sigmoid"`
         """
-        super().__init__(self, size, AlmostOrthogonal.rank(size))
+        super().__init__(size, AlmostOrthogonal.rank(size))
         if f not in AlmostOrthogonal.fs.keys() and not callable(f):
             raise ValueError(
                 "Argument triv was not recognized and is "

@@ -1,19 +1,21 @@
 import torch
 import torch.nn as nn
-import geotorch
+import math
 import argparse
 from torchvision import datasets, transforms
+
+import geotorch
 
 parser = argparse.ArgumentParser(description="Exponential Layer MNIST Task")
 parser.add_argument("--batch_size", type=int, default=128)
 parser.add_argument("--hidden_size", type=int, default=170)
 parser.add_argument("--epochs", type=int, default=70)
-parser.add_argument("--lr", type=float, default=7e-4)
-parser.add_argument("--lr_orth", type=float, default=7e-5)
+parser.add_argument("--lr", type=float, default=1e-3)
+parser.add_argument("--lr_orth", type=float, default=1e-4)
 parser.add_argument("--permute", action="store_true")
 parser.add_argument(
     "--constraints",
-    choices=["orthogonal", "almostorthogonal"],
+    choices=["orthogonal", "lowrank", "almostorthogonal"],
     default="orthogonal",
     type=str,
 )
@@ -28,10 +30,9 @@ args = parser.parse_args()
 # Fix seed across experiments
 # Same seed as that used in "Orthogonal Recurrent Neural Networks with Scaled Cayley Transform"
 # https://github.com/SpartinStuff/scoRNN/blob/master/scoRNN_copying.py#L79
-# torch.backends.cudnn.deterministic = True
-# torch.backends.cudnn.benchmark = False
-# torch.manual_seed(5544)
-# np.random.seed(5544)
+torch.backends.cudnn.deterministic = True
+torch.backends.cudnn.benchmark = False
+torch.manual_seed(5544)
 
 n_classes = 10
 batch_size = args.batch_size
@@ -72,6 +73,8 @@ class ExpRNNCell(nn.Module):
         # Make recurrent_kernel orthogonal
         if args.constraints == "orthogonal":
             geotorch.orthogonal(self.recurrent_kernel, "weight")
+        elif args.constraints == "lowrank":
+            geotorch.lowrank(self.recurrent_kernel, "weight", hidden_size)
         elif args.constraints == "almostorthogonal":
             geotorch.almost_orthogonal(self.recurrent_kernel, "weight", args.r, args.f)
         else:
@@ -81,15 +84,25 @@ class ExpRNNCell(nn.Module):
 
     def reset_parameters(self):
         nn.init.kaiming_normal_(self.input_kernel.weight.data, nonlinearity="relu")
-        # Initialize the recurrent kernel
+        # Initialize the recurrent kernel a la Cayley
+        def f_(x):
+            x.uniform_(0., math.pi / 2.)
+            c = torch.cos(x.data)
+            x.data = -torch.sqrt((1. - c)/(1. + c))
         if args.constraints == "orthogonal":
-            self.recurrent_kernel.parametrizations.weight.torus_init_()
+            self.recurrent_kernel.parametrizations.weight.torus_init_(f_)
+        elif args.constraints == "lowrank":
+            USV = self.recurrent_kernel.parametrizations.weight.total_space
+            # Initialise the parts U S V
+            USV[0].torus_init_(f_)
+            USV[1].base.zero_()
+            USV[2].torus_init_(f_)
         elif args.constraints == "almostorthogonal":
             USV = self.recurrent_kernel.parametrizations.weight.total_space
             # Initialise the parts U S V
-            USV[0].torus_init_()
-            USV[1].base.normal_()
-            USV[2].torus_init_()
+            USV[0].torus_init_(f_)
+            USV[1].base.zero_()
+            USV[2].torus_init_(f_)
 
     def default_hidden(self, input_):
         return input_.new_zeros(input_.size(0), self.hidden_size, requires_grad=False)
@@ -115,8 +128,9 @@ class Model(nn.Module):
         if self.permute:
             inputs = inputs[:, self.permutation]
         out_rnn = self.rnn.default_hidden(inputs[:, 0, ...])
-        for input in torch.unbind(inputs, dim=1):
-            out_rnn = self.rnn(input.unsqueeze(dim=1), out_rnn)
+        with geotorch.parametrize.cached():
+            for input in torch.unbind(inputs, dim=1):
+                out_rnn = self.rnn(input.unsqueeze(dim=1), out_rnn)
         return self.lin(out_rnn)
 
     def loss(self, logits, y):
@@ -128,19 +142,20 @@ class Model(nn.Module):
 
 def main():
     # Load data
-    kwargs = {"num_workers": 1, "pin_memory": True}
+    kwargs = {
+        "batch_size": batch_size,
+        "num_workers": 1,
+        "pin_memory": True,
+        "shuffle": True,
+    }
     train_loader = torch.utils.data.DataLoader(
         datasets.MNIST(
             "./mnist", train=True, download=True, transform=transforms.ToTensor()
         ),
-        batch_size=batch_size,
-        shuffle=True,
         **kwargs
     )
     test_loader = torch.utils.data.DataLoader(
         datasets.MNIST("./mnist", train=False, transform=transforms.ToTensor()),
-        batch_size=batch_size,
-        shuffle=True,
         **kwargs
     )
 
