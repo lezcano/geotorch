@@ -85,10 +85,12 @@ class ExpRNNCell(nn.Module):
     def reset_parameters(self):
         nn.init.kaiming_normal_(self.input_kernel.weight.data, nonlinearity="relu")
         # Initialize the recurrent kernel a la Cayley
+
         def f_(x):
-            x.uniform_(0., math.pi / 2.)
+            x.uniform_(0.0, math.pi / 2.0)
             c = torch.cos(x.data)
-            x.data = -torch.sqrt((1. - c)/(1. + c))
+            x.data = -torch.sqrt((1.0 - c) / (1.0 + c))
+
         if args.constraints == "orthogonal":
             self.recurrent_kernel.parametrizations.weight.torus_init_(f_)
         elif args.constraints == "lowrank":

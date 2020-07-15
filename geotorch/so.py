@@ -4,7 +4,7 @@ import torch
 from .constructions import Manifold
 from .skew import Skew
 from .linalg.expm import expm
-from .exceptions import VectorError, NonSquareError
+from .exceptions import NonSquareError
 
 
 def cayley_map(X):
@@ -30,7 +30,6 @@ class SO(Manifold):
             lower (bool): Optional. Uses the lower triangular part of the matrix to parametrize
                 the skew-symmetric matrices. Default: `True`
         """
-        size = SO._parse_size(size)
         super().__init__(dimensions=2, size=size)
         if self.n != self.k:
             raise NonSquareError(self.__class__.__name__, size)
@@ -50,13 +49,6 @@ class SO(Manifold):
         # Precompose with Skew
         self.chain(Skew(size=size, lower=lower))
         self.uniform_init_()
-
-    @staticmethod
-    def _parse_size(size):
-        if isinstance(size, int):
-            return (size, size)
-        else:
-            return size
 
     def trivialization(self, X):
         return self.base @ self.triv(X)
@@ -97,9 +89,10 @@ class SO(Manifold):
 
 
 def uniform_init_(tensor):
-    r"""Fills the input with an orthogonal matrix. If square, the matrix will have positive
-    determinant.  The input tensor must have at least 2 dimensions, and for tensors with more
-    than 2 dimensions the first dimensions are treated as batch dimensions.
+    r"""Fills the input with an orthogonal matrix. If square, the matrix will have
+    positive determinant.  The input tensor must have at least 2 dimensions,
+    and for tensors with more than 2 dimensions the first dimensions are treated as
+    batch dimensions.
 
     Args:
         tensor (torch.Tensor): a 2-dimensional tensor or a batch of them

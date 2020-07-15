@@ -1,3 +1,4 @@
+import collections
 import torch
 import torch.nn as nn
 
@@ -24,9 +25,13 @@ class AbstractManifold(P.Parametrization):
         ):
             raise ValueError(
                 "dimensions should be a non-negative integer or 'product'. "
-                "Got {}".format(
-                    dimensions
-                )
+                "Got {}".format(dimensions)
+            )
+        if not isinstance(size, collections.abc.Sequence):
+            raise ValueError(
+                "The size passed should be a torch.size, or at least an instance of "
+                "collections.abc.Sequence. "
+                "Got {}".format(type(size))
             )
         if dimensions != "product" and len(size) < dimensions:
             raise ValueError(

@@ -22,9 +22,7 @@ class PSDLowRank(Fibration):
         super().__init__(
             dimensions=2,
             size=size,
-            total_space=ProductManifold(
-                [Stiefel_q(size_q), Rn(size_l)]
-            ),
+            total_space=ProductManifold([Stiefel_q(size_q), Rn(size_l)]),
         )
         self.rank = rank
 

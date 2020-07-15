@@ -1,4 +1,12 @@
-from .constraints import sphere, skew, symmetric, orthogonal, grassmannian, lowrank, almost_orthogonal
+from .constraints import (
+    sphere,
+    skew,
+    symmetric,
+    orthogonal,
+    grassmannian,
+    lowrank,
+    almost_orthogonal,
+)
 from .constructions import AbstractManifold, Manifold, Fibration, ProductManifold
 from .grassmannian import Grassmannian, GrassmannianTall
 from .lowrank import LowRank

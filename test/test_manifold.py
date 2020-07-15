@@ -11,7 +11,7 @@ class TestManifold(TestCase):
         self.assertEqual(M.dim, (4, 2, 1))
 
     def test_product_manifold(self):
-        SO3SO3 = constructions.ProductManifold([SO(3), SO(3)])
+        SO3SO3 = constructions.ProductManifold([SO((3, 3)), SO((3, 3))])
         # Len
         self.assertEqual(len(SO3SO3), 2)
         # Dir
@@ -28,7 +28,7 @@ class TestManifold(TestCase):
 
         # Pass something that is not a manifold raises
         with self.assertRaises(TypeError):
-            SO3SO3 = constructions.ProductManifold([SO(3), 3])
+            SO3SO3 = constructions.ProductManifold([SO((3, 3)), 3])
 
     def test_errors(self):
         # Pass something that is not a manifold raises
@@ -36,7 +36,7 @@ class TestManifold(TestCase):
             constructions.Fibration(dimensions=2, size=(2, 4), total_space=None)
 
         # update_base before registering it should throw
-        M = SO(3)
+        M = SO((3, 3))
         with self.assertRaises(ValueError):
             M.update_base()
 
