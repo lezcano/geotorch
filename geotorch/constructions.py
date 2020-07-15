@@ -23,14 +23,16 @@ class AbstractManifold(P.Parametrization):
             not isinstance(dimensions, int) or dimensions < 1
         ):
             raise ValueError(
-                "dimensions should be a non-negative integer or 'product'. Got {}".format(
+                "dimensions should be a non-negative integer or 'product'. "
+                "Got {}".format(
                     dimensions
                 )
             )
         if dimensions != "product" and len(size) < dimensions:
             raise ValueError(
-                "Cannot instantiate {} on a tensor of less than {} dimensions. Got size {}".format(
-                    type(self), dimensions, size
+                "Cannot instantiate {} on a tensor of less than {} dimensions. "
+                "Got a tensor of size {}".format(
+                    self.__class__.__name__, dimensions, size
                 )
             )
 
@@ -307,8 +309,8 @@ class ProductManifold(AbstractManifold):
         for mani in manifolds:
             if not isinstance(mani, AbstractManifold):
                 raise TypeError(
-                    "Expecting all elements in a ProductManifold to be "
-                    "geotorch.AbstractManifold. Found a {}.".format(type(mani).__name__)
+                    "Expecting all elements in a ProductManifold to be subclasses of"
+                    "AbstractManifold. Found a {}.".format(type(mani).__name__)
                 )
 
         return tuple(m.dim for m in manifolds)

@@ -4,6 +4,7 @@ import torch
 from .constructions import Manifold
 from .skew import Skew
 from .linalg.expm import expm
+from .exceptions import VectorError, NonSquareError
 
 
 def cayley_map(X):
@@ -32,10 +33,7 @@ class SO(Manifold):
         size = SO._parse_size(size)
         super().__init__(dimensions=2, size=size)
         if self.n != self.k:
-            raise ValueError(
-                "The SO parametrization can just be applied to square matrices. "
-                "Got a tensor of size {}".format(self.orig_dim)
-            )
+            raise NonSquareError(self.__class__.__name__, size)
 
         if triv not in SO.trivializations.keys() and not callable(triv):
             raise ValueError(

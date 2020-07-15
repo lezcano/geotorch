@@ -68,13 +68,14 @@ GeoTorch currently supports the following spaces:
 - ``Sphere(n)``: Sphere in Rⁿ. It is Sⁿ⁻¹ = { x ∈ Rⁿ | ||x|| = 1 }
 - ``SO(n)``: Manifold of n×n orthogonal matrices
 - ``Stiefel(n,k)``: Manifold of n×k matrices with orthonormal columns
+- ``AlmostOrthogonal(n,k,t)``: Manifold of n×k matrices with singular values in the interval (1-t, 1+t)
 - ``Grassmannian(n,k)``: Manifold of k-dimensional subspaces in Rⁿ
 - ``LowRank(n,k,r)``: Variety of n×k matrices of rank r or less
+- ``FixedRank(n,k,r)``: Manifold of n×k matrices of rank r
+- ``GLp(n)``: Manifold of invertible n×n matrices with positive determinant
 
 And the following spaces are planed to be implemented in the near future:
 
-- ``AlmostOrthogonal(n,k,t)``: Manifold of n×k matrices with singular values in the interval (1-t, 1+t)
-- ``FixedRank(n,k,r)``: Manifold of n×k matrices of rank r
 - ``PD(n)``: Cone of n×n symmetric positive definite matrices
 - ``PSD(n)``: Cone of n×n symmetric positive semi-definite matrices
 - ``PSDLowRank(n,k)``: Variety of n×n symmetric positive semi-definite matrices of rank k or less

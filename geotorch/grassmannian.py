@@ -2,6 +2,7 @@ import torch
 
 from .constructions import Fibration
 from .stiefel import Stiefel, StiefelTall
+from .exceptions import VectorError
 
 
 class Grassmannian(Fibration):
@@ -28,13 +29,10 @@ class Grassmannian(Fibration):
         super().__init__(dimensions=2, size=size, total_space=Stiefel(size_st, triv))
         self.triv = triv
 
-    @staticmethod
-    def size_st(size):
+    @classmethod
+    def size_st(cls, size):
         if len(size) < 2:
-            raise ValueError(
-                "Cannot instantiate Grassmannian on a tensor of less than 2 dimensions."
-                "Got size {}".format(size)
-            )
+            raise VectorError(cls.__name__, size)
         if size[-2] < size[-1]:
             size = list(size)
             size[-1], size[-2] = size[-2], size[-1]

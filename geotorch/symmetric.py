@@ -1,4 +1,5 @@
 from .constructions import AbstractManifold
+from .exceptions import NonSquareError
 
 
 class Symmetric(AbstractManifold):
@@ -14,12 +15,7 @@ class Symmetric(AbstractManifold):
         """
         super().__init__(dimensions=2, size=size)
         if self.n != self.k:
-            raise ValueError(
-                "The Sym parametrization can just be applied to square matrices. "
-                "Got a tensor of size {}".format(
-                    self.dim[::-1] if self.transpose else self.dim
-                )
-            )
+            raise NonSquareError(self.__class__.__name__, size)
         self.lower = lower
 
     def forward(self, X):

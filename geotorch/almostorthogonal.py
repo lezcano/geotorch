@@ -1,5 +1,6 @@
 import torch
 from .lowrank import LowRank
+from .exceptions import VectorError
 
 
 def sigmoid(t):
@@ -40,13 +41,10 @@ class AlmostOrthogonal(LowRank):
 
         self.r = r
 
-    @staticmethod
-    def rank(size):
+    @classmethod
+    def rank(cls, size):
         if len(size) < 2:
-            raise ValueError(
-                "Cannot instantiate AlmostOrthogonal on a tensor of less than 2 dimensions."
-                "Got size {}".format(size)
-            )
+            raise VectorError(cls.__name__, size)
         return min(*size[-2:])
 
     def embedding(self, X):

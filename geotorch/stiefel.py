@@ -4,6 +4,7 @@ import torch.nn as nn
 from .constructions import Manifold, Fibration
 from .so import SO, uniform_init_, torus_init_, cayley_map
 from .linalg.expm import expm
+from .exceptions import VectorError
 
 
 class Stiefel(Fibration):
@@ -34,13 +35,10 @@ class Stiefel(Fibration):
         )
         self.triv = triv
 
-    @staticmethod
-    def size_so(size):
+    @classmethod
+    def size_so(cls, size):
         if len(size) < 2:
-            raise ValueError(
-                "Cannot instantiate Stiefel on a tensor of less than 2 dimensions."
-                "Got size {}".format(size)
-            )
+            raise VectorError(cls.__name__, size)
         size_so = list(size)
         size_so[-1] = size_so[-2] = max(size[-1], size[-2])
         return tuple(size_so)

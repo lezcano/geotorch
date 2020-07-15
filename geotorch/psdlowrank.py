@@ -2,13 +2,13 @@ from .constructions import Fibration, ProductManifold
 from .so import SO
 from .stiefel import Stiefel, StiefelTall
 from .reals import Rn
-from .exceptions import VectorError, RankError
+from .exceptions import VectorError, NonSquareError, RankError
 
 
-class LowRank(Fibration):
+class PSDLowRank(Fibration):
     def __init__(self, size, rank):
         r"""
-        Variety of the matrices of rank :math:`r` or less.
+        Variety of the positive semidefinite square matrices of rank :math:`r` or less.
 
         Args:
             size (torch.size): Size of the tensor to be applied to
@@ -17,33 +17,31 @@ class LowRank(Fibration):
                 :math:`\min(\texttt{size}[-1], \texttt{size}[-2])`
         """
 
-        size_u, size_s, size_v = LowRank.size_usv(size, rank)
-        Stiefel_u = LowRank.cls_stiefel(size_u)
-        Stiefel_v = LowRank.cls_stiefel(size_v)
+        size_q, size_l = PSDLowRank.size_ql(size, rank)
+        Stiefel_q = PSDLowRank.cls_stiefel(size_q)
         super().__init__(
             dimensions=2,
             size=size,
             total_space=ProductManifold(
-                [Stiefel_u(size_u), Rn(size_s), Stiefel_v(size_v)]
+                [Stiefel_q(size_q), Rn(size_l)]
             ),
         )
         self.rank = rank
 
     @classmethod
-    def size_usv(cls, size, rank):
+    def size_ql(cls, size, rank):
         if len(size) < 2:
             raise VectorError(cls.__name__, size)
         # Split the size and transpose if necessary
         tensorial_size = size[:-2]
         n, k = size[-2:]
-        if n < k:
-            n, k = k, n
+        if n != k:
+            raise NonSquareError(cls.__name__, size)
         if rank > min(n, k) or rank < 1:
             raise RankError(n, k, rank)
-        size_u = tensorial_size + (n, rank)
-        size_s = tensorial_size + (rank,)
-        size_v = tensorial_size + (k, rank)
-        return size_u, size_s, size_v
+        size_q = tensorial_size + (n, rank)
+        size_l = tensorial_size + (rank,)
+        return size_q, size_l
 
     @staticmethod
     def cls_stiefel(size):
@@ -56,13 +54,11 @@ class LowRank(Fibration):
             return Stiefel
 
     def embedding(self, X):
-        U = X.tril(-1)[..., :, : self.rank]
-        S = X.diagonal(dim1=-2, dim2=-1)[..., : self.rank]
-        V = X.triu(1).transpose(-2, -1)[..., :, : self.rank]
-        return U, S, V
+        L = X.diagonal(dim1=-2, dim2=-1)[..., : self.rank]
+        return X, L
 
     def fibration(self, X):
-        U, S, V = X
-        Vt = V.transpose(-2, -1)
-        # Multiply the three of them, S as a diagonal matrix
-        return U @ (S.unsqueeze(-1).expand_as(Vt) * Vt)
+        Q, L = X
+        Qt = Q.transpose(-2, -1)
+        # Multiply the three of them as Q\LambdaQ^T
+        return Q @ (L.unsqueeze(-1).expand_as(Qt) * Qt)
