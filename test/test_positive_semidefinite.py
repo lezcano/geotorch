@@ -25,7 +25,7 @@ class TestPSSDLowRank(TestCase):
         if X.dim() > 2:
             Id = Id.repeat(*(X.size()[:-2] + (1, 1)))
         norm = torch.norm(X.transpose(-2, -1) @ X - Id, dim=(-2, -1))
-        self.assertTrue((norm < 1e-3).all())
+        self.assertTrue((norm < 4e-3).all())
 
     def vector_error(self, X, Y):
         # Error relative to the size in infinity norm
