@@ -2,12 +2,16 @@ import torch
 from .lowrank import LowRank
 
 
-class FixedRank(LowRank):
-    fs = {"softplus": torch.nn.functional.softplus}
+def softplus_epsilon(x, epsilon=1e-6):
+    return torch.nn.functional.softplus(x) + epsilon
 
-    def __init__(self, size, rank, f="softplus"):
+
+class FixedRank(LowRank):
+    fs = {"softplus": softplus_epsilon}
+
+    def __init__(self, size, rank, f="softplus", triv="expm"):
         r"""
-        Manifold of full-rank matrices
+        Manifold of non-square matrices of rank equal to `rank`
 
         Args:
             size (torch.size): Size of the tensor to be applied to
@@ -15,12 +19,18 @@ class FixedRank(LowRank):
                 It has to be less or equal to
                 :math:`\min(\texttt{size}[-1], \texttt{size}[-2])`
             f (str or callable): Optional. The string `"softplus"` or a callable
-                that maps real numbers to the interval (0, infty). Default: `"softplus"`
+                that maps real numbers to the interval :math:`(0, \infty)`.
+                Default: `"softplus"`
+            triv (str or callable): Optional.
+                A map that maps :math:`\operatorname{Skew}(n)` onto the orthogonal
+                matrices surjectively. This is used to optimize the U and V in the
+                SVD. It can be one of `["expm", "cayley"]` or a custom
+                callable. Default: `"expm"`
         """
-        super().__init__(size, rank)
+        super().__init__(size, rank, triv=triv)
         if f not in FixedRank.fs.keys() and not callable(f):
             raise ValueError(
-                "Argument triv was not recognized and is "
+                "Argument f was not recognized and is "
                 "not callable. Should be one of {}. Found {}".format(
                     list(FixedRank.fs.keys()), f
                 )
@@ -31,6 +41,7 @@ class FixedRank(LowRank):
         else:
             self.f = FixedRank.fs[f]
 
-    def embedding(self, X):
-        U, S, V = super().embedding(X)
-        return U, self.f(S), V
+    def fibration(self, X):
+        U, S, V = X
+        S = self.f(S)
+        return super().fibration((U, S, V))

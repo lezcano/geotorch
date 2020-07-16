@@ -6,7 +6,7 @@ from .exceptions import VectorError, RankError
 
 
 class LowRank(Fibration):
-    def __init__(self, size, rank):
+    def __init__(self, size, rank, triv="expm"):
         r"""
         Variety of the matrices of rank :math:`r` or less.
 
@@ -15,6 +15,11 @@ class LowRank(Fibration):
             rank (int): Rank of the matrices.
                 It has to be less or equal to
                 :math:`\min(\texttt{size}[-1], \texttt{size}[-2])`
+            triv (str or callable): Optional.
+                A map that maps :math:`\operatorname{Skew}(n)` onto the orthogonal
+                matrices surjectively. This is used to optimize the U and V in the
+                SVD. It can be one of `["expm", "cayley"]` or a custom
+                callable. Default: `"expm"`
         """
 
         size_u, size_s, size_v = LowRank.size_usv(size, rank)
@@ -24,7 +29,7 @@ class LowRank(Fibration):
             dimensions=2,
             size=size,
             total_space=ProductManifold(
-                [Stiefel_u(size_u), Rn(size_s), Stiefel_v(size_v)]
+                [Stiefel_u(size_u, triv), Rn(size_s), Stiefel_v(size_v, triv)]
             ),
         )
         self.rank = rank

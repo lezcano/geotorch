@@ -10,36 +10,45 @@ def sigmoid(t):
 class AlmostOrthogonal(LowRank):
     fs = {"sigmoid": sigmoid, "tanh": torch.tanh, "sin": torch.sin}
 
-    def __init__(self, size, r, f="sigmoid"):
+    def __init__(self, size, lam, f="sin", triv="expm"):
         r"""
-        Manifold of matrices with singular values in a radius :math:`r` around
-        :math:`1`, that is, in the interval :math:`[1-r, 1+r]`.
+        Manifold of matrices with singular values in the interval :math:`(1-\lambda, 1+\lambda)`.
+
+        The possible default maps are the :math:`\sin,\,\tanh` functions and a rescaled
+        sigmoid. The sigmoid is rescaled as :math:`\operatorname{sigmoid}(x) = 2\sigma(x) - 1`
+        where :math:`\sigma` is the usual sigmoid function.
 
         Args:
             size (torch.size): Size of the tensor to be applied to
-            r (float): Radius. A float in the interval [0, 1]
+            lam (float): Radius. A float in the interval [0, 1]
             f (str or callable): Optional. One of `["sigmoid", "tanh", "sin"]`
                 or a callable that maps real numbers to the interval [-1, 1].
-                Default: `"sigmoid"`
+                Default: `"sin"`
+            triv (str or callable): Optional.
+                A map that maps :math:`\operatorname{Skew}(n)` onto the orthogonal
+                matrices surjectively. This is used to optimize the Q in the eigenvalue
+                decomposition. It can be one of `["expm", "cayley"]` or a custom
+                callable. Default: `"expm"`
+
         """
-        super().__init__(size, AlmostOrthogonal.rank(size))
+        super().__init__(size, AlmostOrthogonal.rank(size), triv=triv)
         if f not in AlmostOrthogonal.fs.keys() and not callable(f):
             raise ValueError(
-                "Argument triv was not recognized and is "
+                "Argument f was not recognized and is "
                 "not callable. Should be one of {}. Found {}".format(
                     list(AlmostOrthogonal.fs.keys()), f
                 )
             )
 
-        if r < 0.0 or r > 1.0:
-            raise ValueError("The radius has to be between 0 and 1. Got {}".format(r))
+        if lam < 0.0 or lam > 1.0:
+            raise ValueError("The radius has to be between 0 and 1. Got {}".format(lam))
 
         if callable(f):
             self.f = f
         else:
             self.f = AlmostOrthogonal.fs[f]
 
-        self.r = r
+        self.lam = lam
 
     @classmethod
     def rank(cls, size):
@@ -47,6 +56,7 @@ class AlmostOrthogonal(LowRank):
             raise VectorError(cls.__name__, size)
         return min(*size[-2:])
 
-    def embedding(self, X):
-        U, S, V = super().embedding(X)
-        return U, 1.0 + self.r * self.f(S), V
+    def fibration(self, X):
+        U, S, V = X
+        S = 1.0 + self.lam * self.f(S)
+        return super().fibration((U, S, V))

@@ -68,7 +68,7 @@ class Stiefel(Fibration):
 
         .. warning::
 
-            This initialization is just accessible whenever the underlaying matrix is square
+            This initialization is just accessible whenever the underlying matrix is square
 
         .. note::
 
@@ -214,7 +214,7 @@ class StiefelTall(Manifold):
 
         .. warning::
 
-            This initialization is just accessible whenever the underlaying matrix is square
+            This initialization is just accessible whenever the underlying matrix is square
 
         .. note::
 

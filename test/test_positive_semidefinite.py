@@ -5,11 +5,19 @@ import torch
 import torch.nn as nn
 
 import geotorch.parametrize as P
-from geotorch.lowrank import LowRank
-from geotorch.fixedrank import FixedRank
+
+from geotorch.pssdlowrank import PSSDLowRank
+from geotorch.pssdfixedrank import PSSDFixedRank
+from geotorch.pssd import PSSD
+from geotorch.psd import PSD
 
 
-class TestLowRank(TestCase):
+class TestPSSDLowRank(TestCase):
+    def assertIsSymmetric(self, X):
+        self.assertAlmostEqual(
+            torch.norm(X - X.transpose(-2, -1), p=float("inf")).item(), 0.0, places=5
+        )
+
     def assertIsOrthogonal(self, X):
         if X.size(-2) < X.size(-1):
             X = X.transpose(-2, -1)
@@ -29,59 +37,60 @@ class TestLowRank(TestCase):
         error[small] = abs_error[small]
         return error
 
-    def assertHasSingularValues(self, X, S_orig):
-        _, S, _ = torch.svd(X)
-        # Sort the singular values from our parametrization
-        S_orig = torch.sort(torch.abs(S_orig), descending=True).values
-        # Add the missign dimensions
-        batch_dim = S.size()[:-1]
-        pad_dim = batch_dim + (S.size(-1) - S_orig.size(-1),)
-        S_orig = torch.cat([S_orig, torch.zeros(pad_dim)], dim=-1)
+    def assertHasEigenvalues(self, X, L_orig):
+        L = torch.symeig(X).eigenvalues
+        L_orig = torch.sort(L_orig.abs(), descending=False).values
 
-        error = self.vector_error(S_orig, S)
+        # Add the missign dimensions
+        batch_dim = L.size()[:-1]
+        pad_dim = batch_dim + (L.size(-1) - L_orig.size(-1),)
+        L_orig = torch.cat([torch.zeros(pad_dim), L_orig], dim=-1)
+
+        error = self.vector_error(L_orig, L)
         self.assertTrue((error < 1e-3).all())
 
-    def test_lowrank(self):
+    def test_positive_semidefinite(self):
         sizes = [
-            (8, 1),
-            (8, 4),
-            (8, 8),
-            (7, 1),
-            (7, 3),
-            (7, 4),
-            (7, 7),
-            (1, 7),
-            (2, 7),
-            (1, 8),
-            (2, 8),
             (1, 1),
-            (2, 1),
-            (1, 2),
+            (2, 2),
+            (3, 3),
+            (4, 4),
+            (7, 7),
+            (8, 8),
         ]
 
-        rs = [1, 3, 8]
+        rs = [1, 3, 4]
 
         with torch.random.fork_rng(devices=range(torch.cuda.device_count())):
             torch.random.manual_seed(8888)
-            for cls in [FixedRank, LowRank]:
+            for cls in [PSSDLowRank, PSSDFixedRank, PSSD, PSD]:
                 for (n, k), r in itertools.product(sizes, rs):
                     for layer in [nn.Linear(n, k), nn.Conv2d(n, 4, k)]:
+                        needs_rank = cls in [PSSDLowRank, PSSDFixedRank]
+                        if not needs_rank and r != 1:
+                            continue
+                        # Only show r when we have a non-full rank
                         print(
-                            "{}({}, {}, {}) on {}".format(
-                                cls.__name__, n, k, r, str(layer)
+                            "{}({}, {}{}) on {}".format(
+                                cls.__name__,
+                                n,
+                                k,
+                                ", {}".format(r) if needs_rank else "",
+                                str(layer),
                             )
                         )
                         r = min(n, k, r)
-                        M = cls(size=layer.weight.size(), rank=r)
+                        if needs_rank:
+                            M = cls(size=layer.weight.size(), rank=r)
+                        else:
+                            M = cls(size=layer.weight.size())
                         P.register_parametrization(layer, "weight", M)
                         self.assertTrue(P.is_parametrized(layer, "weight"))
-                        U_orig, S_orig, V_orig = M.original
-                        if cls == FixedRank:
-                            # Apply f, as S_orig is just the unconstrained vector in R^n
-                            S_orig = M.f(S_orig)
-                        self.assertIsOrthogonal(U_orig)
-                        self.assertIsOrthogonal(V_orig)
-                        self.assertHasSingularValues(layer.weight, S_orig)
+                        Q_orig, L_orig = M.original
+                        L_orig = M.f(L_orig)
+                        self.assertIsOrthogonal(Q_orig)
+                        self.assertIsSymmetric(layer.weight)
+                        self.assertHasEigenvalues(layer.weight, L_orig)
 
                         optim = torch.optim.SGD(layer.parameters(), lr=0.1)
                         if isinstance(layer, nn.Linear):
@@ -97,13 +106,11 @@ class TestLowRank(TestCase):
                             loss.backward()
                             optim.step()
 
-                            U_orig, S_orig, V_orig = M.original
-                            if cls == FixedRank:
-                                # Apply f, as S_orig is just the unconstrained vector in R^n
-                                S_orig = M.f(S_orig)
-                            self.assertIsOrthogonal(U_orig)
-                            self.assertIsOrthogonal(V_orig)
-                            self.assertHasSingularValues(layer.weight, S_orig)
+                            Q_orig, L_orig, = M.original
+                            L_orig = M.f(L_orig)
+                            self.assertIsOrthogonal(Q_orig)
+                            self.assertIsSymmetric(layer.weight)
+                            self.assertHasEigenvalues(layer.weight, L_orig)
 
                         # Test update_base
                         prev_out = layer(input_)
@@ -118,9 +125,9 @@ class TestLowRank(TestCase):
     def test_lowrank_errors(self):
         # rank always has to be <= min(n, k)
         with self.assertRaises(ValueError):
-            LowRank(size=(4, 3), rank=5)
+            PSSDLowRank(size=(4, 3), rank=5)
         with self.assertRaises(ValueError):
-            LowRank(size=(2, 3), rank=3)
+            PSSDLowRank(size=(2, 3), rank=3)
         # Try to instantiate it in a vector rather than a matrix
         with self.assertRaises(ValueError):
-            LowRank(size=(5,), rank=1)
+            PSSDLowRank(size=(5,), rank=1)

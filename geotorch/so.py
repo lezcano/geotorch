@@ -118,12 +118,13 @@ def uniform_init_(tensor):
         if transpose:
             q.transpose_(-2, -1)
 
+        # Make them have positive determinant by multiplying the
+        # first column by -1 (does not change the measure)
         if n == k:
             mask = (torch.det(q) > 0.0).float()
             mask[mask == 0.0] = -1.0
-            if tensor.ndimension() > 2:
-                mask = mask.unsqueeze(-1).unsqueeze(-1).expand_as(q)
-            q *= mask
+            mask = mask.unsqueeze(-1).unsqueeze(-1).expand_as(q)
+            q[..., 0] *= mask[..., 0]
         tensor.copy_(q)
         return tensor
 
