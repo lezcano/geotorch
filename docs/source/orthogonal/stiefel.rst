@@ -1,7 +1,7 @@
 .. _RST Stiefel:
 
-Stiefel Manifold: :math:`\operatorname{St}(n,k)`
-======================================================
+Stiefel Manifold
+================
 
 .. currentmodule:: geotorch
 

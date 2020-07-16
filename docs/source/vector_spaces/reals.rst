@@ -1,5 +1,5 @@
-Real vector space: :math:`\mathbb{R}^n`
-========================================================
+Real vector space
+=================
 
 .. currentmodule:: geotorch
 

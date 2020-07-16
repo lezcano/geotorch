@@ -14,7 +14,7 @@ constructed from these two simple building blocks.
 From a more abstract perspective, the constructions given here can be regarded
 as objects and smooth functors in the differentiable category. In particular,
 these classes can be thought as an implementation of the category :math:`\operatorname{Diff}`
-of differentiable mainfolds as a `cartesian monoidal category
+of differentiable manifolds as a `cartesian monoidal category
 <https://en.wikipedia.org/wiki/Cartesian_monoidal_category>`_ with `pullbacks along submersions
 <https://ncatlab.org/nlab/show/submersion#pullbacks>`_.
 
