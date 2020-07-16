@@ -70,7 +70,7 @@ html_static_path = []
 html_css_files = []
 
 html_theme_options = {
-    'collapse_navigation': False,
+    "collapse_navigation": False,
 }
 
 
