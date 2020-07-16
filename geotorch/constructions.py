@@ -1,3 +1,4 @@
+import collections
 import torch
 import torch.nn as nn
 
@@ -8,7 +9,7 @@ class AbstractManifold(P.Parametrization):
     def __init__(self, dimensions, size):
         r"""
         Base class for all the manifolds. This class implements some basic printing
-        and creates some helper attributes to handle the dimensions of the mainfolds
+        and creates some helper attributes to handle the dimensions of the manifolds
         such as `self.n` and `self.k` for matrix manifolds
 
         Args:
@@ -23,14 +24,20 @@ class AbstractManifold(P.Parametrization):
             not isinstance(dimensions, int) or dimensions < 1
         ):
             raise ValueError(
-                "dimensions should be a non-negative integer or 'product'. Got {}".format(
-                    dimensions
-                )
+                "dimensions should be a non-negative integer or 'product'. "
+                "Got {}".format(dimensions)
+            )
+        if not isinstance(size, collections.abc.Sequence):
+            raise ValueError(
+                "The size passed should be a torch.size, or at least an instance of "
+                "collections.abc.Sequence. "
+                "Got {}".format(type(size))
             )
         if dimensions != "product" and len(size) < dimensions:
             raise ValueError(
-                "Cannot instantiate {} on a tensor of less than {} dimensions. Got size {}".format(
-                    type(self), dimensions, size
+                "Cannot instantiate {} on a tensor of less than {} dimensions. "
+                "Got a tensor of size {}".format(
+                    self.__class__.__name__, dimensions, size
                 )
             )
 
@@ -100,7 +107,7 @@ class Manifold(AbstractManifold):
     def trivialization(self, X):  # pragma: no cover
         r"""
         Parametrizes the manifold in terms of a tangent space at the point
-        `self.base`, or any given vector space in the case of the static
+        :math:`B = \texttt{self.base}`, or any given vector space in the case of the static
         trivializations
 
         .. note::
@@ -161,13 +168,13 @@ class Fibration(AbstractManifold):
         .. note::
 
             This class is a bit abstract at first sight, so it might be best to understand
-            it through exmaples.
+            it through examples.
             The simplest non-trivial example of this construction is the parametrization
             of the Stiefel manifold :math:`\operatorname{St}(n,k)` in terms of
             :math:`\operatorname{SO}(n)` where
             :math:`\pi \colon \operatorname{SO}(n) \to \operatorname{St}(n,k)` is the
             map that returns the first :math:`k` columns of a given orthogonal matrix
-            (see :class:`geotorch.Stiefel` and :class:`geotorch.LowRank`).
+            (see :class:`~geotorch.Stiefel` and :class:`~geotorch.LowRank`).
 
         This class automatically implements the framework of dynamic trivializations
         described in `Trivializations for Gradient-Based Optimization on Manifolds
@@ -184,10 +191,10 @@ class Fibration(AbstractManifold):
                 For example, a matrix manifold would have 2 dimensions, while a
                 vector would have 1. It should be a positive number
             size (torch.size): Size of the tensor to be applied to
-            total_space (geotorch.AbstractManifold): The :class:`geotorch.Manifold`,
-                :class:`geotorch.Fibration` or :class:`geotorch.ProductManifold`
+            total_space (:class:`~geotorch.AbstractManifold`): The :class:`~geotorch.Manifold`,
+                :class:`~geotorch.Fibration` or :class:`~geotorch.ProductManifold`
                 object that acts as a total space for the fibration. More generally,
-                it could be any :class:`geotroch.AbstractManifold` that implements
+                it could be any :class:`~geotorch.AbstractManifold` that implements
                 :meth:`forward`.
         """
 
@@ -255,7 +262,7 @@ class Fibration(AbstractManifold):
         The total space of the fibration
 
         Returns:
-            manifold (geotorch.AbstractManifold)
+            manifold (:class:`~geotorch.AbstractManifold`)
         """
         return self.parametrizations.original
 
@@ -307,8 +314,8 @@ class ProductManifold(AbstractManifold):
         for mani in manifolds:
             if not isinstance(mani, AbstractManifold):
                 raise TypeError(
-                    "Expecting all elements in a ProductManifold to be "
-                    "geotorch.AbstractManifold. Found a {}.".format(type(mani).__name__)
+                    "Expecting all elements in a ProductManifold to be subclasses of"
+                    "AbstractManifold. Found a {}.".format(type(mani).__name__)
                 )
 
         return tuple(m.dim for m in manifolds)

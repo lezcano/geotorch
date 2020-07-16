@@ -1,10 +1,19 @@
 import geotorch.parametrize as P
-from geotorch.sphere import Sphere
-from geotorch.stiefel import Stiefel, StiefelTall
-from geotorch.grassmannian import Grassmannian, GrassmannianTall
-from geotorch.lowrank import LowRank
-from geotorch.symmetric import Symmetric
-from geotorch.skew import Skew
+
+from .symmetric import Symmetric
+from .skew import Skew
+from .sphere import Sphere
+from .so import SO
+from .stiefel import Stiefel, StiefelTall
+from .grassmannian import Grassmannian, GrassmannianTall
+from .almostorthogonal import AlmostOrthogonal
+from .lowrank import LowRank
+from .fixedrank import FixedRank
+from .glp import GLp
+from .psd import PSD
+from .pssd import PSSD
+from .pssdlowrank import PSSDLowRank
+from .pssdfixedrank import PSSDFixedRank
 
 
 def symmetric(module, tensor_name, lower=True):
@@ -13,7 +22,7 @@ def symmetric(module, tensor_name, lower=True):
     When accessing ``module[tensor_name]``, the module will return the parametrized
     version :math:`X` so that :math:`X^\intercal = X`.
 
-    If the tensor has more than two dimensions, the symmetric parametrization will be
+    If the tensor has more than two dimensions, the parametrization will be
     applied to the last two dimensions.
 
     Examples::
@@ -40,7 +49,7 @@ def skew(module, tensor_name, lower=True):
     When accessing ``module[tensor_name]``, the module will return the parametrized
     version :math:`X` so that :math:`X^\intercal = -X`.
 
-    If the tensor has more than two dimensions, the skew parametrization will be
+    If the tensor has more than two dimensions, the parametrization will be
     applied to the last two dimensions.
 
     Examples::
@@ -68,7 +77,7 @@ def sphere(module, tensor_name, r=1.0):
     When accessing ``module[tensor_name]``, the module will return the parametrized
     version :math:`v` so that :math:`\lVert v \rVert = 1`.
 
-    If the tensor has more than one dimension, the spherical parametrization will be
+    If the tensor has more than one dimension, the parametrization will be
     applied to the last dimension.
 
     Examples::
@@ -77,7 +86,7 @@ def sphere(module, tensor_name, r=1.0):
         >>> geotorch.sphere(layer, "bias")
         >>> torch.norm(layer.bias)
         tensor(1.)
-        >>> geotorch.sphere(layer, "weight")  # Make the columns orthogonal
+        >>> geotorch.sphere(layer, "weight")  # Make the columns unit norm
         >>> torch.norm(torch.norm(layer.weight, dim=-1) - torch.ones(30))
         tensor(6.1656e-07)
 
@@ -98,7 +107,7 @@ def orthogonal(module, tensor_name, triv="expm"):
     When accessing ``module[tensor_name]``, the module will return the
     parametrized version :math:`X` so that :math:`X^\intercal X = \operatorname{Id}`.
 
-    If the tensor has more than two dimensions, the orthogonal parametrization will be
+    If the tensor has more than two dimensions, the parametrization will be
     applied to the last two dimensions.
 
     Examples::
@@ -130,8 +139,51 @@ def orthogonal(module, tensor_name, triv="expm"):
         )
     n, k = size[-2:]
     n, k = max(n, k), min(n, k)
-    cls = StiefelTall if n > 4 * k else Stiefel
+    if n == k:
+        cls = SO
+    elif n > 4 * k:
+        cls = StiefelTall
+    else:
+        cls = Stiefel
     P.register_parametrization(module, tensor_name, cls(size, triv))
+
+
+def almost_orthogonal(module, tensor_name, lam, f="sigmoid", triv="expm"):
+    r""" Adds an almost orthogonal parametrization to the tensor ``module[tensor_name]``.
+
+    When accessing ``module[tensor_name]``, the module will return the
+    parametrized version :math:`X` which will have its singular values in
+    the interval :math:`[1-\texttt{lam}, 1+\texttt{lam}]`
+
+    If the tensor has more than two dimensions, the parametrization will be
+    applied to the last two dimensions.
+
+    Examples::
+
+        >>> layer = nn.Linear(20, 30)
+        >>> geotorch.almost_orthogonal(layer, "weight", 0.5)
+        >>> S = torch.svd(layer.weight).S
+        >>> all(S >= 0.5 and S <= 1.5)
+        True
+
+    Args:
+        module (nn.Module): module on which to register the parametrization
+        tensor_name (string): name of the parameter, buffer, or parametrization
+            on which the parametrization will be applied
+        lam (float): Radius. A float in the interval [0, 1]
+        f (str or callable): Optional. One of `["sigmoid", "tanh", "sin"]`
+            or a callable that maps real numbers to the interval [-1, 1].
+            Default: `"sigmoid"`
+        triv (str or callable): Optional.
+            A map that maps :math:`\operatorname{Skew}(n)` onto the orthogonal
+            matrices surjectively. This is used to optimize the U, V in the
+            SVD. It can be one of `["expm", "cayley"]` or a custom
+            callable. Default: `"expm"`
+    """
+    size = getattr(module, tensor_name).size()
+    P.register_parametrization(
+        module, tensor_name, AlmostOrthogonal(size, lam, f, triv)
+    )
 
 
 def grassmannian(module, tensor_name, triv="expm"):
@@ -150,7 +202,7 @@ def grassmannian(module, tensor_name, triv="expm"):
 
     .. note::
 
-        Even though this space resembles that generated by :func:`~geotorch.orthogonal`,
+        Even though this space resembles that generated by :func:`geotorch.orthogonal`,
         it is actually a subspace of that, as every subspace can be represented by many
         different basis of vectors that span it.
 
@@ -187,11 +239,11 @@ def grassmannian(module, tensor_name, triv="expm"):
     P.register_parametrization(module, tensor_name, cls(size, triv))
 
 
-def lowrank(module, tensor_name, rank):
+def low_rank(module, tensor_name, rank, triv="expm"):
     r""" Adds a low rank parametrization to the tensor ``module[tensor_name]``.
 
     When accessing ``module[tensor_name]``, the module will return the
-    parametrized version :math:`X` will have rank at most ``rank``.
+    parametrized version :math:`X` which will have rank at most ``rank``.
 
     If the tensor has more than two dimensions, the parametrization will be
     applied to the last two dimensions.
@@ -199,17 +251,242 @@ def lowrank(module, tensor_name, rank):
     Examples::
 
         >>> layer = nn.Linear(20, 30)
-        >>> geotorch.lowrank(layer, "weight", 4)
-        >>> list(torch.svd(layer.weight).S > 1e-7).count(True)
-        4
+        >>> geotorch.low_rank(layer, "weight", 4)
+        >>> list(torch.svd(layer.weight).S > 1e-7).count(True) <= 4
+        True
 
     Args:
         module (nn.Module): module on which to register the parametrization
         tensor_name (string): name of the parameter, buffer, or parametrization
             on which the parametrization will be applied
-        rank (int): Rank of the matrices.
-            It has to be less than the minimum of the last two dimensions of the
-            tensor
+        rank (int): Rank of the matrix.
+            It has to be less than the minimum of the two dimensions of the
+            matrix
+        triv (str or callable): Optional.
+            A map that maps :math:`\operatorname{Skew}(n)` onto the orthogonal
+            matrices surjectively. This is used to optimize the U, V in the
+            SVD. It can be one of `["expm", "cayley"]` or a custom
+            callable. Default: `"expm"`
     """
     size = getattr(module, tensor_name).size()
-    P.register_parametrization(module, tensor_name, LowRank(size, rank))
+    P.register_parametrization(module, tensor_name, LowRank(size, rank, triv))
+
+
+def fixed_rank(module, tensor_name, rank, f="softplus", triv="expm"):
+    r""" Adds a fixed rank parametrization to the tensor ``module[tensor_name]``.
+
+    When accessing ``module[tensor_name]``, the module will return the
+    parametrized version :math:`X` which will have rank equal to ``rank``.
+
+    If the tensor has more than two dimensions, the parametrization will be
+    applied to the last two dimensions.
+
+    Examples::
+
+        >>> layer = nn.Linear(20, 30)
+        >>> geotorch.fixed_rank(layer, "weight", 5)
+        >>> list(torch.svd(layer.weight).S > 1e-7).count(True)
+        5
+
+    Args:
+        module (nn.Module): module on which to register the parametrization
+        tensor_name (string): name of the parameter, buffer, or parametrization
+            on which the parametrization will be applied
+        rank (int): Rank of the matrix.
+            It has to be less than the minimum of the two dimensions of the
+            matrix
+        f (str or callable): Optional. The string `"softplus"` or a callable
+            that maps real numbers to the interval (0, infty). Default: `"softplus"`
+        triv (str or callable): Optional.
+            A map that maps :math:`\operatorname{Skew}(n)` onto the orthogonal
+            matrices surjectively. This is used to optimize the U, V in the
+            SVD. It can be one of `["expm", "cayley"]` or a custom
+            callable. Default: `"expm"`
+    """
+    size = getattr(module, tensor_name).size()
+    P.register_parametrization(module, tensor_name, FixedRank(size, rank, f, triv))
+
+
+def invertible(module, tensor_name, f="softplus", triv="expm"):
+    r""" Adds an invertibility constraint to the tensor ``module[tensor_name]``.
+
+    When accessing ``module[tensor_name]``, the module will return the
+    parametrized version :math:`X` which will have positive determinant and,
+    in particular, it will be invertible.
+
+    If the tensor has more than two dimensions, the parametrization will be
+    applied to the last two dimensions.
+
+    Examples::
+
+        >>> layer = nn.Linear(20, 20)
+        >>> geotorch.invertible(layer, "weight", 5)
+        >>> torch.det(layer.weight) > 0.0
+        True
+
+    Args:
+        module (nn.Module): module on which to register the parametrization
+        tensor_name (string): name of the parameter, buffer, or parametrization
+            on which the parametrization will be applied
+        f (str or callable): Optional. The string `"softplus"` or a callable
+            that maps real numbers to the interval (0, infty). Default: `"softplus"`
+        triv (str or callable): Optional.
+            A map that maps :math:`\operatorname{Skew}(n)` onto the orthogonal
+            matrices surjectively. This is used to optimize the U, V in the
+            SVD. It can be one of `["expm", "cayley"]` or a custom
+            callable. Default: `"expm"`
+    """
+    size = getattr(module, tensor_name).size()
+    P.register_parametrization(module, tensor_name, GLp(size, f, triv))
+
+
+def positive_definite(module, tensor_name, f="softplus", triv="expm"):
+    r""" Adds a positive definiteness constraint to the tensor
+    ``module[tensor_name]``.
+
+    When accessing ``module[tensor_name]``, the module will return the
+    parametrized version :math:`X` which will be symmetric and with positive
+    eigenvalues
+
+    If the tensor has more than two dimensions, the parametrization will be
+    applied to the last two dimensions.
+
+    Examples::
+
+        >>> layer = nn.Linear(20, 20)
+        >>> geotorch.positive_definite(layer, "weight")
+        >>> (torch.symeig(layer.weight).eigenvalues > 0.0).all()
+        tensor(True)
+
+    Args:
+        module (nn.Module): module on which to register the parametrization
+        tensor_name (string): name of the parameter, buffer, or parametrization
+            on which the parametrization will be applied
+        f (str or callable): Optional. The string `"softplus"` or a callable
+            that maps real numbers to the interval (0, infty). Default: `"softplus"`
+        triv (str or callable): Optional.
+            A map that maps :math:`\operatorname{Skew}(n)` onto the orthogonal
+            matrices surjectively. This is used to optimize the Q in the eigenvalue
+            decomposition. It can be one of `["expm", "cayley"]` or a custom
+            callable. Default: `"expm"`
+    """
+    size = getattr(module, tensor_name).size()
+    P.register_parametrization(module, tensor_name, PSD(size, f, triv))
+
+
+def positive_semidefinite(module, tensor_name, triv="expm"):
+    r""" Adds a positive definiteness constraint to the tensor
+    ``module[tensor_name]``.
+
+    When accessing ``module[tensor_name]``, the module will return the
+    parametrized version :math:`X` which will be symmetric and with
+    non-negative eigenvalues
+
+    If the tensor has more than two dimensions, the parametrization will be
+    applied to the last two dimensions.
+
+    Examples::
+
+        >>> layer = nn.Linear(20, 20)
+        >>> geotorch.positive_semidefinite(layer, "weight")
+        >>> L = torch.symeig(layer.weight).eigenvalues
+        >>> L[L.abs() < 1e-7] = 0.0  # Round erros
+        >>> (L >= 0.0).all()
+        tensor(True)
+
+    Args:
+        module (nn.Module): module on which to register the parametrization
+        tensor_name (string): name of the parameter, buffer, or parametrization
+            on which the parametrization will be applied
+        triv (str or callable): Optional.
+            A map that maps :math:`\operatorname{Skew}(n)` onto the orthogonal
+            matrices surjectively. This is used to optimize the Q in the eigenvalue
+            decomposition. It can be one of `["expm", "cayley"]` or a custom
+            callable. Default: `"expm"`
+    """
+    size = getattr(module, tensor_name).size()
+    P.register_parametrization(module, tensor_name, PSSD(size, triv))
+
+
+def positive_semidefinite_low_rank(
+    module, tensor_name, rank, f="softplus", triv="expm"
+):
+    r""" Adds a positive definiteness constraint to the tensor
+    ``module[tensor_name]``.
+
+    When accessing ``module[tensor_name]``, the module will return the
+    parametrized version :math:`X` which will be symmetric and with non-negative
+    eigenvalues and at most `rank` of them non-zero.
+
+    If the tensor has more than two dimensions, the parametrization will be
+    applied to the last two dimensions.
+
+    Examples::
+
+        >>> layer = nn.Linear(20, 20)
+        >>> geotorch.positive_semidefinite_low_rank(layer, "weight", 5)
+        >>> L = torch.symeig(layer.weight).eigenvalues
+        >>> L[L.abs() < 1e-7] = 0.0  # Round erros
+        >>> (L >= 0.0).all()
+        tensor(True)
+        >>> list(L > 0.0).count(True) <= 5
+        True
+
+    Args:
+        module (nn.Module): module on which to register the parametrization
+        tensor_name (string): name of the parameter, buffer, or parametrization
+            on which the parametrization will be applied
+        rank (int): Rank of the matrix.
+            It has to be less than the minimum of the two dimensions of the
+            matrix
+        triv (str or callable): Optional.
+            A map that maps :math:`\operatorname{Skew}(n)` onto the orthogonal
+            matrices surjectively. This is used to optimize the Q in the eigenvalue
+            decomposition. It can be one of `["expm", "cayley"]` or a custom
+            callable. Default: `"expm"`
+    """
+    size = getattr(module, tensor_name).size()
+    P.register_parametrization(module, tensor_name, PSSDLowRank(size, rank, triv))
+
+
+def positive_semidefinite_fixed_rank(
+    module, tensor_name, rank, f="softplus", triv="expm"
+):
+    r""" Adds a positive definiteness constraint to the tensor
+    ``module[tensor_name]``.
+
+    When accessing ``module[tensor_name]``, the module will return the
+    parametrized version :math:`X` which will be symmetric and with non-negative
+    eigenvalues and exactly `rank` of them non-zero.
+
+    If the tensor has more than two dimensions, the parametrization will be
+    applied to the last two dimensions.
+
+    Examples::
+
+        >>> layer = nn.Linear(20, 20)
+        >>> geotorch.positive_semidefinite_fixed_rank(layer, "weight", 5)
+        >>> L = torch.symeig(layer.weight).eigenvalues
+        >>> L[L.abs() < 1e-7] = 0.0  # Round erros
+        >>> (L >= 0.0).all()
+        tensor(True)
+        >>> list(L > 0.0).count(True)
+        5
+
+    Args:
+        module (nn.Module): module on which to register the parametrization
+        tensor_name (string): name of the parameter, buffer, or parametrization
+            on which the parametrization will be applied
+        rank (int): Rank of the matrix.
+            It has to be less than the minimum of the two dimensions of the
+            matrix
+        f (str or callable): Optional. The string `"softplus"` or a callable
+            that maps real numbers to the interval (0, infty). Default: `"softplus"`
+        triv (str or callable): Optional.
+            A map that maps :math:`\operatorname{Skew}(n)` onto the orthogonal
+            matrices surjectively. This is used to optimize the Q in the eigenvalue
+            decomposition. It can be one of `["expm", "cayley"]` or a custom
+            callable. Default: `"expm"`
+    """
+    size = getattr(module, tensor_name).size()
+    P.register_parametrization(module, tensor_name, PSSDFixedRank(size, rank, f, triv))

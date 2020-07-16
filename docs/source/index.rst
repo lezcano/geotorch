@@ -25,14 +25,11 @@ Welcome to GeoTorch's documentation!
    :caption: Manifolds
    :hidden:
 
-   reals
-   symmetric
-   skew
-   sphere
-   so
-   stiefel
-   grassmannian
-   lowrank
+   vector_spaces/index
+   orthogonal/index
+   invertibility/index
+   lowrank/index
+   psd/index
    constructions
 
 .. Indices and tables

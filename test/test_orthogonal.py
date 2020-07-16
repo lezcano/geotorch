@@ -153,10 +153,14 @@ class TestOrthogonal(TestCase):
             for layer in layers:
                 p = layer.parametrizations.weight
                 p.uniform_init_()
-                self.assertIsOrthogonal(layer.weight)
+                W = layer.weight
+                self.assertIsOrthogonal(W)
                 if isinstance(p, SO):
+                    self.assertTrue((W.det() > 0.0).all())
                     p.torus_init_()
-                    self.assertIsOrthogonal(layer.weight)
+                    W = layer.weight
+                    self.assertIsOrthogonal(W)
+                    self.assertTrue((W.det() > 0.0).all())
         t = torch.empty(3, 4)
         uniform_init_(t)
         self.assertIsOrthogonal(t)

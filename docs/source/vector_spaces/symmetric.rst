@@ -1,5 +1,5 @@
-Symmetric Matrices: :math:`\operatorname{Sym}(n)`
-========================================================
+Symmetric Matrices
+==================
 
 .. currentmodule:: geotorch
 

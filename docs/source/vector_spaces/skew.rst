@@ -1,5 +1,5 @@
-Skew-symmetric Matrices: :math:`\operatorname{Skew}(n)`
-========================================================
+Skew-symmetric Matrices
+=======================
 
 .. currentmodule:: geotorch
 

@@ -1,16 +1,16 @@
-Low Rank Matrices: :math:`\operatorname{LowRank}(n,k,r)`
-===================================================================
+Low Rank Matrices
+=================
 
 .. currentmodule:: geotorch
 
 :math:`\operatorname{LowRank}(n,k,r)` is the algebraic variety of matrices of rank less or equal
-to :math:`r`, with :math:`r \leq \min\{n, k\}`:
+to :math:`r`, for a given :math:`r \leq \min\{n, k\}`:
 
 .. math::
 
     \operatorname{LowRank}(n,k,r) = \{X \in \mathbb{R}^{n\times k}\:\mid\:\operatorname{rank}(X) \leq r\}
 
-It is realized via a SVD-like factorization. In particular, it is implemented via the projection
+It is realized via an SVD-like factorization. In particular, it is implemented via the projection
 
 .. math::
 

@@ -1,5 +1,5 @@
-Sphere: :math:`\mathbb{S}^n`
-=============================
+Sphere
+======
 
 .. currentmodule:: geotorch
 

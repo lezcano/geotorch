@@ -1,5 +1,5 @@
-Special Orthogonal Group: :math:`\operatorname{SO}(n)`
-======================================================
+Special Orthogonal Group
+========================
 
 .. currentmodule:: geotorch
 
@@ -13,5 +13,5 @@ orthonormal columns and positive determinant:
 
 .. autoclass:: SO
 
-   .. automethod:: torus_init_
    .. automethod:: uniform_init_
+   .. automethod:: torus_init_

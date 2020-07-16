@@ -1,5 +1,5 @@
-Grassmannian Manifold: :math:`\operatorname{Gr}(n,k)`
-======================================================
+Grassmannian Manifold
+=====================
 
 .. currentmodule:: geotorch
 
