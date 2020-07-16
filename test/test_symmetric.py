@@ -6,7 +6,7 @@ import torch
 import torch.nn as nn
 
 import geotorch.parametrize as P
-from geotorch.symmetric import Symmetric
+from geotorch.symmetric import Symmetric, SymF
 
 
 class TestSymmetric(TestCase):
@@ -52,6 +52,21 @@ class TestSymmetric(TestCase):
         # Try to instantiate it in a vector rather than a matrix
         with self.assertRaises(ValueError):
             Symmetric(size=(4,))
+
+        # Instantiate it with a non-callable object
+        with self.assertRaises(ValueError):
+            SymF(size=(4, 4), rank=4, f=3.0)
+        # Or with the wrong rank
+        with self.assertRaises(ValueError):
+            SymF(size=(4, 4), rank=5, f=lambda: None)
+        with self.assertRaises(ValueError):
+            SymF(size=(4, 4), rank=0, f=lambda: None)
+        # Or on vectors
+        with self.assertRaises(ValueError):
+            SymF(size=(4,), rank=2, f=lambda: None)
+        # Or on non-square matrices
+        with self.assertRaises(ValueError):
+            SymF(size=(4, 3), rank=2, f=lambda: None)
 
     def test_repr(self):
         print(Symmetric(size=(4, 4)))

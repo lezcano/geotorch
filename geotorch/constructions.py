@@ -56,7 +56,7 @@ class AbstractManifold(P.Parametrization):
 
     @property
     def orig_dim(self):
-        self.dim[::-1] if self.transpose else self.dim
+        return self.dim[::-1] if self.transpose else self.dim
 
     def extra_repr(self):
         if self.dimensions == "product":

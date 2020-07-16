@@ -9,6 +9,7 @@ class TestManifold(TestCase):
         M = constructions.AbstractManifold(dimensions=3, size=(3, 4, 2, 1))
         self.assertEqual(M.tensorial_size, (3,))
         self.assertEqual(M.dim, (4, 2, 1))
+        self.assertEqual(M.orig_dim, (4, 2, 1))
 
     def test_product_manifold(self):
         SO3SO3 = constructions.ProductManifold([SO((3, 3)), SO((3, 3))])
@@ -51,3 +52,7 @@ class TestManifold(TestCase):
         # Passing zero should raise
         with self.assertRaises(ValueError):
             constructions.AbstractManifold(dimensions=0, size=(2, 4))
+
+        # Pass a non-sequence value raises
+        with self.assertRaises(ValueError):
+            constructions.AbstractManifold(2, size=2)

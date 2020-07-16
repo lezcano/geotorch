@@ -90,7 +90,10 @@ class TestConstraints(TestCase):
         self.assertIsSymmetric(net.weight)
 
     def test_orthogonal(self):
-        net = nn.Linear(6, 2)
+        net = nn.Linear(6, 1)
+        geotorch.orthogonal(net, "weight")
+        self.assertIsOrthogonal(net.weight)
+        net = nn.Linear(7, 4)
         geotorch.orthogonal(net, "weight")
         self.assertIsOrthogonal(net.weight)
         net = nn.Linear(7, 7)

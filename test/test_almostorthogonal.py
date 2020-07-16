@@ -120,6 +120,11 @@ class TestLowRank(TestCase):
         # Not callable
         with self.assertRaises(ValueError):
             AlmostOrthogonal(size=(5, 4), lam=1, f=3.0)
+        # But a callable should work
+        AlmostOrthogonal(size=(5, 4), lam=0.5)
         # Too large a lambda
         with self.assertRaises(ValueError):
-            AlmostOrthogonal(size=(5, 4), lam=2, f=3.0)
+            AlmostOrthogonal(size=(5, 4), lam=2)
+        # Or too small
+        with self.assertRaises(ValueError):
+            AlmostOrthogonal(size=(5, 4), lam=-1.0)

@@ -155,12 +155,15 @@ class TestOrthogonal(TestCase):
                 p.uniform_init_()
                 W = layer.weight
                 self.assertIsOrthogonal(W)
-                if isinstance(p, SO):
+                if W.size(-1) == W.size(-2):
                     self.assertTrue((W.det() > 0.0).all())
                     p.torus_init_()
                     W = layer.weight
                     self.assertIsOrthogonal(W)
                     self.assertTrue((W.det() > 0.0).all())
+                else:
+                    with self.assertRaises(RuntimeError):
+                        p.torus_init_()
         t = torch.empty(3, 4)
         uniform_init_(t)
         self.assertIsOrthogonal(t)
