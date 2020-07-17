@@ -1,9 +1,27 @@
+"""
+Basic example of usage of GeoTorch
+
+Implements a constrained RNN to learn a synthetic regression problem which asks to recall
+some inputs and output them. From a dictionary of 9 numbers, the input-output looks like follows:
+
+Input:   14221----------:----
+Output:  ---------------14221
+
+This class should converge to 0% error. When at 0% error, sometimes there are some instabilities.
+
+The GeoTorch code happens in `ExpRNNCell.__init__`, `ExpRNNCell.reset_parameters` and line 107.
+The rest of the code is normal PyTorch.
+Lines 146-167 shows how to assign different learning rates to parametrized weights.
+
+This file also implements in lines 154 and 184 Riemannian Gradient Descent (RGD). As shown, RGD
+dynamics account for using SGD as the optimizer calling `update_basis()` after every optization step.
+"""
+
 import torch
 from torch import nn
 import torch.nn.functional as F
 
 import geotorch
-import geotorch.parametrize as P
 
 batch_size = 128
 hidden_size = 190
@@ -86,7 +104,7 @@ class Model(nn.Module):
     def forward(self, inputs):
         out_rnn = self.rnn.default_hidden(inputs[:, 0, ...])
         outputs = []
-        with P.cached():
+        with torch.parametrize.cached():
             for input in torch.unbind(inputs, dim=1):
                 out_rnn, self.rnn(input, out_rnn)
                 outputs.append(self.lin(out_rnn))

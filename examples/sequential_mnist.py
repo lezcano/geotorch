@@ -1,3 +1,15 @@
+"""
+Slightly more advanced example of usage of GeoTorch
+
+Implements a constrained RNN to classify MNIST processing the images one pixel at a time
+A good result for this task for size 170 would be 98.0% accuracy with orthogonal constraints
+and 98.5% for the almostorthogonal. Lowrank is here as an example, it should not perform well
+
+The GeoTorch code happens in `ExpRNNCell.__init__`, `ExpRNNCell.reset_parameters` and line 143.
+The rest of the code is normal PyTorch.
+Lines 174-187 show how to assign different learning rates to parametrized weights
+"""
+
 import torch
 import torch.nn as nn
 import math
@@ -26,13 +38,6 @@ parser.add_argument("--r", type=float, default=0.1)
 
 
 args = parser.parse_args()
-
-# Fix seed across experiments
-# Same seed as that used in "Orthogonal Recurrent Neural Networks with Scaled Cayley Transform"
-# https://github.com/SpartinStuff/scoRNN/blob/master/scoRNN_copying.py#L79
-torch.backends.cudnn.deterministic = True
-torch.backends.cudnn.benchmark = False
-torch.manual_seed(5544)
 
 n_classes = 10
 batch_size = args.batch_size
@@ -84,12 +89,17 @@ class ExpRNNCell(nn.Module):
 
     def reset_parameters(self):
         nn.init.kaiming_normal_(self.input_kernel.weight.data, nonlinearity="relu")
-        # Initialize the recurrent kernel a la Cayley
+        # Initialize the recurrent kernel à la Cayley, as having most values closer
+        # to the identity seems to help in classification problems
 
         def f_(x):
             x.uniform_(0.0, math.pi / 2.0)
             c = torch.cos(x.data)
             x.data = -torch.sqrt((1.0 - c) / (1.0 + c))
+
+        # As both lowrank and almostorthogonal are composed by a projection from a
+        # product space, we have to initialise each space in the product space
+        # separately
 
         if args.constraints == "orthogonal":
             self.recurrent_kernel.parametrizations.weight.torus_init_(f_)

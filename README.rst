@@ -161,6 +161,19 @@ GeoTorch also provides the following constructions which help the user to implem
 .. |prod| replace:: ``ProductManifold``
 .. _prod: https://geotorch.readthedocs.io/en/latest/constructions.html#geotorch.constructions.ProductManifold
 
+Using GeoTorch in your Code
+---------------------------
+
+The files `examples/copying_problem.py`_ and `examples/sequential_mnist.py`_ serve as two tutorials to see how to handle the initialization and usage of GeoTorch in some real code. They also show how to implement Riemannian Gradient Descent and some other tricks.
+
+If you have installed PyTorch v1.5 at least, you may try GeoTorch installing it via
+
+.. code:: bash
+
+    pip install git+https://github.com/Lezcano/geotorch/
+
+GeoTorch is tested in Linux, Mac, and Windows environments for Python >= 3.6.
+
 Sharing Weights, Parametrizations, and Normalizing Flows
 --------------------------------------------------------
 
@@ -176,17 +189,6 @@ Of course, this ``with`` statement may be used simply inside the forward functio
 These ideas fall in the context of parametrized optimization, where one wraps a tensor ``X`` with a function ``f``, and rather than using ``X``, uses ``f(X)``. Particular examples of this idea are pruning, weight normalization, and spectral normalization among others. This repository implements a framework to approach this kind of problems. The framework is currently `PR #33344`_ in PyTorch. All the functionality of this PR is located in `geotorch/parametrize.py`_.
 
 As every space in GeoTorch is, at its core, a map from a flat space into a manifold, the tools implemented here also serve as a building block in normalizing flows. Using a factorized space such as LowRank it is direct to compute the determinant of the transformation it defines, as we have direct access to the signular values of the layer.
-
-Try GeoTorch!
--------------
-
-If you have installed PyTorch v1.5 at least, you may try GeoTorch installing it via
-
-.. code:: bash
-
-    pip install git+https://github.com/Lezcano/geotorch/
-
-GeoTorch is tested in Linux, Mac, and Windows environments for Python >= 3.6.
 
 Bibliography
 ------------
@@ -222,4 +224,6 @@ Please cite the following work if you found GeoTorch useful. This paper exposes 
 .. _here: https://github.com/Lezcano/geotorch/blob/master/examples/copying_problem.py#L16
 .. _PR #33344: https://github.com/pytorch/pytorch/pull/33344
 .. _geotorch/parametrize.py: https://github.com/Lezcano/geotorch/blob/master/geotorch/parametrize.py
+.. _examples/sequential_mnist.py: https://github.com/Lezcano/geotorch/blob/master/examples/sequential_mnist.py
+.. _examples/copying_problem.py: https://github.com/Lezcano/geotorch/blob/master/examples/copying_problem.py
 
