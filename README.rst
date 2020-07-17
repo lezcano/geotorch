@@ -9,8 +9,7 @@ Overview
 --------
 
 GeoTorch provides a simple way to perform constrained optimization and optimization on manifolds in PyTorch.
-It is compatible out of the box with any optimizer, layer, and model implemented in PyTorch without having to reimplement
-the layers or optimizers and without any kind of boilerplate.
+It is compatible out of the box with any optimizer, layer, and model implemented in PyTorch without having to reimplement the layers or optimizers and without any kind of boilerplate in the training code.
 
 .. code:: python
 
@@ -47,7 +46,7 @@ The following constraints are implemented and may be used as in the example abov
 - |geotorch.sphere|_. Vectors of norm ``1``
 - |geotorch.orthogonal|_. Matrices with orthogonal columns
 - |geotorch.grassmannian|_. Skew-symmetric matrices
-- |geotorch.almost_orthogonal|_. Matrices with singular values in  the interval [1-λ, 1+λ]
+- |geotorch.almost_orthogonal|_. Matrices with singular values in  the interval ``[1-λ, 1+λ]``
 - |geotorch.low_rank|_. Matrices of rank at most ``r``
 - |geotorch.fixed_rank|_. Matrices of rank ``r``
 - |geotorch.positive_definite|_. Positive definite matrices
@@ -84,14 +83,17 @@ Each of these constraints have some extra parameters which can be used to tailor
 behavior of each constraint to the problem in hand. For more on this, see the constructions
 section in the documentation.
 
+These constraint functions are a convenient umbrella for the families of spaces listed below.
+
 Supported Spaces
 ----------------
 
-Each constraint in GeoTorch are implemented as manifolds. These give the user more flexibility
+Each constraint in GeoTorch is implemented as a manifold. These give the user more flexibility
 on the options that they choose for each parametrization. All these support Riemannian Gradient
-Descent by default (more on this `here`_), but they also support optimization via any other optimizer.
+Descent by default (more on this `here`_), but they also support optimization via any other PyTorch
+optimizer.
 
-The constraint functions as presented before are just a convenient umbrella for the following spaces:
+GeoTorch currently supports the following spaces:
 
 - |reals|_: Rⁿ. Unrestricted optimization
 - |sym|_: Vector space of symmetric matrices
@@ -145,7 +147,7 @@ Every space of dimension ``(n, k)`` can be applied to tensors of shape ``(*, n, 
 
 - ``ObliqueManifold(n,k)``: Matrix with unit length columns, Sⁿ⁻¹ × ...ᵏ⁾ × Sⁿ⁻¹
 
-It also implements the following constructions:
+GeoTorch also provides the following constructions which help the user to implement other spaces:
 
 - |manif|_: Manifold that supports Riemannian Gradient Descent and trivializations
 - |fib|_: Fibred space π : E → M, constructed from a ``Manifold`` E, a submersion π and local sections of dπ
@@ -171,7 +173,7 @@ If one wants to use a parametrized tensor in different places in their model, or
 
 Of course, this ``with`` statement may be used simply inside the forward function where the parametrized layer is used several times.
 
-These ideas fall in the context of parametrized optimization, where one wraps a tensor ``X`` with a function ``f``, and rather than using ``X``, we use ``f(X)``. Particular examples of this idea are pruning, weight normalization, and spectral normalization among others. This repository implements a framework to approach this kind of problems. The framework is currently `PR #33344`_ in PyTorch. All the functionality of this PR is located in `geotorch/parametrize.py`_.
+These ideas fall in the context of parametrized optimization, where one wraps a tensor ``X`` with a function ``f``, and rather than using ``X``, uses ``f(X)``. Particular examples of this idea are pruning, weight normalization, and spectral normalization among others. This repository implements a framework to approach this kind of problems. The framework is currently `PR #33344`_ in PyTorch. All the functionality of this PR is located in `geotorch/parametrize.py`_.
 
 As every space in GeoTorch is, at its core, a map from a flat space into a manifold, the tools implemented here also serve as a building block in normalizing flows. Using a factorized space such as LowRank it is direct to compute the determinant of the transformation it defines, as we have direct access to the signular values of the layer.
 
