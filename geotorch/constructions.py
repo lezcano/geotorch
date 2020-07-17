@@ -154,7 +154,11 @@ class Manifold(AbstractManifold):
 
 
 def parametrization_from_function(f, name):
-    return type(name, (P.Parametrization,), {"forward": f})
+    T = type(
+        name, (P.Parametrization,), {"forward": f, "__qualname__": name + str(id(f))}
+    )
+    globals()[T.__qualname__] = T
+    return T
 
 
 class Fibration(AbstractManifold):
