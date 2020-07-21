@@ -103,44 +103,44 @@ GeoTorch currently supports the following spaces:
 - |st|_: Manifold of n×k matrices with orthonormal columns
 - |almost|_: Manifold of n×k matrices with singular values in the interval (1-λ, 1+λ)
 - |grass|_: Manifold of k-dimensional subspaces in Rⁿ
+- |glp|_: Manifold of invertible n×n matrices with positive determinant
 - |low|_: Variety of n×k matrices of rank r or less
 - |fixed|_: Manifold of n×k matrices of rank r
-- |glp|_: Manifold of invertible n×n matrices with positive determinant
 - |psd|_: Cone of n×n symmetric positive definite matrices
 - |pssd|_: Cone of n×n symmetric positive semi-definite matrices
 - |pssdlow|_: Variety of n×n symmetric positive semi-definite matrices of rank r or less
 - |pssdfixed|_: Manifold of n×n symmetric positive semi-definite matrices of rank r
 
 .. |reals| replace:: ``Rn(n)``
-.. _reals: https://geotorch.readthedocs.io/en/latest/reals.html
+.. _reals: https://geotorch.readthedocs.io/en/latest/vector_spaces/reals.html
 .. |sym| replace:: ``Sym(n)``
-.. _sym: https://geotorch.readthedocs.io/en/latest/symmetric.html
+.. _sym: https://geotorch.readthedocs.io/en/latest/vector_spaces/symmetric.html
 .. |skew| replace:: ``Skew(n)``
-.. _skew: https://geotorch.readthedocs.io/en/latest/skew.html
+.. _skew: https://geotorch.readthedocs.io/en/latest/vector_spaces/skew.html
 .. |sphere| replace:: ``Sphere(n)``
-.. _sphere: https://geotorch.readthedocs.io/en/latest/sphere.html
+.. _sphere: https://geotorch.readthedocs.io/en/latest/orthogonal/sphere.html
 .. |so| replace:: ``SO(n)``
-.. _so: https://geotorch.readthedocs.io/en/latest/so.html
+.. _so: https://geotorch.readthedocs.io/en/latest/orthogonal/so.html
 .. |st| replace:: ``St(n,k)``
-.. _st: https://geotorch.readthedocs.io/en/latest/stiefel.html
+.. _st: https://geotorch.readthedocs.io/en/latest/orthogonal/stiefel.html
 .. |almost| replace:: ``AlmostOrthogonal(n,k,λ)``
-.. _almost: https://geotorch.readthedocs.io/en/latest/almostorthogonal.html
+.. _almost: https://geotorch.readthedocs.io/en/latest/orthogonal/almostorthogonal.html
 .. |grass| replace:: ``Gr(n,k)``
-.. _grass: https://geotorch.readthedocs.io/en/latest/grassmannian.html
-.. |low| replace:: ``LowRank(n,k,r)``
-.. _low: https://geotorch.readthedocs.io/en/latest/lowrank.html
-.. |fixed| replace:: ``FixedRank(n,k,r)``
-.. _fixed: https://geotorch.readthedocs.io/en/latest/fixedrank.html
+.. _grass: https://geotorch.readthedocs.io/en/latest/orthogonal/grassmannian.html
 .. |glp| replace:: ``GLp(n)``
-.. _glp: https://geotorch.readthedocs.io/en/latest/glp.html
+.. _glp: https://geotorch.readthedocs.io/en/latest/invertibility/glp.html
+.. |low| replace:: ``LowRank(n,k,r)``
+.. _low: https://geotorch.readthedocs.io/en/latest/lowrank/lowrank.html
+.. |fixed| replace:: ``FixedRank(n,k,r)``
+.. _fixed: https://geotorch.readthedocs.io/en/latest/lowrank/fixedrank.html
 .. |psd| replace:: ``PSD(n)``
-.. _psd: https://geotorch.readthedocs.io/en/latest/psd.html
+.. _psd: https://geotorch.readthedocs.io/en/latest/psd/psd.html
 .. |pssd| replace:: ``PSSD(n)``
-.. _pssd: https://geotorch.readthedocs.io/en/latest/pssd.html
+.. _pssd: https://geotorch.readthedocs.io/en/latest/psd/pssd.html
 .. |pssdlow| replace:: ``PSSDLowRank(n,r)``
-.. _pssdlow: https://geotorch.readthedocs.io/en/latest/pssdlowrank.html
+.. _pssdlow: https://geotorch.readthedocs.io/en/latest/psd/pssdlowrank.html
 .. |pssdfixed| replace:: ``PSSDFixedRank(n,r)``
-.. _pssdfixed: https://geotorch.readthedocs.io/en/latest/pssdfixedrank.html
+.. _pssdfixed: https://geotorch.readthedocs.io/en/latest/psd/pssdfixedrank.html
 
 
 Every space of dimension ``(n, k)`` can be applied to tensors of shape ``(*, n, k)``, so we also get efficient parallel implementations of product spaces such as
