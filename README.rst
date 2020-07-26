@@ -42,8 +42,8 @@ Constraints
 The following constraints are implemented and may be used as in the example above:
 
 - |symmetric|_. Symmetric matrices
-- |skew|_. Skew-symmetric matrices
-- |sphere|_. Vectors of norm ``1``
+- |skew_constr|_. Skew-symmetric matrices
+- |sphere_constr|_. Vectors of norm ``1``
 - |orthogonal|_. Matrices with orthogonal columns
 - |grassmannian|_. Skew-symmetric matrices
 - |almost_orthogonal|_. Matrices with singular values in  the interval ``[1-λ, 1+λ]``
@@ -57,10 +57,10 @@ The following constraints are implemented and may be used as in the example abov
 
 .. |symmetric| replace:: ``geotorch.symmetric``
 .. _symmetric: https://geotorch.readthedocs.io/en/latest/constraints.html#geotorch.symmetric
-.. |skew| replace:: ``geotorch.skew``
-.. _skew: https://geotorch.readthedocs.io/en/latest/constraints.html#geotorch.skew
-.. |sphere| replace:: ``geotorch.sphere``
-.. _sphere: https://geotorch.readthedocs.io/en/latest/constraints.html#geotorch.sphere
+.. |skew_constr| replace:: ``geotorch.skew``
+.. _skew_constr: https://geotorch.readthedocs.io/en/latest/constraints.html#geotorch.skew
+.. |sphere_constr| replace:: ``geotorch.sphere``
+.. _sphere_constr: https://geotorch.readthedocs.io/en/latest/constraints.html#geotorch.sphere
 .. |orthogonal| replace:: ``geotorch.orthogonal``
 .. _orthogonal: https://geotorch.readthedocs.io/en/latest/constraints.html#geotorch.orthogonal
 .. |grassmannian| replace:: ``geotorch.grassmannian``
