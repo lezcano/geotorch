@@ -41,43 +41,46 @@ Constraints
 
 The following constraints are implemented and may be used as in the example above:
 
-- |geotorch.symmetric|_. Symmetric matrices
-- |geotorch.skew|_. Skew-symmetric matrices
-- |geotorch.sphere|_. Vectors of norm ``1``
-- |geotorch.orthogonal|_. Matrices with orthogonal columns
-- |geotorch.grassmannian|_. Skew-symmetric matrices
-- |geotorch.almost_orthogonal|_. Matrices with singular values in  the interval ``[1-λ, 1+λ]``
-- |geotorch.low_rank|_. Matrices of rank at most ``r``
-- |geotorch.fixed_rank|_. Matrices of rank ``r``
-- |geotorch.positive_definite|_. Positive definite matrices
-- |geotorch.positive_semidefinite|_. Positive semidefinite matrices
-- |geotorch.positive_semidefinite_low_rank|_. Positive semidefinite matrices of rank at most ``r``
-- |geotorch.positive_semidefinite_fixed_rank|_. Positive semidefinite matrices of rank ``r``
+- |symmetric|_. Symmetric matrices
+- |skew|_. Skew-symmetric matrices
+- |sphere|_. Vectors of norm ``1``
+- |orthogonal|_. Matrices with orthogonal columns
+- |grassmannian|_. Skew-symmetric matrices
+- |almost_orthogonal|_. Matrices with singular values in  the interval ``[1-λ, 1+λ]``
+- |invertible|_. Invertible matrices
+- |low_rank|_. Matrices of rank at most ``r``
+- |fixed_rank|_. Matrices of rank ``r``
+- |positive_definite|_. Positive definite matrices
+- |positive_semidefinite|_. Positive semidefinite matrices
+- |positive_semidefinite_low_rank|_. Positive semidefinite matrices of rank at most ``r``
+- |positive_semidefinite_fixed_rank|_. Positive semidefinite matrices of rank ``r``
 
-.. |geotorch.symmetric| replace:: ``geotorch.symmetric``
-.. _geotorch.symmetric: https://geotorch.readthedocs.io/en/latest/constraints.html#geotorch.symmetric
-.. |geotorch.skew| replace:: ``geotorch.skew``
-.. _geotorch.skew: https://geotorch.readthedocs.io/en/latest/constraints.html#geotorch.skew
-.. |geotorch.sphere| replace:: ``geotorch.sphere``
-.. _geotorch.sphere: https://geotorch.readthedocs.io/en/latest/constraints.html#geotorch.sphere
-.. |geotorch.orthogonal| replace:: ``geotorch.orthogonal``
-.. _geotorch.orthogonal: https://geotorch.readthedocs.io/en/latest/constraints.html#geotorch.orthogonal
-.. |geotorch.grassmannian| replace:: ``geotorch.grassmannian``
-.. _geotorch.grassmannian: https://geotorch.readthedocs.io/en/latest/constraints.html#geotorch.grassmannian
-.. |geotorch.almost_orthogonal| replace:: ``geotorch.almost_orthogonal(λ)``
-.. _geotorch.almost_orthogonal: https://geotorch.readthedocs.io/en/latest/constraints.html#geotorch.almost_orthogonal
-.. |geotorch.low_rank| replace:: ``geotorch.low_rank(r)``
-.. _geotorch.low_rank: https://geotorch.readthedocs.io/en/latest/constraints.html#geotorch.low_rank
-.. |geotorch.fixed_rank| replace:: ``geotorch.fixed_rank(r)``
-.. _geotorch.fixed_rank: https://geotorch.readthedocs.io/en/latest/constraints.html#geotorch.fixed_rank
-.. |geotorch.positive_definite| replace:: ``geotorch.positive_definite``
-.. _geotorch.positive_definite: https://geotorch.readthedocs.io/en/latest/constraints.html#geotorch.positive_definite
-.. |geotorch.positive_semidefinite| replace:: ``geotorch.positive_semidefinite``
-.. _geotorch.positive_semidefinite: https://geotorch.readthedocs.io/en/latest/constraints.html#geotorch.positive_semidefinite
-.. |geotorch.positive_semidefinite_low_rank| replace:: ``geotorch.positive_semidefinite_low_rank(r)``
-.. _geotorch.positive_semidefinite_low_rank: https://geotorch.readthedocs.io/en/latest/constraints.html#geotorch.positive_semidefinite_low_rank
-.. |geotorch.positive_semidefinite_fixed_rank| replace:: ``geotorch.positive_semidefinite_fixed_rank(r)``
-.. _geotorch.positive_semidefinite_fixed_rank: https://geotorch.readthedocs.io/en/latest/constraints.html#geotorch.positive_semidefinite_fixed_rank
+.. |symmetric| replace:: ``geotorch.symmetric``
+.. _symmetric: https://geotorch.readthedocs.io/en/latest/constraints.html#geotorch.symmetric
+.. |skew| replace:: ``geotorch.skew``
+.. _skew: https://geotorch.readthedocs.io/en/latest/constraints.html#geotorch.skew
+.. |sphere| replace:: ``geotorch.sphere``
+.. _sphere: https://geotorch.readthedocs.io/en/latest/constraints.html#geotorch.sphere
+.. |orthogonal| replace:: ``geotorch.orthogonal``
+.. _orthogonal: https://geotorch.readthedocs.io/en/latest/constraints.html#geotorch.orthogonal
+.. |grassmannian| replace:: ``geotorch.grassmannian``
+.. _grassmannian: https://geotorch.readthedocs.io/en/latest/constraints.html#geotorch.grassmannian
+.. |almost_orthogonal| replace:: ``geotorch.almost_orthogonal(λ)``
+.. _almost_orthogonal: https://geotorch.readthedocs.io/en/latest/constraints.html#geotorch.almost_orthogonal
+.. |invertible| replace:: ``geotorch.invertible``
+.. _invertible: https://geotorch.readthedocs.io/en/latest/constraints.html#geotorch.invertible
+.. |low_rank| replace:: ``geotorch.low_rank(r)``
+.. _low_rank: https://geotorch.readthedocs.io/en/latest/constraints.html#geotorch.low_rank
+.. |fixed_rank| replace:: ``geotorch.fixed_rank(r)``
+.. _fixed_rank: https://geotorch.readthedocs.io/en/latest/constraints.html#geotorch.fixed_rank
+.. |positive_definite| replace:: ``geotorch.positive_definite``
+.. _positive_definite: https://geotorch.readthedocs.io/en/latest/constraints.html#geotorch.positive_definite
+.. |positive_semidefinite| replace:: ``geotorch.positive_semidefinite``
+.. _positive_semidefinite: https://geotorch.readthedocs.io/en/latest/constraints.html#geotorch.positive_semidefinite
+.. |positive_semidefinite_low_rank| replace:: ``geotorch.positive_semidefinite_low_rank(r)``
+.. _positive_semidefinite_low_rank: https://geotorch.readthedocs.io/en/latest/constraints.html#geotorch.positive_semidefinite_low_rank
+.. |positive_semidefinite_fixed_rank| replace:: ``geotorch.positive_semidefinite_fixed_rank(r)``
+.. _positive_semidefinite_fixed_rank: https://geotorch.readthedocs.io/en/latest/constraints.html#geotorch.positive_semidefinite_fixed_rank
 
 Each of these constraints have some extra parameters which can be used to tailor the
 behavior of each constraint to the problem in hand. For more on this, see the constructions
