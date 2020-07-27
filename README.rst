@@ -47,7 +47,7 @@ The following constraints are implemented and may be used as in the example abov
 - |orthogonal|_. Matrices with orthogonal columns
 - |grassmannian|_. Skew-symmetric matrices
 - |almost_orthogonal|_. Matrices with singular values in  the interval ``[1-λ, 1+λ]``
-- |invertible|_. Invertible matrices
+- |invertible|_. Invertible matrices with positive determinant
 - |low_rank|_. Matrices of rank at most ``r``
 - |fixed_rank|_. Matrices of rank ``r``
 - |positive_definite|_. Positive definite matrices
@@ -83,10 +83,9 @@ The following constraints are implemented and may be used as in the example abov
 .. _positive_semidefinite_fixed_rank: https://geotorch.readthedocs.io/en/latest/constraints.html#geotorch.positive_semidefinite_fixed_rank
 
 Each of these constraints have some extra parameters which can be used to tailor the
-behavior of each constraint to the problem in hand. For more on this, see the constructions
-section in the documentation.
+behavior of each constraint to the problem in hand. For more on this, see the documentation.
 
-These constraint functions are a convenient umbrella for the families of spaces listed below.
+These constraints are a fronted for the families of spaces listed below.
 
 Supported Spaces
 ----------------
@@ -167,7 +166,7 @@ GeoTorch also provides the following constructions which help the user to implem
 Using GeoTorch in your Code
 ---------------------------
 
-The files `examples/copying_problem.py`_ and `examples/sequential_mnist.py`_ serve as two tutorials to see how to handle the initialization and usage of GeoTorch in some real code. They also show how to implement Riemannian Gradient Descent and some other tricks.
+The files `examples/copying_problem.py`_ and `examples/sequential_mnist.py`_ serve as tutorials to see how to handle the initialization and usage of GeoTorch in some real code. They also show how to implement Riemannian Gradient Descent and some other tricks.
 
 If you have installed PyTorch v1.5 at least, you may try GeoTorch installing it via
 
