@@ -13,8 +13,8 @@ class AbstractManifold(P.Parametrization):
         such as `self.n` and `self.k` for matrix manifolds
 
         Args:
-            dimensions (int): Number of dimensions of the manifold as a tensor.
-                For example, a matrix manifold would have 2 dimensions, while a
+            dimensions (into or str): Number of dimensions of the manifold as a tensor or
+                "product". For example, a matrix manifold would have 2 dimensions, while a
                 vector would have 1. It should be a positive number
             size (torch.size): Size of the tensor to be applied to
         """
@@ -81,7 +81,7 @@ class Manifold(AbstractManifold):
         This class automatically implements the framework of dynamic trivializations
         described in `Trivializations for Gradient-Based Optimization on Manifolds
         - Lezcano-Casado, M. (NeurIPS 2019) <https://arxiv.org/abs/1909.09501>`_ allowing
-        to perform Riemannian gradient descent by calling after each SGD step to
+        to perform Riemannian gradient descent by calling after each SGD step the method
         :meth:`update_base`.
 
         For matrix manifolds, this class identifies :math:`\mathbb{R}^{k \times n}`
@@ -136,7 +136,7 @@ class Manifold(AbstractManifold):
         it also zeros-out the original parametrized tensor
 
         Args:
-            zero (bool,Optional): If `True`, this method will zero-out the parametrized
+            zero (bool, Optional): If `True`, this method will zero-out the parametrized
                 tensor. Default: `True`.
         """
         if not self.is_registered():
@@ -183,7 +183,7 @@ class Fibration(AbstractManifold):
         This class automatically implements the framework of dynamic trivializations
         described in `Trivializations for Gradient-Based Optimization on Manifolds
         - Lezcano-Casado, M. (NeurIPS 2019) <https://arxiv.org/abs/1909.09501>`_ allowing
-        to perform Riemannian gradient descent by calling after each SGD step to
+        to perform Riemannian gradient descent by calling after each SGD step the method
         :meth:`update_base`.
 
         For matrix manifolds, this class identifies :math:`\mathbb{R}^{k \times n}`
@@ -284,7 +284,7 @@ class Fibration(AbstractManifold):
         r""" Updates the base of total space
 
         Args:
-            zero (bool,Optional): If `True`, this method will zero-out the parametrized
+            zero (bool, Optional): If `True`, this method will zero-out the parametrized
                 tensor. Default: `True`.
         """
         self.total_space.update_base(zero)
@@ -299,7 +299,7 @@ class ProductManifold(AbstractManifold):
         This class automatically implements the framework of dynamic trivializations
         described in `Trivializations for Gradient-Based Optimization on Manifolds
         - Lezcano-Casado, M. (NeurIPS 2019) <https://arxiv.org/abs/1909.09501>`_ allowing
-        to perform Riemannian gradient descent by calling after each SGD step to
+        to perform Riemannian gradient descent by calling after each SGD step the method
         :meth:`update_base`.
 
         .. note::
@@ -348,7 +348,7 @@ class ProductManifold(AbstractManifold):
         r""" Updates the base of all the manifolds in the product
 
         Args:
-            zero (bool,Optional): If `True`, this method will zero-out the parametrized
+            zero (bool, Optional): If `True`, this method will zero-out the parametrized
                 tensor. Default: `True`.
         """
         if not self.is_registered():
