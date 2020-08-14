@@ -1,6 +1,6 @@
 import torch
 
-from .stiefel import Stiefel, StiefelTall
+from .stiefel import Stiefel, StiefelTall, non_singular_
 
 
 class Grassmannian(Stiefel):
@@ -66,10 +66,12 @@ class GrassmannianTall(StiefelTall):
         super().uniform_init_()
 
     def trivialization(self, X):
+        if torch.is_grad_enabled():
+            non_singular_(X)
         # We project onto \hlie^\perp so that X_\hlie = B.t() @ X = 0
         B = self.base
         Bt = B.transpose(-2, -1)
-        X = self._hlieperp(X, Bt @ X)
+        X = X - B @ (Bt @ X)
         # This line is the difference between the Grassmannian and the Stiefel manifold
         # In the Grassmannian A = 0, but we may still propagate the gradient along it
         A = (Bt @ X).tril(-1)

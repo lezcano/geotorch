@@ -165,20 +165,16 @@ class StiefelTall(Manifold):
         # We compute the exponential map as per Edelman
         # This also works for the Cayley
         # Note that this Cayley map is not the same as that of Wen & Yin
-        B = self.base
-        BtX = B.transpose(-2, -1) @ X
-        X = self._hlieperp(X, BtX)
-        A = BtX.tril(-1)
-        return self._expm_aux(X, A)
 
-    def _hlieperp(self, X, BtX):
-        r""" Returns :math:`X_{\mathfrak{h}^\perp}`"""
         if torch.is_grad_enabled():
             non_singular_(X)
         # Equivalent to (in the paper):
         # (Id - B @ B.t())X
         B = self.base
-        return X - B @ BtX
+        BtX = B.transpose(-2, -1) @ X
+        X = X - B @ BtX
+        A = BtX.tril(-1)
+        return self._expm_aux(X, A)
 
     def _expm_aux(self, X, A):
         r""" Forms

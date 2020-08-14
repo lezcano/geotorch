@@ -38,31 +38,37 @@ class TestSphere(TestCase):
                     with torch.no_grad():
                         layer.parametrizations.weight.uniform_init_()
                         layer.parametrizations.bias.uniform_init_()
+                        self.assertInSn(layer.weight)
+                        self.assertInSn(layer.bias)
 
                     input_ = torch.rand(5, n)
                     optim = torch.optim.SGD(layer.parameters(), lr=1.0)
 
                     # Assert that is stays in S^n after some optimiser steps
-                    for i in range(2):
-                        print(i)
-                        with P.cached():
-                            self.assertInSn(layer.weight)
-                            self.assertInSn(layer.bias)
-                            loss = layer(input_).sum()
-                        optim.zero_grad()
-                        loss.backward()
-                        optim.step()
+                    with torch.autograd.set_detect_anomaly(True):
+                        for i in range(2):
+                            print(i)
+                            with P.cached():
+                                self.assertInSn(layer.weight)
+                                self.assertInSn(layer.bias)
+                                loss = layer(input_).sum()
+                            optim.zero_grad()
+                            loss.backward()
+                            optim.step()
 
                     # If we change the base, the forward pass should give the same
                     # SphereEmbedded does not have a base
                     if cls != SphereEmbedded:
                         for w in ["weight", "bias"]:
-                            out_old = layer(input_)
-                            getattr(layer.parametrizations, w).update_base()
-                            out_new = layer(input_)
-                            self.assertAlmostEqual(
-                                (out_old - out_new).abs().max().item(), 0.0, places=5
-                            )
+                            with torch.no_grad():
+                                out_old = layer(input_)
+                                getattr(layer.parametrizations, w).update_base()
+                                out_new = layer(input_)
+                                self.assertAlmostEqual(
+                                    (out_old - out_new).abs().max().item(),
+                                    0.0,
+                                    places=5,
+                                )
 
     def test_construction(self):
         # Negative curvature
