@@ -58,13 +58,16 @@ class GrassmannianTall(StiefelTall):
                 callable. Default: `"expm"`
         """
         super().__init__(size, triv)
-        # Stiefel parametrization
-        zeros = self.fibr_aux.new_zeros(self.fibr_aux.size())
-        delattr(self, "fibr_aux")
-        self.register_buffer("fibr_aux", zeros)
 
     def uniform_init_(self):
         r""" Samples an orthogonal matrix uniformly at random according
         to the Haar measure on :math:`\operatorname{Gr}(n,k)`."""
         # We reimplement it just to change the documentation
         super().uniform_init_()
+
+    def trivialization(self, X):
+        # We project onto \hlie^\perp so that X_\hlie = B.t() @ X = 0
+        B = self.base
+        BtX = B.transpose(-2, -1) @ X
+        X = X - B @ BtX
+        return super().trivialization(X)

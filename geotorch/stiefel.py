@@ -112,7 +112,7 @@ def non_singular_(X):
     # PyTorch are not correctly implemented at zero... Check that
     with torch.no_grad():
         n, k = X.size()[-2:]
-        eps = k * 1e-8
+        eps = k * 1e-7
         # If it's close to zero, we give it a wiggle
         small = X.norm(dim=(-2, -1)) < eps
         if small.any():
@@ -160,9 +160,6 @@ class StiefelTall(Manifold):
             self.triv = triv
         else:
             self.triv = StiefelTall.trivializations[triv]
-
-        size_z = size[:-2] + (self.k, self.k)
-        self.register_parameter("fibr_aux", nn.Parameter(torch.zeros(*size_z)))
         self.uniform_init_()
 
     def trivialization(self, X):
@@ -178,12 +175,13 @@ class StiefelTall(Manifold):
         # delta = B @ A + IBBt @ X
         # Q, R = torch.qr(IBBt @ delta)
         B = self.base
-        Q, R = stable_qr(X - B @ (B.transpose(-2, -1) @ X))
+        BtX = B.transpose(-2, -1) @ X
+        Q, R = stable_qr(X - B @ BtX)
         # Form
-        # A \in Skew(k)
+        # skew(BtX) = A \in Skew(k)
         # Atilde = [[A, -R.t()],
         #           [R,  0    ]] \in Skew(2k)
-        A = self.fibr_aux.tril(-1)
+        A = BtX.tril(-1)
         z_size = self.tensorial_size + (2 * self.k, self.k)
         Atilde = torch.cat([torch.cat([A, R], dim=-2), X.new_zeros(*z_size)], dim=-1)
         Atilde = Atilde - Atilde.transpose(-2, -1)
@@ -192,11 +190,6 @@ class StiefelTall(Manifold):
         MN = self.triv(Atilde)[..., :, : self.k]
         return BQ @ MN
 
-    def update_base(self, zero=True):
-        super().update_base(zero)
-        with torch.no_grad():
-            self.fibr_aux.zero_()
-
     def uniform_init_(self):
         r""" Samples an orthogonal matrix uniformly at random according
         to the Haar measure on :math:`\operatorname{St}(n,k)`."""
@@ -204,7 +197,6 @@ class StiefelTall(Manifold):
             uniform_init_(self.base)
             if self.is_registered():
                 self.original_tensor().zero_()
-            self.fibr_aux.zero_()
 
     def torus_init_(self, init_=None, triv=expm):
         r"""Samples the 2D input `tensor` as a block-diagonal skew-symmetric matrix

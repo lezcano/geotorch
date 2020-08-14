@@ -60,11 +60,11 @@ class TestOrthogonal(TestCase):
                 for layer in layers[1:]:
                     with torch.no_grad():
                         layer.parametrizations.weight.base.copy_(X)
-                    self.assertAlmostEqual(
-                        torch.norm(layers[0].weight - layer.weight).item(),
-                        0.0,
-                        places=5,
-                    )
+                        self.assertAlmostEqual(
+                            torch.norm(layers[0].weight - layer.weight).item(),
+                            0.0,
+                            places=4,
+                        )
                     self.assertIsOrthogonal(layer.parametrizations.weight.base)
 
                 if isinstance(layers[0], nn.Linear):
@@ -89,12 +89,15 @@ class TestOrthogonal(TestCase):
                         optim.step()
                         results[-1].append(layer.weight)
                     # If we change the base, the forward pass should give the same
-                    prev_out = layer(input_)
-                    layer.parametrizations.weight.update_base()
-                    new_out = layer(input_)
-                    self.assertAlmostEqual(
-                        torch.norm(prev_out - new_out).abs().max().item(), 0.0, places=3
-                    )
+                    with torch.no_grad():
+                        prev_out = layer(input_)
+                        layer.parametrizations.weight.update_base()
+                        new_out = layer(input_)
+                        self.assertAlmostEqual(
+                            torch.norm(prev_out - new_out).abs().max().item(),
+                            0.0,
+                            places=7,
+                        )
 
                 self.assertPairwiseEqual(results)
 
