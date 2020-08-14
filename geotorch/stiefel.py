@@ -1,5 +1,4 @@
 import torch
-import torch.nn as nn
 
 from .constructions import Manifold, Fibration
 from .so import SO, uniform_init_, torus_init_, cayley_map
@@ -166,26 +165,39 @@ class StiefelTall(Manifold):
         # We compute the exponential map as per Edelman
         # This also works for the Cayley
         # Note that this Cayley map is not the same as that of Wen & Yin
+        B = self.base
+        BtX = B.transpose(-2, -1) @ X
+        X = self._hlieperp(X, BtX)
+        A = BtX.tril(-1)
+        return self._expm_aux(X, A)
 
+    def _hlieperp(self, X, BtX):
+        r""" Returns :math:`X_{\mathfrak{h}^\perp}`"""
         if torch.is_grad_enabled():
             non_singular_(X)
         # Equivalent to (in the paper):
-        # Id = torch.eye(n)
-        # IBBt = Id - B @ B.t()
-        # delta = B @ A + IBBt @ X
-        # Q, R = torch.qr(IBBt @ delta)
+        # (Id - B @ B.t())X
         B = self.base
-        BtX = B.transpose(-2, -1) @ X
-        Q, R = stable_qr(X - B @ BtX)
-        # Form
-        # skew(BtX) = A \in Skew(k)
-        # Atilde = [[A, -R.t()],
-        #           [R,  0    ]] \in Skew(2k)
-        A = BtX.tril(-1)
+        return X - B @ BtX
+
+    def _expm_aux(self, X, A):
+        r""" Forms
+            :math:`X \in \mathbb{R}^{n x k}`
+            :math:`Q, R = qr(X)`
+            :math:`A` is lower-triangular
+            :math:`hat{A} = A - A.t() \in \Skew(n)`
+            :math:`Atilde = [[hat{A}, -R.t()],
+                             [R,        0   ]] in Skew(2k)`
+            and returns
+            :math:`\pi([B, Q] expm(Atilde))`
+            where `pi` is the projection of a matrix into its first :math:`k` columns
+        """
+        Q, R = stable_qr(X)
         z_size = self.tensorial_size + (2 * self.k, self.k)
         Atilde = torch.cat([torch.cat([A, R], dim=-2), X.new_zeros(*z_size)], dim=-1)
         Atilde = Atilde - Atilde.transpose(-2, -1)
 
+        B = self.base
         BQ = torch.cat([B, Q], dim=-1)
         MN = self.triv(Atilde)[..., :, : self.k]
         return BQ @ MN

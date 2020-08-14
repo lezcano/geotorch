@@ -68,6 +68,10 @@ class GrassmannianTall(StiefelTall):
     def trivialization(self, X):
         # We project onto \hlie^\perp so that X_\hlie = B.t() @ X = 0
         B = self.base
-        BtX = B.transpose(-2, -1) @ X
-        X = X - B @ BtX
-        return super().trivialization(X)
+        Bt = B.transpose(-2, -1)
+        X = self._hlieperp(X, Bt @ X)
+        # This line is the difference between the Grassmannian and the Stiefel manifold
+        # In the Grassmannian A = 0, but we may still propagate the gradient along it
+        A = (Bt @ X).tril(-1)
+
+        return self._expm_aux(X, A)
