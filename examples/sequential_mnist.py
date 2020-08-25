@@ -83,7 +83,7 @@ class ExpRNNCell(nn.Module):
         elif args.constraints == "almostorthogonal":
             geotorch.almost_orthogonal(self.recurrent_kernel, "weight", args.r, args.f)
         else:
-            raise ValueError("Unexpected constaints. Got {}".format(args.constraints))
+            raise ValueError("Unexpected constraints. Got {}".format(args.constraints))
 
         self.reset_parameters()
 

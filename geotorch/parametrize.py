@@ -139,7 +139,7 @@ class Parametrization(Module):
 
 
 def set_caching(module, tensor_name):
-    r""" Sets up the caching mechanism for a given parametrization. This fuction is
+    r""" Sets up the caching mechanism for a given parametrization. This function is
     automatically invoked when using `register_parametrization` on a parameter or
     a buffer
 
@@ -214,7 +214,7 @@ def _set_parametrization(module, tensor_name, parametrization):
         global _cache
 
         key = (id(module), tensor_name)
-        # If the the _cache is not enabled or the caching was not enabled for this
+        # If the _cache is not enabled or the caching was not enabled for this
         # tensor, this function just evaluates the parametrization
         if _cache_enabled and key in _cache:
             if _cache[key] is None:
@@ -278,7 +278,7 @@ def register_parametrization(module, tensor_name, parametrization):
         )
 
     if is_parametrized(module, tensor_name):
-        # Putting a parametrization on a paramterization
+        # Putting a parametrization on a parametrization
         prev_parametrization = module.parametrizations[tensor_name]
         # Chain the parametrizations
         parametrization.chain(prev_parametrization)

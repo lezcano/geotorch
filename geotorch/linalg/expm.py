@@ -317,7 +317,7 @@ class expm_taylor_class(torch.autograd.Function):
     @staticmethod
     def backward(ctx, G):  # pragma: no cover
         (A,) = ctx.saved_tensors
-        # Handle tipical case separately as (dexp)_0 = Id
+        # Handle typical case separately as (dexp)_0 = Id
         if (A == 0).all():
             return G
         else:
