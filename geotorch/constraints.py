@@ -390,7 +390,7 @@ def positive_semidefinite(module, tensor_name, triv="expm"):
         >>> layer = nn.Linear(20, 20)
         >>> geotorch.positive_semidefinite(layer, "weight")
         >>> L = torch.symeig(layer.weight).eigenvalues
-        >>> L[L.abs() < 1e-7] = 0.0  # Round erros
+        >>> L[L.abs() < 1e-7] = 0.0  # Round errors
         >>> (L >= 0.0).all()
         tensor(True)
 
@@ -426,7 +426,7 @@ def positive_semidefinite_low_rank(
         >>> layer = nn.Linear(20, 20)
         >>> geotorch.positive_semidefinite_low_rank(layer, "weight", 5)
         >>> L = torch.symeig(layer.weight).eigenvalues
-        >>> L[L.abs() < 1e-7] = 0.0  # Round erros
+        >>> L[L.abs() < 1e-7] = 0.0  # Round errors
         >>> (L >= 0.0).all()
         tensor(True)
         >>> list(L > 0.0).count(True) <= 5
@@ -467,7 +467,7 @@ def positive_semidefinite_fixed_rank(
         >>> layer = nn.Linear(20, 20)
         >>> geotorch.positive_semidefinite_fixed_rank(layer, "weight", 5)
         >>> L = torch.symeig(layer.weight).eigenvalues
-        >>> L[L.abs() < 1e-7] = 0.0  # Round erros
+        >>> L[L.abs() < 1e-7] = 0.0  # Round errors
         >>> (L >= 0.0).all()
         tensor(True)
         >>> list(L > 0.0).count(True)
