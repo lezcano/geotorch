@@ -1,12 +1,12 @@
 import torch
 
-from .constructions import Manifold, Fibration
+from .constructions import Manifold, FibredSpace
 from .so import SO, uniform_init_, torus_init_, cayley_map
 from .linalg.expm import expm
 from .exceptions import VectorError
 
 
-class Stiefel(Fibration):
+class Stiefel(FibredSpace):
     def __init__(self, size, triv="expm"):
         r"""
         Manifold of rectangular orthogonal matrices parametrized as a projection from
@@ -51,7 +51,7 @@ class Stiefel(Fibration):
         size_z = self.tensorial_size + (self.n, self.n - self.k)
         return torch.cat([X, X.new_zeros(*size_z)], dim=-1)
 
-    def fibration(self, X):
+    def submersion(self, X):
         return X[..., :, : self.k]
 
     def uniform_init_(self):

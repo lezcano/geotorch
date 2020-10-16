@@ -10,7 +10,7 @@ class GLp(FixedRank):
         Args:
             size (torch.size): Size of the tensor to be applied to
             f (str or callable): Optional. The string `"softplus"` or a callable
-                that maps real numbers to the interval (0, infty). Default: `"softplus"`
+                that maps real numbers to the interval :math:`(0, \infty)`. Default: `"softplus"`
             triv (str or callable): Optional.
                 A map that maps :math:`\operatorname{Skew}(n)` onto the orthogonal
                 matrices surjectively. This is used to optimize the U and V in the

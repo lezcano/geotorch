@@ -1,4 +1,4 @@
-from .constructions import AbstractManifold, Fibration, ProductManifold
+from .constructions import AbstractManifold, FibredSpace, ProductManifold
 from .so import SO
 from .stiefel import Stiefel, StiefelTall
 from .reals import Rn
@@ -31,7 +31,7 @@ class Symmetric(AbstractManifold):
         return "n={}".format(self.n)
 
 
-class SymF(Fibration):
+class SymF(FibredSpace):
     def __init__(self, size, rank, f, triv="expm"):
         r"""
         Space of the symmetric matrices of rank at most k with eigenvalues
@@ -92,7 +92,7 @@ class SymF(Fibration):
         L = X.diagonal(dim1=-2, dim2=-1)[..., : self.rank]
         return X[..., : self.rank], L
 
-    def fibration(self, X):
+    def submersion(self, X):
         Q, L = X
         L = self.f(L)
         Qt = Q.transpose(-2, -1)

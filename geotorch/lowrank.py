@@ -1,11 +1,11 @@
-from .constructions import Fibration, ProductManifold
+from .constructions import FibredSpace, ProductManifold
 from .so import SO
 from .stiefel import Stiefel, StiefelTall
 from .reals import Rn
 from .exceptions import VectorError, RankError
 
 
-class LowRank(Fibration):
+class LowRank(FibredSpace):
     def __init__(self, size, rank, triv="expm"):
         r"""
         Variety of the matrices of rank :math:`r` or less.
@@ -66,7 +66,7 @@ class LowRank(Fibration):
         V = X.triu(1).transpose(-2, -1)[..., :, : self.rank]
         return U, S, V
 
-    def fibration(self, X):
+    def submersion(self, X):
         U, S, V = X
         Vt = V.transpose(-2, -1)
         # Multiply the three of them, S as a diagonal matrix

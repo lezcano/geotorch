@@ -13,5 +13,5 @@ class Rn(Manifold):
         self.base.zero_()
 
     def trivialization(self, X):
-        # We implement it with a base to be able to use it within a fibration
+        # We implement it with a base to be able to use it within a fibred space
         return X + self.base

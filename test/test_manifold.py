@@ -34,7 +34,7 @@ class TestManifold(TestCase):
     def test_errors(self):
         # Pass something that is not a manifold raises
         with self.assertRaises(TypeError):
-            constructions.Fibration(dimensions=2, size=(2, 4), total_space=None)
+            constructions.FibredSpace(dimensions=2, size=(2, 4), total_space=None)
 
         # update_base before registering it should throw
         M = SO((3, 3))

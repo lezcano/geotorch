@@ -27,7 +27,7 @@ where we have identified :math:`\mathbb{R}^k` with a diagonal matrix in :math:`\
 
 The function :math:`f_\lambda` is then applied element-wise to the diagonal of :math:`\Sigma`.
 
-If :math:`\lambda = 1` is chosen, the resulting space is not a manifold, although this should not hurt optimization in practice. If :math:`\lambda = 0` is chosen, then the resulting manifold is exactly the :ref:`Stiefel manifold <RST Stiefel>` with a different optimisation method than that implemented in :class:`geotorch.Stiefel` or :class:`geotorch.StiefelTall`. This implementation of the Stiefel manifold might sometimes outperform the usual one, as it is slightly overparametrized.
+If :math:`\lambda = 1` is chosen, the resulting space is not a manifold, although this should not hurt optimization in practice. If :math:`\lambda = 0` is chosen, then the resulting manifold is exactly the :ref:`Stiefel manifold <RST Stiefel>` with a different optimization method than that implemented in :class:`geotorch.Stiefel` or :class:`geotorch.StiefelTall`. This implementation of the Stiefel manifold might sometimes outperform the usual one, as it is slightly overparametrized.
 
 .. note::
 

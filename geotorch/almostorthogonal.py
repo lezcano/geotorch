@@ -56,7 +56,7 @@ class AlmostOrthogonal(LowRank):
             raise VectorError(cls.__name__, size)
         return min(*size[-2:])
 
-    def fibration(self, X):
+    def submersion(self, X):
         U, S, V = X
         S = 1.0 + self.lam * self.f(S)
-        return super().fibration((U, S, V))
+        return super().submersion((U, S, V))

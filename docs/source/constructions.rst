@@ -4,10 +4,10 @@ Constructions
 .. currentmodule:: geotorch.constructions
 
 These are the baseclasses that conform `GeoTorch`. In particular, every manifold is either a
-:class:`Manifold` or a :class:`Fibration`. They can be used to easily implement new manifolds
+:class:`Manifold` or a :class:`FibredSpace`. They can be used to easily implement new manifolds
 in terms a function that parametrizes the particular manifold in terms of another manifold or
 an unconstrained space. Their implementation is in terms of `Parametrizations` in `PyTorch`.
-This directly allows for the composition of these functions, as done in :class:`Fibration`.
+This directly allows for the composition of these functions, as done in :class:`FibredSpace`.
 It turns out that virtually all the spaces used in optimization and machine learning can be
 constructed from these two simple building blocks.
 
@@ -24,10 +24,10 @@ of differentiable manifolds as a `cartesian monoidal category
    .. automethod:: trivialization
    .. automethod:: update_base
 
-.. autoclass:: Fibration
+.. autoclass:: FibredSpace
 
    .. automethod:: embedding
-   .. automethod:: fibration
+   .. automethod:: submersion
    .. automethod:: update_base
    .. autoattribute:: total_space
    .. autoattribute:: base

@@ -41,7 +41,7 @@ class FixedRank(LowRank):
         else:
             self.f = FixedRank.fs[f]
 
-    def fibration(self, X):
+    def submersion(self, X):
         U, S, V = X
         S = self.f(S)
-        return super().fibration((U, S, V))
+        return super().submersion((U, S, V))

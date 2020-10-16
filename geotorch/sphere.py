@@ -1,6 +1,6 @@
 import torch
 
-from .constructions import Manifold, Fibration
+from .constructions import Manifold, FibredSpace
 from .stiefel import StiefelTall
 
 
@@ -61,7 +61,7 @@ class SphereEmbedded(Manifold):
         return "n={}, r={}, triv={}".format(self.n, self.r, self.triv.__name__)
 
 
-class Sphere(Fibration):
+class Sphere(FibredSpace):
     def __init__(self, size, r=1.0):
         r"""
         Sphere as a map from the tangent space onto the sphere using the exponential map.
@@ -84,7 +84,7 @@ class Sphere(Fibration):
     def embedding(self, x):
         return x.unsqueeze(-1)
 
-    def fibration(self, x):
+    def submersion(self, x):
         return self.r * x.squeeze(dim=-1)
 
     def uniform_init_(self):

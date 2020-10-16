@@ -158,8 +158,8 @@ GeoTorch also provides the following constructions which help the user to implem
 
 .. |manif| replace:: ``Manifold``
 .. _manif: https://geotorch.readthedocs.io/en/latest/constructions.html#geotorch.constructions.Manifold
-.. |fib| replace:: ``Fibration``
-.. _fib: https://geotorch.readthedocs.io/en/latest/constructions.html#geotorch.constructions.Fibration
+.. |fib| replace:: ``FibredSpace``
+.. _fib: https://geotorch.readthedocs.io/en/latest/constructions.html#geotorch.constructions.FibredSpace
 .. |prod| replace:: ``ProductManifold``
 .. _prod: https://geotorch.readthedocs.io/en/latest/constructions.html#geotorch.constructions.ProductManifold
 
@@ -190,7 +190,7 @@ Of course, this ``with`` statement may be used simply inside the forward functio
 
 These ideas fall in the context of parametrized optimization, where one wraps a tensor ``X`` with a function ``f``, and rather than using ``X``, uses ``f(X)``. Particular examples of this idea are pruning, weight normalization, and spectral normalization among others. This repository implements a framework to approach this kind of problems. The framework is currently `PR #33344`_ in PyTorch. All the functionality of this PR is located in `geotorch/parametrize.py`_.
 
-As every space in GeoTorch is, at its core, a map from a flat space into a manifold, the tools implemented here also serve as a building block in normalizing flows. Using a factorized space such as LowRank it is direct to compute the determinant of the transformation it defines, as we have direct access to the signular values of the layer.
+As every space in GeoTorch is, at its core, a map from a flat space into a manifold, the tools implemented here also serve as a building block in normalizing flows. Using a factorized space such as LowRank it is direct to compute the determinant of the transformation it defines, as we have direct access to the singular values of the layer.
 
 Bibliography
 ------------
