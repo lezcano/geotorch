@@ -12,7 +12,7 @@ def cached():
     r"""Context-manager that enables the caching system within
     :class:`torch.nn.Parametrization`
 
-    This is usful when one uses certain parametrized parameter more than
+    This is useful when one uses certain parametrized parameter more than
     once. An example of this is the loop in an RNN model
     """
     global _cache
