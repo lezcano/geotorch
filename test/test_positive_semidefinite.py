@@ -106,7 +106,10 @@ class TestPSSDLowRank(TestCase):
                             loss.backward()
                             optim.step()
 
-                            Q_orig, L_orig, = M.original
+                            (
+                                Q_orig,
+                                L_orig,
+                            ) = M.original
                             L_orig = M.f(L_orig)
                             self.assertIsOrthogonal(Q_orig)
                             self.assertIsSymmetric(layer.weight)

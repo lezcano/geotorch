@@ -73,7 +73,9 @@ class Sphere(FibredSpace):
         """
 
         super().__init__(
-            dimensions=1, size=size, total_space=StiefelTall(size + (1,), triv="expm"),
+            dimensions=1,
+            size=size,
+            total_space=StiefelTall(size + (1,), triv="expm"),
         )
         if r <= 0.0:
             raise ValueError(

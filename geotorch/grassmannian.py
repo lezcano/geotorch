@@ -32,7 +32,7 @@ class Grassmannian(Stiefel):
         return super().embedding(A)
 
     def uniform_init_(self):
-        r""" Samples an orthogonal matrix uniformly at random according
+        r"""Samples an orthogonal matrix uniformly at random according
         to the Haar measure on :math:`\operatorname{Gr}(n,k)`."""
         # We reimplement it just to change the documentation
         super().uniform_init_()
@@ -60,7 +60,7 @@ class GrassmannianTall(StiefelTall):
         super().__init__(size, triv)
 
     def uniform_init_(self):
-        r""" Samples an orthogonal matrix uniformly at random according
+        r"""Samples an orthogonal matrix uniformly at random according
         to the Haar measure on :math:`\operatorname{Gr}(n,k)`."""
         # We reimplement it just to change the documentation
         super().uniform_init_()

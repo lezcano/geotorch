@@ -99,7 +99,7 @@ class Parametrization(Module):
         return last
 
     def chain(self, parametrization):
-        r""" It modifies the current parametrization, parametrizing the original
+        r"""It modifies the current parametrization, parametrizing the original
         tensor in terms of the new parametrization
 
         The original parametrization is modified after chain is applied to it
@@ -124,13 +124,11 @@ class Parametrization(Module):
         return self
 
     def is_chained(self):
-        r"""Returns True if it is chained to other parametrizations
-        """
+        r"""Returns True if it is chained to other parametrizations"""
         return is_parametrized(self, "original")
 
     def is_registered(self):
-        r"""Returns True if it is registered on a module
-        """
+        r"""Returns True if it is registered on a module"""
         try:
             self.original_tensor()
             return True
@@ -139,7 +137,7 @@ class Parametrization(Module):
 
 
 def set_caching(module, tensor_name):
-    r""" Sets up the caching mechanism for a given parametrization. This function is
+    r"""Sets up the caching mechanism for a given parametrization. This function is
     automatically invoked when using `register_parametrization` on a parameter or
     a buffer
 
@@ -165,7 +163,7 @@ def set_caching(module, tensor_name):
 
 
 def remove_caching(module, tensor_name):
-    r""" Removes a caching mechanism for a given parametrization. This is automatically
+    r"""Removes a caching mechanism for a given parametrization. This is automatically
     done when using `remove_parametrization` on a parameter or a buffer
 
     After applying this function, the values of the parametrization will not be cached even
@@ -203,7 +201,7 @@ def has_caching(module, tensor_name):
 
 
 def _set_parametrization(module, tensor_name, parametrization):
-    r""" Sets up the parametrization mechanism used by parametrizations.
+    r"""Sets up the parametrization mechanism used by parametrizations.
     This works by substituting the class of the module by a class
     that extends it and makes `tensor_name` into a property. It also
     registers the parametrization under a ModuleDict called `parametrizations`.

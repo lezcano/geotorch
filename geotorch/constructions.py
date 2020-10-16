@@ -131,7 +131,7 @@ class Manifold(AbstractManifold):
         return X
 
     def update_base(self, zero=True):
-        r""" Changes `self.base` to the current output of `self.original`. It allows
+        r"""Changes `self.base` to the current output of `self.original`. It allows
         for the implementation of dynamic trivializations and RGD. If `zero == True`
         it also zeros-out the original parametrized tensor
 
@@ -224,7 +224,7 @@ class FibredSpace(AbstractManifold):
         self.chain(total_space)
 
     def embedding(self, X):  # pragma: no cover
-        r""" Embeds a vector :math:`X \in T_B M` where
+        r"""Embeds a vector :math:`X \in T_B M` where
 
         .. math::
 
@@ -281,7 +281,7 @@ class FibredSpace(AbstractManifold):
         return self.total_space.base
 
     def update_base(self, zero=True):
-        r""" Updates the base of total space
+        r"""Updates the base of total space
 
         Args:
             zero (bool, Optional): If `True`, this method will zero-out the parametrized
@@ -345,7 +345,7 @@ class ProductManifold(AbstractManifold):
         return tuple(mani.evaluate() for mani in self)
 
     def update_base(self, zero=True):
-        r""" Updates the base of all the manifolds in the product
+        r"""Updates the base of all the manifolds in the product
 
         Args:
             zero (bool, Optional): If `True`, this method will zero-out the parametrized

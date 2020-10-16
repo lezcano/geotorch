@@ -55,7 +55,7 @@ class Stiefel(FibredSpace):
         return X[..., :, : self.k]
 
     def uniform_init_(self):
-        r""" Samples an orthogonal matrix uniformly at random according
+        r"""Samples an orthogonal matrix uniformly at random according
         to the Haar measure on :math:`\operatorname{St}(n,k)`."""
         self.total_space.uniform_init_()
 
@@ -177,16 +177,16 @@ class StiefelTall(Manifold):
         return self._expm_aux(X, A)
 
     def _expm_aux(self, X, A):
-        r""" Forms
-            :math:`X \in \mathbb{R}^{n x k}`
-            :math:`Q, R = qr(X)`
-            :math:`A` is lower-triangular
-            :math:`hat{A} = A - A.t() \in \Skew(n)`
-            :math:`Atilde = [[hat{A}, -R.t()],
-                             [R,        0   ]] in Skew(2k)`
-            and returns
-            :math:`\pi([B, Q] expm(Atilde))`
-            where `pi` is the projection of a matrix into its first :math:`k` columns
+        r"""Forms
+        :math:`X \in \mathbb{R}^{n x k}`
+        :math:`Q, R = qr(X)`
+        :math:`A` is lower-triangular
+        :math:`hat{A} = A - A.t() \in \Skew(n)`
+        :math:`Atilde = [[hat{A}, -R.t()],
+                         [R,        0   ]] in Skew(2k)`
+        and returns
+        :math:`\pi([B, Q] expm(Atilde))`
+        where `pi` is the projection of a matrix into its first :math:`k` columns
         """
         Q, R = stable_qr(X)
         z_size = self.tensorial_size + (2 * self.k, self.k)
@@ -199,7 +199,7 @@ class StiefelTall(Manifold):
         return BQ @ MN
 
     def uniform_init_(self):
-        r""" Samples an orthogonal matrix uniformly at random according
+        r"""Samples an orthogonal matrix uniformly at random according
         to the Haar measure on :math:`\operatorname{St}(n,k)`."""
         with torch.no_grad():
             uniform_init_(self.base)

@@ -32,7 +32,10 @@ parser.add_argument(
     type=str,
 )
 parser.add_argument(
-    "--f", choices=["sigmoid", "tanh", "sin"], default="sigmoid", type=str,
+    "--f",
+    choices=["sigmoid", "tanh", "sin"],
+    default="sigmoid",
+    type=str,
 )
 parser.add_argument("--r", type=float, default=0.1)
 

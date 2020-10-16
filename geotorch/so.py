@@ -54,7 +54,7 @@ class SO(Manifold):
         return self.base @ self.triv(X)
 
     def uniform_init_(self):
-        r""" Samples an orthogonal matrix uniformly at random according
+        r"""Samples an orthogonal matrix uniformly at random according
         to the Haar measure on :math:`\operatorname{SO}(n)`."""
         with torch.no_grad():
             uniform_init_(self.base)

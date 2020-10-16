@@ -17,7 +17,7 @@ from .pssdfixedrank import PSSDFixedRank
 
 
 def symmetric(module, tensor_name, lower=True):
-    r""" Adds a symmetric parametrization to the matrix ``module[tensor_name]``.
+    r"""Adds a symmetric parametrization to the matrix ``module[tensor_name]``.
 
     When accessing ``module[tensor_name]``, the module will return the parametrized
     version :math:`X` so that :math:`X^\intercal = X`.
@@ -44,7 +44,7 @@ def symmetric(module, tensor_name, lower=True):
 
 
 def skew(module, tensor_name, lower=True):
-    r""" Adds a skew-symmetric parametrization to the matrix ``module[tensor_name]``.
+    r"""Adds a skew-symmetric parametrization to the matrix ``module[tensor_name]``.
 
     When accessing ``module[tensor_name]``, the module will return the parametrized
     version :math:`X` so that :math:`X^\intercal = -X`.
@@ -71,7 +71,7 @@ def skew(module, tensor_name, lower=True):
 
 
 def sphere(module, tensor_name, r=1.0):
-    r""" Adds a spherical parametrization to the vector (or tensor)
+    r"""Adds a spherical parametrization to the vector (or tensor)
     ``module[tensor_name]``.
 
     When accessing ``module[tensor_name]``, the module will return the parametrized
@@ -102,7 +102,7 @@ def sphere(module, tensor_name, r=1.0):
 
 
 def orthogonal(module, tensor_name, triv="expm"):
-    r""" Adds an orthogonal parametrization to the tensor ``module[tensor_name]``.
+    r"""Adds an orthogonal parametrization to the tensor ``module[tensor_name]``.
 
     When accessing ``module[tensor_name]``, the module will return the
     parametrized version :math:`X` so that :math:`X^\intercal X = \operatorname{Id}`.
@@ -149,7 +149,7 @@ def orthogonal(module, tensor_name, triv="expm"):
 
 
 def almost_orthogonal(module, tensor_name, lam, f="sigmoid", triv="expm"):
-    r""" Adds an almost orthogonal parametrization to the tensor ``module[tensor_name]``.
+    r"""Adds an almost orthogonal parametrization to the tensor ``module[tensor_name]``.
 
     When accessing ``module[tensor_name]``, the module will return the
     parametrized version :math:`X` which will have its singular values in
@@ -187,7 +187,7 @@ def almost_orthogonal(module, tensor_name, lam, f="sigmoid", triv="expm"):
 
 
 def grassmannian(module, tensor_name, triv="expm"):
-    r""" Adds an parametrization to the tensor ``module[tensor_name]`` so that the
+    r"""Adds an parametrization to the tensor ``module[tensor_name]`` so that the
     result represents a subspace. If the initial matrix was of size :math:`n \times k`
     the parametrized matrix will represent a subspace of dimension :math:`k` of
     :math:`\mathbb{R}^n`.
@@ -240,7 +240,7 @@ def grassmannian(module, tensor_name, triv="expm"):
 
 
 def low_rank(module, tensor_name, rank, triv="expm"):
-    r""" Adds a low rank parametrization to the tensor ``module[tensor_name]``.
+    r"""Adds a low rank parametrization to the tensor ``module[tensor_name]``.
 
     When accessing ``module[tensor_name]``, the module will return the
     parametrized version :math:`X` which will have rank at most ``rank``.
@@ -273,7 +273,7 @@ def low_rank(module, tensor_name, rank, triv="expm"):
 
 
 def fixed_rank(module, tensor_name, rank, f="softplus", triv="expm"):
-    r""" Adds a fixed rank parametrization to the tensor ``module[tensor_name]``.
+    r"""Adds a fixed rank parametrization to the tensor ``module[tensor_name]``.
 
     When accessing ``module[tensor_name]``, the module will return the
     parametrized version :math:`X` which will have rank equal to ``rank``.
@@ -308,7 +308,7 @@ def fixed_rank(module, tensor_name, rank, f="softplus", triv="expm"):
 
 
 def invertible(module, tensor_name, f="softplus", triv="expm"):
-    r""" Adds an invertibility constraint to the tensor ``module[tensor_name]``.
+    r"""Adds an invertibility constraint to the tensor ``module[tensor_name]``.
 
     When accessing ``module[tensor_name]``, the module will return the
     parametrized version :math:`X` which will have positive determinant and,
@@ -341,7 +341,7 @@ def invertible(module, tensor_name, f="softplus", triv="expm"):
 
 
 def positive_definite(module, tensor_name, f="softplus", triv="expm"):
-    r""" Adds a positive definiteness constraint to the tensor
+    r"""Adds a positive definiteness constraint to the tensor
     ``module[tensor_name]``.
 
     When accessing ``module[tensor_name]``, the module will return the
@@ -375,7 +375,7 @@ def positive_definite(module, tensor_name, f="softplus", triv="expm"):
 
 
 def positive_semidefinite(module, tensor_name, triv="expm"):
-    r""" Adds a positive definiteness constraint to the tensor
+    r"""Adds a positive definiteness constraint to the tensor
     ``module[tensor_name]``.
 
     When accessing ``module[tensor_name]``, the module will return the
@@ -411,7 +411,7 @@ def positive_semidefinite(module, tensor_name, triv="expm"):
 def positive_semidefinite_low_rank(
     module, tensor_name, rank, f="softplus", triv="expm"
 ):
-    r""" Adds a positive definiteness constraint to the tensor
+    r"""Adds a positive definiteness constraint to the tensor
     ``module[tensor_name]``.
 
     When accessing ``module[tensor_name]``, the module will return the
@@ -452,7 +452,7 @@ def positive_semidefinite_low_rank(
 def positive_semidefinite_fixed_rank(
     module, tensor_name, rank, f="softplus", triv="expm"
 ):
-    r""" Adds a positive definiteness constraint to the tensor
+    r"""Adds a positive definiteness constraint to the tensor
     ``module[tensor_name]``.
 
     When accessing ``module[tensor_name]``, the module will return the
