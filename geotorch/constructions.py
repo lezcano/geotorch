@@ -161,10 +161,10 @@ def parametrization_from_function(f, name):
     return T
 
 
-class FibredSpace(AbstractManifold):
+class FiberedSpace(AbstractManifold):
     def __init__(self, dimensions, size, total_space):
         r"""
-        Base class for a fibred space for parametrizing a manifold :math:`M` in terms
+        Base class for a fibered space for parametrizing a manifold :math:`M` in terms
         of another manifold :math:`E` through a submersion :math:`\pi \colon E \to M`. The class
         that implements this one should implement :meth:`embedding` and
         :meth:`submersion`
@@ -196,7 +196,7 @@ class FibredSpace(AbstractManifold):
                 vector would have 1. It should be a positive number
             size (torch.size): Size of the tensor to be applied to
             total_space (:class:`~geotorch.AbstractManifold`): The :class:`~geotorch.Manifold`,
-                :class:`~geotorch.FibredSpace` or :class:`~geotorch.ProductManifold`
+                :class:`~geotorch.FiberedSpace` or :class:`~geotorch.ProductManifold`
                 object that acts as a total space for the submersion. More generally,
                 it could be any :class:`~geotorch.AbstractManifold` that implements
                 :meth:`forward`.
@@ -263,7 +263,7 @@ class FibredSpace(AbstractManifold):
     @property
     def total_space(self):
         """
-        The total space of the fibred space
+        The total space of the fibered space
 
         Returns:
             manifold (:class:`~geotorch.AbstractManifold`)
@@ -273,7 +273,7 @@ class FibredSpace(AbstractManifold):
     @property
     def base(self):
         """
-        The base of the total space of the fibred space
+        The base of the total space of the fibered space
 
         Returns:
             tensor (torch.Tensor)
@@ -304,7 +304,7 @@ class ProductManifold(AbstractManifold):
 
         .. note::
 
-            This manifold is mostly useful in combination with :class:`~geotorch.FibredSpace`,
+            This manifold is mostly useful in combination with :class:`~geotorch.FiberedSpace`,
             to create quotients of product manifolds, such as :class:`~geotorch.LowRank`
 
         Args:

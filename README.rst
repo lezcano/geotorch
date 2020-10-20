@@ -152,14 +152,14 @@ Every space of dimension ``(n, k)`` can be applied to tensors of shape ``(*, n, 
 GeoTorch also provides the following constructions which help the user to implement other spaces:
 
 - |manif|_: Manifold that supports Riemannian Gradient Descent and trivializations
-- |fib|_: Fibred space π : E → M, constructed from a ``Manifold`` E, a submersion π and the adjoint dπ*
+- |fib|_: Fibered space π : E → M, constructed from a ``Manifold`` E, a submersion π and the adjoint dπ*
 - |prod|_: M₁ × ... × Mₖ
 
 
 .. |manif| replace:: ``Manifold``
 .. _manif: https://geotorch.readthedocs.io/en/latest/constructions.html#geotorch.constructions.Manifold
-.. |fib| replace:: ``FibredSpace``
-.. _fib: https://geotorch.readthedocs.io/en/latest/constructions.html#geotorch.constructions.FibredSpace
+.. |fib| replace:: ``FiberedSpace``
+.. _fib: https://geotorch.readthedocs.io/en/latest/constructions.html#geotorch.constructions.FiberedSpace
 .. |prod| replace:: ``ProductManifold``
 .. _prod: https://geotorch.readthedocs.io/en/latest/constructions.html#geotorch.constructions.ProductManifold
 

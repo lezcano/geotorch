@@ -1,12 +1,12 @@
 import torch
 
-from .constructions import Manifold, FibredSpace
+from .constructions import Manifold, FiberedSpace
 from .so import SO, uniform_init_, torus_init_, cayley_map
 from .linalg.expm import expm
 from .exceptions import VectorError
 
 
-class Stiefel(FibredSpace):
+class Stiefel(FiberedSpace):
     def __init__(self, size, triv="expm"):
         r"""
         Manifold of rectangular orthogonal matrices parametrized as a projection from

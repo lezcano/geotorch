@@ -13,7 +13,7 @@ from .constraints import (
     positive_semidefinite_low_rank,
     positive_semidefinite_fixed_rank,
 )
-from .constructions import AbstractManifold, Manifold, FibredSpace, ProductManifold
+from .constructions import AbstractManifold, Manifold, FiberedSpace, ProductManifold
 from .reals import Rn
 from .skew import Skew
 from .symmetric import Symmetric
@@ -36,7 +36,7 @@ __version__ = "0.1.0"
 __all__ = [
     "AbstractManifold",
     "Manifold",
-    "FibredSpace",
+    "FiberedSpace",
     "ProductManifold",
     "Grassmannian",
     "GrassmannianTall",

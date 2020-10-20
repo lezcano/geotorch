@@ -172,7 +172,7 @@ def almost_orthogonal(module, tensor_name, lam, f="sigmoid", triv="expm"):
             on which the parametrization will be applied
         lam (float): Radius. A float in the interval [0, 1]
         f (str or callable): Optional. One of `["sigmoid", "tanh", "sin"]`
-            or a callable that maps real numbers to the interval [-1, 1].
+            or a callable that maps real numbers onto the interval :math:`[-1, 1]`.
             Default: `"sigmoid"`
         triv (str or callable): Optional.
             A map that maps :math:`\operatorname{Skew}(n)` onto the orthogonal
@@ -296,7 +296,7 @@ def fixed_rank(module, tensor_name, rank, f="softplus", triv="expm"):
             It has to be less than the minimum of the two dimensions of the
             matrix
         f (str or callable): Optional. The string `"softplus"` or a callable
-            that maps real numbers to the interval (0, infty). Default: `"softplus"`
+            that maps real numbers onto the interval :math:`(0, \infty)`. Default: `"softplus"`
         triv (str or callable): Optional.
             A map that maps :math:`\operatorname{Skew}(n)` onto the orthogonal
             matrices surjectively. This is used to optimize the U, V in the
@@ -329,7 +329,7 @@ def invertible(module, tensor_name, f="softplus", triv="expm"):
         tensor_name (string): name of the parameter, buffer, or parametrization
             on which the parametrization will be applied
         f (str or callable): Optional. The string `"softplus"` or a callable
-            that maps real numbers to the interval (0, infty). Default: `"softplus"`
+            that maps real numbers onto the interval :math:`(0, \infty)`. Default: `"softplus"`
         triv (str or callable): Optional.
             A map that maps :math:`\operatorname{Skew}(n)` onto the orthogonal
             matrices surjectively. This is used to optimize the U, V in the
@@ -363,7 +363,7 @@ def positive_definite(module, tensor_name, f="softplus", triv="expm"):
         tensor_name (string): name of the parameter, buffer, or parametrization
             on which the parametrization will be applied
         f (str or callable): Optional. The string `"softplus"` or a callable
-            that maps real numbers to the interval (0, infty). Default: `"softplus"`
+            that maps real numbers onto the interval :math:`(0, \infty)`. Default: `"softplus"`
         triv (str or callable): Optional.
             A map that maps :math:`\operatorname{Skew}(n)` onto the orthogonal
             matrices surjectively. This is used to optimize the Q in the eigenvalue
@@ -481,7 +481,7 @@ def positive_semidefinite_fixed_rank(
             It has to be less than the minimum of the two dimensions of the
             matrix
         f (str or callable): Optional. The string `"softplus"` or a callable
-            that maps real numbers to the interval (0, infty). Default: `"softplus"`
+            that maps real numbers onto the interval :math:`(0, \infty)`. Default: `"softplus"`
         triv (str or callable): Optional.
             A map that maps :math:`\operatorname{Skew}(n)` onto the orthogonal
             matrices surjectively. This is used to optimize the Q in the eigenvalue

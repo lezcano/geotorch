@@ -1,11 +1,11 @@
-from .constructions import FibredSpace, ProductManifold
+from .constructions import FiberedSpace, ProductManifold
 from .so import SO
 from .stiefel import Stiefel, StiefelTall
 from .reals import Rn
 from .exceptions import VectorError, RankError
 
 
-class LowRank(FibredSpace):
+class LowRank(FiberedSpace):
     def __init__(self, size, rank, triv="expm"):
         r"""
         Variety of the matrices of rank :math:`r` or less.
