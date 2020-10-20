@@ -12,6 +12,7 @@ DEV_REQUIRES = TEST_REQUIRES + [
     "sphinx",
     "sphinx-autodoc-typehints",
     "sphinx-rtd-theme",
+    "sphinxcontrib-spelling",
     "codecov",
 ]
 
