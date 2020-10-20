@@ -100,18 +100,18 @@ GeoTorch currently supports the following spaces:
 - |reals|_: Rⁿ. Unrestricted optimization
 - |sym|_: Vector space of symmetric matrices
 - |skew|_: Vector space of skew-symmetric matrices
-- |sphere|_: Sphere in Rⁿ. It is Sⁿ⁻¹ = { x ∈ Rⁿ | ||x|| = 1 }
-- |so|_: Manifold of n×n orthogonal matrices
-- |st|_: Manifold of n×k matrices with orthonormal columns
-- |almost|_: Manifold of n×k matrices with singular values in the interval (1-λ, 1+λ)
-- |grass|_: Manifold of k-dimensional subspaces in Rⁿ
-- |glp|_: Manifold of invertible n×n matrices with positive determinant
-- |low|_: Variety of n×k matrices of rank r or less
-- |fixed|_: Manifold of n×k matrices of rank r
-- |psd|_: Cone of n×n symmetric positive definite matrices
-- |pssd|_: Cone of n×n symmetric positive semi-definite matrices
-- |pssdlow|_: Variety of n×n symmetric positive semi-definite matrices of rank r or less
-- |pssdfixed|_: Manifold of n×n symmetric positive semi-definite matrices of rank r
+- |sphere|_: Sphere in Rⁿ. { x ∈ Rⁿ | ||x|| = 1 } ⊂ Rⁿ
+- |so|_: Manifold of ``n×n`` orthogonal matrices
+- |st|_: Manifold of ``n×k`` matrices with orthonormal columns
+- |almost|_: Manifold of ``n×k`` matrices with singular values in the interval ``[1-λ, 1+λ]``
+- |grass|_: Manifold of ``k``-dimensional subspaces in Rⁿ
+- |glp|_: Manifold of invertible ``n×n`` matrices with positive determinant
+- |low|_: Variety of ``n×k`` matrices of rank ``r`` or less
+- |fixed|_: Manifold of ``n×k`` matrices of rank ``r``
+- |psd|_: Cone of ``n×n`` symmetric positive definite matrices``
+- |pssd|_: Cone of ``n×n`` symmetric positive semi-definite matrices
+- |pssdlow|_: Variety of ``n×n`` symmetric positive semi-definite matrices of rank ``r`` or less
+- |pssdfixed|_: Manifold of ``n×n`` symmetric positive semi-definite matrices of rank ``r``
 
 .. |reals| replace:: ``Rn(n)``
 .. _reals: https://geotorch.readthedocs.io/en/latest/vector_spaces/reals.html
@@ -152,7 +152,7 @@ Every space of dimension ``(n, k)`` can be applied to tensors of shape ``(*, n, 
 GeoTorch also provides the following constructions which help the user to implement other spaces:
 
 - |manif|_: Manifold that supports Riemannian Gradient Descent and trivializations
-- |fib|_: Fibred space π : E → M, constructed from a ``Manifold`` E, a submersion π and local sections of dπ
+- |fib|_: Fibred space π : E → M, constructed from a ``Manifold`` E, a submersion π and the adjoint dπ*
 - |prod|_: M₁ × ... × Mₖ
 
 
