@@ -104,9 +104,9 @@ class Model(nn.Module):
     def forward(self, inputs):
         out_rnn = self.rnn.default_hidden(inputs[:, 0, ...])
         outputs = []
-        with torch.parametrize.cached():
+        with geotorch.parametrize.cached():
             for input in torch.unbind(inputs, dim=1):
-                out_rnn, self.rnn(input, out_rnn)
+                out_rnn = self.rnn(input, out_rnn)
                 outputs.append(self.lin(out_rnn))
         return torch.stack(outputs, dim=1)
 
