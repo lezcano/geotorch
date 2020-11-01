@@ -2,7 +2,10 @@ import torch
 
 from .constructions import Manifold, FiberedSpace
 from .so import SO, uniform_init_, torus_init_, cayley_map
-from .linalg.expm import expm
+try:
+    from torch import matrix_exp as expm
+except ImportError:
+    from .linalg.expm import expm
 from .exceptions import VectorError
 
 

@@ -3,7 +3,10 @@ import torch
 
 from .constructions import Manifold
 from .skew import Skew
-from .linalg.expm import expm
+try:
+    from torch import matrix_exp as expm
+except ImportError:
+    from .linalg.expm import expm
 from .exceptions import NonSquareError
 
 
