@@ -13,7 +13,7 @@ class Grassmannian(Stiefel):
         .. note::
 
             This class is equivalent to :class:`GrassmannianTall`, but it is faster
-            for the case when :math:`n` is of a similar size of `k`. For example,
+            for the case when :math:`n` is of a similar size of :math:`k`. For example,
             :math:`n \leq 4k`.
 
         Args:
@@ -48,7 +48,7 @@ class GrassmannianTall(StiefelTall):
         .. note::
 
             This class is equivalent to :class:`Grassmannian`, but it is faster for the case
-            when :math:`n` is of a much larger than `k`. For example, :math:`n > 4k`.
+            when :math:`n` is of a much larger than :math:`k`. For example, :math:`n > 4k`.
 
         Args:
             size (torch.size): Size of the tensor to be applied to

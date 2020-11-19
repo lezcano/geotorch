@@ -19,7 +19,7 @@ class Stiefel(FiberedSpace):
         .. note::
 
             This class is equivalent to :class:`StiefelTall`, but it is faster for the
-            case when :math:`n` is of a similar size of `k`. For example,
+            case when :math:`n` is of a similar size of :math:`k`. For example,
             :math:`n \leq 4k`.
 
         Args:
@@ -140,7 +140,7 @@ class StiefelTall(Manifold):
         .. note::
 
             This class is equivalent to :class:`Stiefel`, but it is faster for the case
-            when :math:`n` is of a much larger than `k`. For example, :math:`n > 4k`.
+            when :math:`n` is of a much larger than :math:`k`. For example, :math:`n > 4k`.
 
         Args:
             size (torch.size): Size of the tensor to be applied to
