@@ -1,11 +1,30 @@
 import torch
 
-from .constructions import Manifold, FiberedSpace
-from .stiefel import StiefelTall
+from .constructions import Manifold
 
 
 def project(x):
     return x / x.norm(dim=-1, keepdim=True)
+
+
+class sinc_class(torch.autograd.Function):
+    @staticmethod
+    def forward(ctx, x):
+        ctx.save_for_backward(x)
+        # Hardocoded for float, will do for now
+        ret = torch.sin(x) / x
+        ret[x.abs() < 1e-45] = 1.0
+        return ret
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        x, = ctx.saved_tensors
+        ret = torch.cos(x) / x - torch.sin(x) / (x * x)
+        ret[x.abs() < 1e-10] = 0.0
+        return ret * grad_output
+
+
+sinc = sinc_class.apply
 
 
 class SphereEmbedded(Manifold):
@@ -61,37 +80,47 @@ class SphereEmbedded(Manifold):
         return "n={}, r={}, triv={}".format(self.n, self.r, self.triv.__name__)
 
 
-class Sphere(FiberedSpace):
+class Sphere(Manifold):
     def __init__(self, size, r=1.0):
         r"""
-        Sphere as a map from the tangent space onto the sphere using the exponential map.
+        Sphere as a map from the tangent space onto the sphere using the
+        exponential map.
 
         Args:
             size (torch.size): Size of the tensor to be applied to
             r (float): Optional.
                 Radius of the sphere. It has to be positive. Default: 1.
         """
-
         super().__init__(
             dimensions=1,
-            size=size,
-            total_space=StiefelTall(size + (1,), triv="expm"),
+            size=size
         )
+        print("SIZE")
+        print(size)
         if r <= 0.0:
             raise ValueError(
                 "The radius has to be a positive real number. Got {}".format(r)
             )
         self.r = r
 
-    def embedding(self, x):
-        return x.unsqueeze(-1)
-
-    def submersion(self, x):
-        return self.r * x.squeeze(dim=-1)
+    def trivialization(self, v):
+        # Project v onto {<x,v> = 0}
+        x = self.base
+        projection = (v.unsqueeze(-2) @ x.unsqueeze(-1)).squeeze(-1)
+        print("PROJECTION")
+        print(projection.size())
+        v = v - projection * x
+        vnorm = v.norm(dim=-1, keepdim=True)
+        ret = torch.cos(vnorm) * x + sinc(vnorm) * v
+        print(ret)
+        return ret
 
     def uniform_init_(self):
         r"""Samples a point uniformly on the sphere"""
-        self.total_space.uniform_init_()
+        self.base.data.normal_()
+        self.base.data = project(self.base.data)
+        if self.is_registered():
+            self.original_tensor().zero_()
 
     def extra_repr(self):
         return "n={}, r={}".format(self.n, self.r)
