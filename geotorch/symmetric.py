@@ -1,3 +1,4 @@
+import torch
 from .constructions import AbstractManifold, FiberedSpace, ProductManifold
 from .so import SO
 from .stiefel import Stiefel, StiefelTall
@@ -80,6 +81,8 @@ class SymF(FiberedSpace):
 
     @staticmethod
     def cls_stiefel(size):
+        if torch.__version__ >= "1.7.0":
+            return Stiefel
         n, k = size[-2:]
         if n == k:
             return SO

@@ -3,6 +3,7 @@ import torch
 
 from .constructions import Manifold
 from .skew import Skew
+
 try:
     from torch import matrix_exp as expm
 except ImportError:

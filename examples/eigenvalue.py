@@ -7,7 +7,7 @@ import torch
 from torch import nn
 import geotorch
 
-N = 1000      # matrix size
+N = 1000  # matrix size
 LR = 1.0 / N  # step-size.
 # Obs. If the distribution of the matrix is changed, this parameter should be tuned
 

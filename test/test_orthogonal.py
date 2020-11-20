@@ -40,8 +40,11 @@ class TestOrthogonal(TestCase):
     def _test_orthogonality(self, cls, cls_tall):
         r"""Test that we may instantiate the parametrizations and
         register them in modules of several sizes. Check that the
-        results are orthogonal and equal in the three cases.
+        results are orthogonal and equal in the two/three cases.
         """
+        if torch.__version__ >= "1.7.0":
+            cls_tall = cls
+
         with torch.random.fork_rng(devices=range(torch.cuda.device_count())):
             torch.random.manual_seed(8888)
             for layers in self._test_layers(cls, cls_tall):
@@ -52,11 +55,14 @@ class TestOrthogonal(TestCase):
                     self.assertIsOrthogonal(layer.parametrizations.weight.base)
 
                 # Make the initialization the same
-                X = (
-                    layers[0].weight.t()
-                    if layers[0].parametrizations.weight.transpose
-                    else layers[0].weight
-                )
+                if torch.__version__ >= "1.7.0":
+                    X = layers[0].parametrizations.weight.base
+                else:
+                    X = (
+                        layers[0].weight.t()
+                        if layers[0].parametrizations.weight.transpose
+                        else layers[0].weight
+                    )
                 for layer in layers[1:]:
                     with torch.no_grad():
                         layer.parametrizations.weight.base.copy_(X)
@@ -65,7 +71,7 @@ class TestOrthogonal(TestCase):
                             0.0,
                             places=4,
                         )
-                    self.assertIsOrthogonal(layer.parametrizations.weight.base)
+                        self.assertIsOrthogonal(layer.parametrizations.weight.base)
 
                 if isinstance(layers[0], nn.Linear):
                     input_ = torch.rand(5, layers[0].in_features)
@@ -102,13 +108,14 @@ class TestOrthogonal(TestCase):
                 self.assertPairwiseEqual(results)
 
     def _test_custom_trivialization(self, cls):
-        def qr(X):
-            return torch.qr(X).Q
+        def cayley(X):
+            n = X.size(0)
+            Id = torch.eye(n, dtype=X.dtype, device=X.device)
+            return torch.solve(Id - X, Id + X)[0]
 
-        # Note that qr is not an analytic function. As such, it may not be used with StiefelTall
         layer = nn.Linear(5, 3)
         P.register_parametrization(
-            layer, "weight", cls(size=layer.weight.size(), triv=qr)
+            layer, "weight", cls(size=layer.weight.size(), triv=cayley)
         )
 
         optim = torch.optim.SGD(layer.parameters(), lr=0.1)
@@ -122,6 +129,9 @@ class TestOrthogonal(TestCase):
             optim.step()
 
     def _test_constructor(self, cls, cls_tall):
+        if torch.__version__ >= "1.7.0":
+            cls_tall = cls
+
         with self.assertRaises(ValueError):
             cls(size=(3, 3), triv="wrong")
 
@@ -152,6 +162,9 @@ class TestOrthogonal(TestCase):
             SO(size=(7,))
 
     def _test_initializations(self, cls, cls_tall):
+        if torch.__version__ >= "1.7.0":
+            cls_tall = cls
+
         for layers in self._test_layers(cls, cls_tall):
             for layer in layers:
                 p = layer.parametrizations.weight
@@ -206,11 +219,18 @@ class TestOrthogonal(TestCase):
 
         for (n, k), triv in itertools.product(sizes, trivs):
             for layer in [nn.Linear(n, k), nn.Conv2d(n, 4, k)]:
-                layers = []
-                test_so = cls != Grassmannian and n == k
-                layers.append(layer)
-                layers.append(deepcopy(layer))
-                if test_so:
+                layers = [layer, deepcopy(layer)]
+                if cls == Stiefel and n == k:
+                    layers.append(deepcopy(layer))
+                P.register_parametrization(
+                    layers[0], "weight", cls(size=layers[0].weight.size(), triv=triv)
+                )
+                P.register_parametrization(
+                    layers[1],
+                    "weight",
+                    cls_tall(size=layers[1].weight.size(), triv=triv),
+                )
+                if cls == Stiefel and n == k:
                     layers.append(deepcopy(layer))
                     P.register_parametrization(
                         layers[2], "weight", SO(size=layers[2].weight.size(), triv=triv)
@@ -221,14 +241,6 @@ class TestOrthogonal(TestCase):
                         size = layer.weight.size()[:-2] + (n, k)
                         SO(size=size, triv=triv)
 
-                P.register_parametrization(
-                    layers[0], "weight", cls(size=layers[0].weight.size(), triv=triv)
-                )
-                P.register_parametrization(
-                    layers[1],
-                    "weight",
-                    cls_tall(size=layers[1].weight.size(), triv=triv),
-                )
                 yield layers
 
     def assertIsOrthogonal(self, X):

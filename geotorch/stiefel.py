@@ -2,6 +2,7 @@ import torch
 
 from .constructions import Manifold, FiberedSpace
 from .so import SO, uniform_init_, torus_init_, cayley_map
+
 try:
     from torch import matrix_exp as expm
 except ImportError:
@@ -150,6 +151,15 @@ class StiefelTall(Manifold):
                 callable. Default: `"expm"`
         """
         super().__init__(dimensions=2, size=size)
+        if torch.__version__ >= "1.7.0":
+            cls = self.__class__.__name__
+            raise RuntimeError(
+                "{} not available in PyTorch 1.7.0, "
+                "as it introduced a breaking change in the "
+                "gradients of the QR decomposition. "
+                "Use {} instead.".format(cls, cls[: -len("Tall")])
+            )
+
         if triv not in StiefelTall.trivializations.keys() and not callable(triv):
             raise ValueError(
                 "Argument triv was not recognized and is "

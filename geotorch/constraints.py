@@ -1,3 +1,4 @@
+import torch
 import geotorch.parametrize as P
 
 from .symmetric import Symmetric
@@ -141,6 +142,8 @@ def orthogonal(module, tensor_name, triv="expm"):
     n, k = max(n, k), min(n, k)
     if n == k:
         cls = SO
+    elif torch.__version__ >= "1.7.0":
+        cls = Stiefel
     elif n > 4 * k:
         cls = StiefelTall
     else:

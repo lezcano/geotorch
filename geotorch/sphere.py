@@ -18,7 +18,7 @@ class sinc_class(torch.autograd.Function):
 
     @staticmethod
     def backward(ctx, grad_output):
-        x, = ctx.saved_tensors
+        (x,) = ctx.saved_tensors
         ret = torch.cos(x) / x - torch.sin(x) / (x * x)
         ret[x.abs() < 1e-10] = 0.0
         return ret * grad_output
@@ -91,10 +91,7 @@ class Sphere(Manifold):
             r (float): Optional.
                 Radius of the sphere. It has to be positive. Default: 1.
         """
-        super().__init__(
-            dimensions=1,
-            size=size
-        )
+        super().__init__(dimensions=1, size=size)
         if r <= 0.0:
             raise ValueError(
                 "The radius has to be a positive real number. Got {}".format(r)
@@ -108,7 +105,7 @@ class Sphere(Manifold):
         projection = (v.unsqueeze(-2) @ x.unsqueeze(-1)).squeeze(-1)
         v = v - projection * x
         vnorm = v.norm(dim=-1, keepdim=True)
-        return torch.cos(vnorm) * x + sinc(vnorm) * v
+        return self.r * (torch.cos(vnorm) * x + sinc(vnorm) * v)
 
     def uniform_init_(self):
         r"""Samples a point uniformly on the sphere"""
