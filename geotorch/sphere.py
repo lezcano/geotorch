@@ -95,32 +95,28 @@ class Sphere(Manifold):
             dimensions=1,
             size=size
         )
-        print("SIZE")
-        print(size)
         if r <= 0.0:
             raise ValueError(
                 "The radius has to be a positive real number. Got {}".format(r)
             )
         self.r = r
+        self.uniform_init_()
 
     def trivialization(self, v):
         # Project v onto {<x,v> = 0}
         x = self.base
         projection = (v.unsqueeze(-2) @ x.unsqueeze(-1)).squeeze(-1)
-        print("PROJECTION")
-        print(projection.size())
         v = v - projection * x
         vnorm = v.norm(dim=-1, keepdim=True)
-        ret = torch.cos(vnorm) * x + sinc(vnorm) * v
-        print(ret)
-        return ret
+        return torch.cos(vnorm) * x + sinc(vnorm) * v
 
     def uniform_init_(self):
         r"""Samples a point uniformly on the sphere"""
-        self.base.data.normal_()
-        self.base.data = project(self.base.data)
-        if self.is_registered():
-            self.original_tensor().zero_()
+        with torch.no_grad():
+            self.base.data.normal_()
+            self.base.data = project(self.base.data)
+            if self.is_registered():
+                self.original_tensor().zero_()
 
     def extra_repr(self):
         return "n={}, r={}".format(self.n, self.r)
