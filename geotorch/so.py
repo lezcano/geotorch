@@ -12,8 +12,10 @@ from .exceptions import NonSquareError
 
 
 def cayley_map(X):
-    n = X.size(0)
+    n = X.size(-1)
     Id = torch.eye(n, dtype=X.dtype, device=X.device)
+    if X.ndimension() > 2:
+        Id = Id.expand_as(X)
     return torch.solve(Id - X, Id + X)[0]
 
 
