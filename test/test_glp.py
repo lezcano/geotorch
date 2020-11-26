@@ -5,6 +5,7 @@ import torch.nn as nn
 
 import geotorch.parametrize as P
 from geotorch.glp import GLp
+from geotorch.utils import update_base
 
 
 class TestGLp(TestCase):
@@ -55,7 +56,7 @@ class TestGLp(TestCase):
 
                     # Test update_base
                     prev_out = layer(input_)
-                    layer.parametrizations.weight.update_base()
+                    update_base(layer, "weight")
                     new_out = layer(input_)
                     self.assertAlmostEqual(
                         torch.norm(prev_out - new_out).abs().max().item(),

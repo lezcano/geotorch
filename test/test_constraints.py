@@ -3,6 +3,8 @@ import torch
 import torch.nn as nn
 
 import geotorch
+from .test_positive_semidefinite import get_eigen
+from .test_lowrank import get_svd
 
 
 class TestConstraints(TestCase):
@@ -106,8 +108,8 @@ class TestConstraints(TestCase):
     def test_almost_orthogonal(self):
         def is_almost_orthogonal(net, lam):
             M = net.parametrizations.weight
-            U_orig, S_orig, V_orig = M.original
-            S_orig = 1.0 + lam * M.f(S_orig)
+            U_orig, S_orig, V_orig = get_svd(M)
+            S_orig = 1.0 + lam * S_orig
             self.assertIsOrthogonal(U_orig)
             self.assertIsOrthogonal(V_orig)
             self.assertHasSingularValues(net.weight, S_orig)
@@ -138,23 +140,20 @@ class TestConstraints(TestCase):
             geotorch.grassmannian(net, "bias")
 
     def test_low_and_fixed_rank(self):
-        def is_low_rank(net, fr):
+        def is_low_rank(net):
             M = net.parametrizations.weight
-            U_orig, S_orig, V_orig = M.original
-            if fr:
-                S_orig = M.f(S_orig)
+            U_orig, S_orig, V_orig = get_svd(M)
             self.assertIsOrthogonal(U_orig)
             self.assertIsOrthogonal(V_orig)
             self.assertHasSingularValues(net.weight, S_orig)
 
         for f_set in [geotorch.low_rank, geotorch.fixed_rank]:
-            fr = f_set == geotorch.fixed_rank
             net = nn.Linear(4, 7)
             f_set(net, "weight", rank=3)
-            is_low_rank(net, fr)
+            is_low_rank(net)
             net = nn.Linear(3, 3)
             f_set(net, "weight", rank=2, triv="cayley")
-            is_low_rank(net, fr)
+            is_low_rank(net)
             with self.assertRaises(ValueError):
                 f_set(net, "bias", rank=2)
 
@@ -163,7 +162,7 @@ class TestConstraints(TestCase):
 
         net = nn.Linear(3, 3)
         geotorch.fixed_rank(net, "weight", rank=2, f=f, triv="cayley")
-        is_low_rank(net, True)
+        is_low_rank(net)
 
     def test_invertible(self):
         def is_invertible(net):
@@ -181,8 +180,7 @@ class TestConstraints(TestCase):
     def test_positive_semidefinite(self):
         def is_pssd_low_rank(net):
             M = net.parametrizations.weight
-            Q_orig, L_orig = M.original
-            L_orig = M.f(L_orig)
+            Q_orig, L_orig = get_eigen(M)
             self.assertIsOrthogonal(Q_orig)
             self.assertHasEigenvalues(net.weight, L_orig)
 

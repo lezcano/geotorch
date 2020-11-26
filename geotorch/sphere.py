@@ -1,6 +1,7 @@
 import torch
 
-from .constructions import Manifold
+import geotorch.parametrize as P
+from .utils import base, _extra_repr
 
 
 def project(x):
@@ -27,7 +28,7 @@ class sinc_class(torch.autograd.Function):
 sinc = sinc_class.apply
 
 
-class SphereEmbedded(Manifold):
+class SphereEmbedded(P.Parametrization):
     trivializations = {"project": project}
 
     def __init__(self, size, triv="project", r=1.0):
@@ -44,7 +45,7 @@ class SphereEmbedded(Manifold):
             r (float): Optional.
                 Radius of the sphere. It has to be positive. Default: 1.
         """
-        super().__init__(dimensions=1, size=size, dynamic=False)
+        super().__init__()
 
         if triv not in SphereEmbedded.trivializations.keys() and not callable(triv):
             raise ValueError(
@@ -62,10 +63,13 @@ class SphereEmbedded(Manifold):
             raise ValueError(
                 "The radius has to be a positive real number. Got {}".format(r)
             )
+        self.n = size[-1]
+        self.tensorial_size = size[:-1]
         self.r = r
         self.uniform_init_()
 
-    def trivialization(self, x):
+    @base
+    def forward(self, x):
         return self.r * self.triv(x)
 
     def uniform_init_(self):
@@ -77,10 +81,10 @@ class SphereEmbedded(Manifold):
                 x.data = project(x.data)
 
     def extra_repr(self):
-        return "n={}, r={}, triv={}".format(self.n, self.r, self.triv.__name__)
+        return _extra_repr(n=self.n, r=self.r, tensorial_size=self.tensorial_size)
 
 
-class Sphere(Manifold):
+class Sphere(P.Parametrization):
     def __init__(self, size, r=1.0):
         r"""
         Sphere as a map from the tangent space onto the sphere using the
@@ -91,19 +95,28 @@ class Sphere(Manifold):
             r (float): Optional.
                 Radius of the sphere. It has to be positive. Default: 1.
         """
-        super().__init__(dimensions=1, size=size)
+        super().__init__()
         if r <= 0.0:
             raise ValueError(
                 "The radius has to be a positive real number. Got {}".format(r)
             )
+        self.n = size[-1]
+        self.tensorial_size = size[:-1]
         self.r = r
+        self.base = torch.empty(*size)
         self.uniform_init_()
 
-    def trivialization(self, v):
-        # Project v onto {<x,v> = 0}
-        x = self.base
+    def frame(self, x, v):
         projection = (v.unsqueeze(-2) @ x.unsqueeze(-1)).squeeze(-1)
         v = v - projection * x
+        return v
+
+    @base
+    def forward(self, v):
+        # self.base has norm `r` rather than norm 1
+        x = project(self.base)
+        # Project v onto {<x,v> = 0}
+        v = self.frame(x, v)
         vnorm = v.norm(dim=-1, keepdim=True)
         return self.r * (torch.cos(vnorm) * x + sinc(vnorm) * v)
 
@@ -111,9 +124,9 @@ class Sphere(Manifold):
         r"""Samples a point uniformly on the sphere"""
         with torch.no_grad():
             self.base.data.normal_()
-            self.base.data = project(self.base.data)
+            self.base.data = self.r * project(self.base.data)
             if self.is_registered():
                 self.original_tensor().zero_()
 
     def extra_repr(self):
-        return "n={}, r={}".format(self.n, self.r)
+        return _extra_repr(n=self.n, r=self.r, tensorial_size=self.tensorial_size)

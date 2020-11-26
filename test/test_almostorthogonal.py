@@ -6,6 +6,8 @@ import torch.nn as nn
 
 import geotorch.parametrize as P
 from geotorch.almostorthogonal import AlmostOrthogonal
+from geotorch.utils import update_base
+from .test_lowrank import get_svd
 
 
 class TestLowRank(TestCase):
@@ -33,8 +35,6 @@ class TestLowRank(TestCase):
         # Sort the singular values from our parametrization
         S_orig = torch.sort(torch.abs(S_orig), descending=True).values
 
-        print(S)
-        print(S_orig)
         error = self.vector_error(S_orig, S)
         self.assertTrue((error < 1e-3).all())
 
@@ -75,8 +75,8 @@ class TestLowRank(TestCase):
                     M = cls(size=layer.weight.size(), lam=lam, f=f)
                     P.register_parametrization(layer, "weight", M)
                     self.assertTrue(P.is_parametrized(layer, "weight"))
-                    U_orig, S_orig, V_orig = M.original
-                    S_orig = 1.0 + lam * M.f(S_orig)
+                    U_orig, S_orig, V_orig = get_svd(M)
+                    S_orig = 1.0 + lam * S_orig
                     self.assertIsOrthogonal(U_orig)
                     self.assertIsOrthogonal(V_orig)
                     self.assertHasSingularValues(layer.weight, S_orig, lam)
@@ -95,15 +95,15 @@ class TestLowRank(TestCase):
                         loss.backward()
                         optim.step()
 
-                        U_orig, S_orig, V_orig = M.original
-                        S_orig = 1.0 + lam * M.f(S_orig)
+                        U_orig, S_orig, V_orig = get_svd(M)
+                        S_orig = 1.0 + lam * S_orig
                         self.assertIsOrthogonal(U_orig)
                         self.assertIsOrthogonal(V_orig)
                         self.assertHasSingularValues(layer.weight, S_orig, lam)
 
                     # Test update_base
                     prev_out = layer(input_)
-                    layer.parametrizations.weight.update_base()
+                    update_base(layer, "weight")
                     new_out = layer(input_)
                     self.assertAlmostEqual(
                         torch.norm(prev_out - new_out).abs().max().item(),

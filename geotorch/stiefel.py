@@ -1,7 +1,9 @@
 import torch
+import geotorch.parametrize as P
 
-from .constructions import Manifold, FiberedSpace
+from .utils import transpose, base, _extra_repr
 from .so import SO, uniform_init_, torus_init_, cayley_map
+from .skew import Skew
 
 try:
     from torch import matrix_exp as expm
@@ -10,7 +12,7 @@ except ImportError:
 from .exceptions import VectorError
 
 
-class Stiefel(FiberedSpace):
+class Stiefel(SO):
     def __init__(self, size, triv="expm"):
         r"""
         Manifold of rectangular orthogonal matrices parametrized as a projection from
@@ -30,13 +32,8 @@ class Stiefel(FiberedSpace):
                 matrices surjectively. It can be one of `["expm", "cayley"]` or a custom
                 callable. Default: `"expm"`
         """
-
-        super().__init__(
-            dimensions=2,
-            size=size,
-            total_space=SO(size=Stiefel.size_so(size), triv=triv, lower=True),
-        )
-        self.triv = triv
+        super().__init__(size=Stiefel.size_so(size), triv=triv, lower=True)
+        self.k = min(size[-1], size[-2])
 
     @classmethod
     def size_so(cls, size):
@@ -46,22 +43,20 @@ class Stiefel(FiberedSpace):
         size_so[-1] = size_so[-2] = max(size[-1], size[-2])
         return tuple(size_so)
 
-    def embedding(self, X):
-        # Returns the matrix
-        # A = [ X 0 ] \in R^{n x n}
-        # The skew symmetric embedding will make it into A - A^t, which is an
-        # identification of T_pSt(n,k) as a subset of Skew(n) via left-invariant
-        # vector fields
-        size_z = self.tensorial_size + (self.n, self.n - self.k)
+    @staticmethod
+    def _frame(X):
+        n, k = X.size(-2), X.size(-1)
+        size_z = X.size()[:-2] + (n, n - k)
         return torch.cat([X, X.new_zeros(*size_z)], dim=-1)
 
-    def submersion(self, X):
-        return X[..., :, : self.k]
+    def frame(self, X):
+        return Stiefel._frame(X)
 
-    def uniform_init_(self):
-        r"""Samples an orthogonal matrix uniformly at random according
-        to the Haar measure on :math:`\operatorname{St}(n,k)`."""
-        self.total_space.uniform_init_()
+    @transpose
+    def forward(self, X):
+        X = self.frame(X)
+        X = super().forward(X)
+        return X[..., : self.k]
 
     def torus_init_(self, init_=None, triv=expm):
         r"""Samples the 2D input `tensor` as a block-diagonal skew-symmetric matrix
@@ -90,14 +85,7 @@ class Stiefel(FiberedSpace):
                 "This initialization is just available in square matrices."
                 "This matrix has dimensions ({}, {})".format(self.n, self.k)
             )
-
-        with torch.no_grad():
-            torus_init_(self.base, init_, triv)
-            if self.is_registered():
-                self.original_tensor().zero_()
-
-    def extra_repr(self):
-        return super().extra_repr() + ", triv={}".format(self.triv)
+        super().torus_init_(init_, triv)
 
 
 def stable_qr(X):
@@ -129,7 +117,7 @@ def non_singular_(X):
         return X
 
 
-class StiefelTall(Manifold):
+class StiefelTall(P.Parametrization):
     trivializations = {"expm": expm, "cayley": cayley_map}
 
     def __init__(self, size, triv="expm"):
@@ -150,7 +138,7 @@ class StiefelTall(Manifold):
                 matrices surjectively. It can be one of `["expm", "cayley"]` or a custom
                 callable. Default: `"expm"`
         """
-        super().__init__(dimensions=2, size=size)
+        super().__init__()
         if torch.__version__ >= "1.7.0":
             cls = self.__class__.__name__
             raise RuntimeError(
@@ -160,7 +148,30 @@ class StiefelTall(Manifold):
                 "Use {} instead.".format(cls, cls[: -len("Tall")])
             )
 
-        if triv not in StiefelTall.trivializations.keys() and not callable(triv):
+        n, k, tensorial_size = StiefelTall.parse_size(size)
+        self.n = n
+        self.k = k
+        self.tensorial_size = tensorial_size
+        self.triv = StiefelTall.parse_triv(triv)
+        self.base = torch.empty(*(tensorial_size + (n, k)))
+        self.uniform_init_()
+
+    @classmethod
+    def parse_size(cls, size):
+        if len(size) < 2:
+            raise VectorError(cls.__name__, size)
+        n = max(size[-2:])
+        k = min(size[-2:])
+        tensorial_size = size[:-2]
+        return n, k, tensorial_size
+
+    @staticmethod
+    def parse_triv(triv):
+        if triv in StiefelTall.trivializations.keys():
+            return StiefelTall.trivializations[triv]
+        elif callable(triv):
+            return triv
+        else:
             raise ValueError(
                 "Argument triv was not recognized and is "
                 "not callable. Should be one of {}. Found {}".format(
@@ -168,13 +179,9 @@ class StiefelTall(Manifold):
                 )
             )
 
-        if callable(triv):
-            self.triv = triv
-        else:
-            self.triv = StiefelTall.trivializations[triv]
-        self.uniform_init_()
-
-    def trivialization(self, X):
+    @transpose
+    @base
+    def forward(self, X):
         # We compute the exponential map as per Edelman
         # This also works for the Cayley
         # Note that this Cayley map is not the same as that of Wen & Yin
@@ -202,9 +209,9 @@ class StiefelTall(Manifold):
         where `pi` is the projection of a matrix into its first :math:`k` columns
         """
         Q, R = stable_qr(X)
-        z_size = self.tensorial_size + (2 * self.k, self.k)
-        Atilde = torch.cat([torch.cat([A, R], dim=-2), X.new_zeros(*z_size)], dim=-1)
-        Atilde = Atilde - Atilde.transpose(-2, -1)
+        AR = torch.cat([A, R], dim=-2)
+        Atilde = Stiefel._frame(AR)
+        Atilde = Skew.frame(Atilde, lower=True)
 
         B = self.base
         BQ = torch.cat([B, Q], dim=-1)
@@ -213,7 +220,7 @@ class StiefelTall(Manifold):
 
     def uniform_init_(self):
         r"""Samples an orthogonal matrix uniformly at random according
-        to the Haar measure on :math:`\operatorname{St}(n,k)`."""
+        to the Haar measure"""
         with torch.no_grad():
             uniform_init_(self.base)
             if self.is_registered():
@@ -253,4 +260,6 @@ class StiefelTall(Manifold):
                 self.original_tensor().zero_()
 
     def extra_repr(self):
-        return super().extra_repr() + ", triv={}".format(self.triv.__name__)
+        return _extra_repr(
+            n=self.n, k=self.k, tensorial_size=self.tensorial_size, triv=self.triv
+        )

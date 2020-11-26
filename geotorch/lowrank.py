@@ -1,12 +1,13 @@
 import torch
-from .constructions import FiberedSpace, ProductManifold
+from .constructions import ProductManifold
 from .so import SO
 from .stiefel import Stiefel, StiefelTall
 from .reals import Rn
 from .exceptions import VectorError, RankError
+from .utils import transpose, _extra_repr
 
 
-class LowRank(FiberedSpace):
+class LowRank(ProductManifold):
     def __init__(self, size, rank, triv="expm"):
         r"""
         Variety of the matrices of rank :math:`r` or less.
@@ -22,34 +23,32 @@ class LowRank(FiberedSpace):
                 SVD. It can be one of `["expm", "cayley"]` or a custom
                 callable. Default: `"expm"`
         """
-
-        size_u, size_s, size_v = LowRank.size_usv(size, rank)
-        Stiefel_u = LowRank.cls_stiefel(size_u)
-        Stiefel_v = LowRank.cls_stiefel(size_v)
-        super().__init__(
-            dimensions=2,
-            size=size,
-            total_space=ProductManifold(
-                [Stiefel_u(size_u, triv), Rn(size_s), Stiefel_v(size_v, triv)]
-            ),
-        )
+        n, k, tensorial_size = LowRank.parse_size(size)
+        if rank > min(n, k) or rank < 1:
+            raise RankError(n, k, rank)
+        super().__init__(LowRank.manifolds(n, k, rank, tensorial_size, triv))
+        self.n = n
+        self.k = k
+        self.tensorial_size = tensorial_size
         self.rank = rank
 
     @classmethod
-    def size_usv(cls, size, rank):
+    def parse_size(cls, size):
         if len(size) < 2:
             raise VectorError(cls.__name__, size)
-        # Split the size and transpose if necessary
+        n = max(size[-2:])
+        k = min(size[-2:])
         tensorial_size = size[:-2]
-        n, k = size[-2:]
-        if n < k:
-            n, k = k, n
-        if rank > min(n, k) or rank < 1:
-            raise RankError(n, k, rank)
+        return n, k, tensorial_size
+
+    @staticmethod
+    def manifolds(n, k, rank, tensorial_size, triv):
         size_u = tensorial_size + (n, rank)
         size_s = tensorial_size + (rank,)
         size_v = tensorial_size + (k, rank)
-        return size_u, size_s, size_v
+        Stiefel_u = LowRank.cls_stiefel(size_u)
+        Stiefel_v = LowRank.cls_stiefel(size_v)
+        return Stiefel_u(size_u, triv), Rn(size_s), Stiefel_v(size_v, triv)
 
     @staticmethod
     def cls_stiefel(size):
@@ -63,14 +62,24 @@ class LowRank(FiberedSpace):
         else:
             return Stiefel
 
-    def embedding(self, X):
-        U = X.tril(-1)[..., :, : self.rank]
+    def frame(self, X):
+        U = X.tril(-1)[..., : self.rank]
         S = X.diagonal(dim1=-2, dim2=-1)[..., : self.rank]
-        V = X.triu(1).transpose(-2, -1)[..., :, : self.rank]
+        V = X.triu(1).transpose(-2, -1)[..., : self.rank]
         return U, S, V
 
-    def submersion(self, X):
-        U, S, V = X
+    def submersion(self, U, S, V):
         Vt = V.transpose(-2, -1)
         # Multiply the three of them, S as a diagonal matrix
         return U @ (S.unsqueeze(-1).expand_as(Vt) * Vt)
+
+    @transpose
+    def forward(self, X):
+        Xs = self.frame(X)
+        U, S, V = super().forward(Xs)
+        return self.submersion(U, S, V)
+
+    def extra_repr(self):
+        return _extra_repr(
+            n=self.n, k=self.k, rank=self.rank, tensorial_size=self.tensorial_size
+        )

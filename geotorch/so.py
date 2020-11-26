@@ -1,14 +1,15 @@
 import math
 import torch
 
-from .constructions import Manifold
+import geotorch.parametrize as P
+from .utils import base, _extra_repr
 from .skew import Skew
 
 try:
     from torch import matrix_exp as expm
 except ImportError:
     from .linalg.expm import expm
-from .exceptions import NonSquareError
+from .exceptions import NonSquareError, VectorError
 
 
 def cayley_map(X):
@@ -19,7 +20,7 @@ def cayley_map(X):
     return torch.solve(Id - X, Id + X)[0]
 
 
-class SO(Manifold):
+class SO(P.Parametrization):
     trivializations = {"expm": expm, "cayley": cayley_map}
 
     def __init__(self, size, triv="expm", lower=True):
@@ -28,35 +29,50 @@ class SO(Manifold):
         in terms of its Lie algebra, the skew-symmetric matrices.
 
         Args:
-            size (torch.size): Size of the tensor to be applied to
-            triv (str or callable): Optional.
                 A map that maps :math:`\operatorname{Skew}(n)` onto the orthogonal
                 matrices surjectively. It can be one of `["expm", "cayley"]` or a custom
                 callable. Default: `"expm"`
-            lower (bool): Optional. Uses the lower triangular part of the matrix to parametrize
-                the skew-symmetric matrices. Default: `True`
+            lower (bool): Optional. Uses the lower triangular part of the matrix to
+                parametrize the skew-symmetric matrices. Default: `True`
         """
-        super().__init__(dimensions=2, size=size)
-        if self.n != self.k:
-            raise NonSquareError(self.__class__.__name__, size)
+        super().__init__()
+        n, tensorial_size = SO.parse_size(size)
+        self.n = n
+        self.tensorial_size = tensorial_size
+        self.lower = lower
+        self.triv = SO.parse_triv(triv)
+        self.base = torch.empty(*size)
 
-        if triv not in SO.trivializations.keys() and not callable(triv):
+        self.uniform_init_()
+
+    @classmethod
+    def parse_size(cls, size):
+        if len(size) < 2:
+            raise VectorError(cls.__name__, size)
+        n = max(size[-2:])
+        k = min(size[-2:])
+        if n != k:
+            raise NonSquareError(cls.__name__, size)
+        tensorial_size = size[:-2]
+        return n, tensorial_size
+
+    @staticmethod
+    def parse_triv(triv):
+        if triv in SO.trivializations.keys():
+            return SO.trivializations[triv]
+        elif callable(triv):
+            return triv
+        else:
             raise ValueError(
                 "Argument triv was not recognized and is "
                 "not callable. Should be one of {}. Found {}".format(
                     list(SO.trivializations.keys()), triv
                 )
             )
-        if callable(triv):
-            self.triv = triv
-        else:
-            self.triv = SO.trivializations[triv]
 
-        # Precompose with Skew
-        self.chain(Skew(size=size, lower=lower))
-        self.uniform_init_()
-
-    def trivialization(self, X):
+    @base
+    def forward(self, X):
+        X = Skew.frame(X, self.lower)
         return self.base @ self.triv(X)
 
     def uniform_init_(self):
@@ -71,7 +87,8 @@ class SO(Manifold):
         r"""Samples the 2D input `tensor` as a block-diagonal skew-symmetric matrix
         which is skew-symmetric in the main diagonal. The blocks are of the form
         :math:`\begin{pmatrix} 0 & b \\ -b & 0\end{pmatrix}` where :math:`b` is
-        distributed according to `init_`. Then it is projected to the manifold using `triv`.
+        distributed according to `init_`. Then it is projected to the manifold
+        using `triv`.
 
         .. note::
 
@@ -91,7 +108,7 @@ class SO(Manifold):
                 self.original_tensor().zero_()
 
     def extra_repr(self):
-        return "n={}, triv={}".format(self.n, self.triv.__name__)
+        return _extra_repr(n=self.n, tensorial_size=self.tensorial_size, triv=self.triv)
 
 
 def uniform_init_(tensor):

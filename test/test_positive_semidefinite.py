@@ -6,10 +6,21 @@ import torch.nn as nn
 
 import geotorch.parametrize as P
 
+from geotorch.constructions import ProductManifold
 from geotorch.pssdlowrank import PSSDLowRank
 from geotorch.pssdfixedrank import PSSDFixedRank
 from geotorch.pssd import PSSD
 from geotorch.psd import PSD
+from geotorch.utils import update_base
+
+
+def get_eigen(M):
+    size = M.original.size()
+    X = M.original if size[-2] >= size[-1] else M.original.transpose(-2, -1)
+    Q, L = ProductManifold.forward(M, M.frame(X))
+    if hasattr(M, "f"):
+        L = M.f(L)
+    return Q, L
 
 
 class TestPSSDLowRank(TestCase):
@@ -86,8 +97,7 @@ class TestPSSDLowRank(TestCase):
                             M = cls(size=layer.weight.size())
                         P.register_parametrization(layer, "weight", M)
                         self.assertTrue(P.is_parametrized(layer, "weight"))
-                        Q_orig, L_orig = M.original
-                        L_orig = M.f(L_orig)
+                        Q_orig, L_orig = get_eigen(M)
                         self.assertIsOrthogonal(Q_orig)
                         self.assertIsSymmetric(layer.weight)
                         self.assertHasEigenvalues(layer.weight, L_orig)
@@ -106,18 +116,14 @@ class TestPSSDLowRank(TestCase):
                             loss.backward()
                             optim.step()
 
-                            (
-                                Q_orig,
-                                L_orig,
-                            ) = M.original
-                            L_orig = M.f(L_orig)
+                            Q_orig, L_orig = get_eigen(M)
                             self.assertIsOrthogonal(Q_orig)
                             self.assertIsSymmetric(layer.weight)
                             self.assertHasEigenvalues(layer.weight, L_orig)
 
                         # Test update_base
                         prev_out = layer(input_)
-                        layer.parametrizations.weight.update_base()
+                        update_base(layer, "weight")
                         new_out = layer(input_)
                         self.assertAlmostEqual(
                             torch.norm(prev_out - new_out).abs().max().item(),

@@ -22,13 +22,13 @@ class PSSDFixedRank(SymF):
                 decomposition. It can be one of `["expm", "cayley"]` or a custom
                 callable. Default: `"expm"`
         """
-        if f not in PSSDFixedRank.fs.keys() and not callable(f):
+        if f in PSSDFixedRank.fs.keys():
+            f = PSSDFixedRank.fs[f]
+        elif not callable(f):
             raise ValueError(
                 "Argument f was not recognized and is "
                 "not callable. Should be one of {}. Found {}".format(
                     list(PSSDFixedRank.fs.keys()), f
                 )
             )
-        if f in PSSDFixedRank.fs.keys():
-            f = PSSDFixedRank.fs[f]
         super().__init__(size, rank, f, triv)

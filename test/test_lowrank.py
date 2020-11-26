@@ -3,10 +3,22 @@ import itertools
 
 import torch
 import torch.nn as nn
-
 import geotorch.parametrize as P
+
+from geotorch.constructions import ProductManifold
 from geotorch.lowrank import LowRank
 from geotorch.fixedrank import FixedRank
+from geotorch.utils import update_base
+
+
+def get_svd(M):
+    # Very hacky, but will do for now
+    size = M.original.size()
+    X = M.original if size[-2] >= size[-1] else M.original.transpose(-2, -1)
+    U, S, V = ProductManifold.forward(M, M.frame(X))
+    if hasattr(M, "f"):
+        S = M.f(S)
+    return U, S, V
 
 
 class TestLowRank(TestCase):
@@ -75,10 +87,7 @@ class TestLowRank(TestCase):
                         M = cls(size=layer.weight.size(), rank=r)
                         P.register_parametrization(layer, "weight", M)
                         self.assertTrue(P.is_parametrized(layer, "weight"))
-                        U_orig, S_orig, V_orig = M.original
-                        if cls == FixedRank:
-                            # Apply f, as S_orig is just the unconstrained vector in R^n
-                            S_orig = M.f(S_orig)
+                        U_orig, S_orig, V_orig = get_svd(M)
                         self.assertIsOrthogonal(U_orig)
                         self.assertIsOrthogonal(V_orig)
                         self.assertHasSingularValues(layer.weight, S_orig)
@@ -97,17 +106,14 @@ class TestLowRank(TestCase):
                             loss.backward()
                             optim.step()
 
-                            U_orig, S_orig, V_orig = M.original
-                            if cls == FixedRank:
-                                # Apply f, as S_orig is just the unconstrained vector in R^n
-                                S_orig = M.f(S_orig)
+                            U_orig, S_orig, V_orig = get_svd(M)
                             self.assertIsOrthogonal(U_orig)
                             self.assertIsOrthogonal(V_orig)
                             self.assertHasSingularValues(layer.weight, S_orig)
 
                         # Test update_base
                         prev_out = layer(input_)
-                        layer.parametrizations.weight.update_base()
+                        update_base(layer, "weight")
                         new_out = layer(input_)
                         self.assertAlmostEqual(
                             torch.norm(prev_out - new_out).abs().max().item(),

@@ -24,9 +24,7 @@ class TestSkew(TestCase):
 
         for n, lower in itertools.product(sizes, [True, False]):
             layer = nn.Linear(n, n)
-            P.register_parametrization(
-                layer, "weight", Skew(size=layer.weight.size(), lower=lower)
-            )
+            P.register_parametrization(layer, "weight", Skew(lower=lower))
 
             input_ = torch.rand(5, n)
             optim = torch.optim.SGD(layer.parameters(), lr=1.0)
@@ -41,17 +39,17 @@ class TestSkew(TestCase):
                 loss.backward()
                 optim.step()
 
-    def test_construction(self):
+    def test_non_square(self):
         # Non-square skew
         with self.assertRaises(ValueError):
-            Skew(size=(3, 2))
+            Skew()(torch.rand(3, 2))
 
         with self.assertRaises(ValueError):
-            Skew(size=(1, 3))
+            Skew()(torch.rand(1, 3))
 
         # Try to instantiate it in a vector rather than a matrix
         with self.assertRaises(ValueError):
-            Skew(size=(4,))
+            Skew()(torch.rand(4))
 
     def test_repr(self):
-        print(Skew(size=(4, 4)))
+        print(Skew())

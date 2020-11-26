@@ -5,11 +5,12 @@ import itertools
 
 import torch
 import torch.nn as nn
-
 import geotorch.parametrize as P
+
 from geotorch.so import SO, torus_init_, uniform_init_
 from geotorch.stiefel import Stiefel, StiefelTall
 from geotorch.grassmannian import Grassmannian, GrassmannianTall
+from geotorch.utils import update_base
 
 
 class TestOrthogonal(TestCase):
@@ -58,11 +59,8 @@ class TestOrthogonal(TestCase):
                 if torch.__version__ >= "1.7.0":
                     X = layers[0].parametrizations.weight.base
                 else:
-                    X = (
-                        layers[0].weight.t()
-                        if layers[0].parametrizations.weight.transpose
-                        else layers[0].weight
-                    )
+                    X = layers[0].weight
+                    X = X.t() if X.size(-1) > X.size(-2) else X
                 for layer in layers[1:]:
                     with torch.no_grad():
                         layer.parametrizations.weight.base.copy_(X)
@@ -97,7 +95,7 @@ class TestOrthogonal(TestCase):
                     # If we change the base, the forward pass should give the same
                     with torch.no_grad():
                         prev_out = layer(input_)
-                        layer.parametrizations.weight.update_base()
+                        update_base(layer, "weight")
                         new_out = layer(input_)
                         self.assertAlmostEqual(
                             torch.norm(prev_out - new_out).abs().max().item(),

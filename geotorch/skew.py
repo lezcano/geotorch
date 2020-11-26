@@ -1,9 +1,9 @@
-from .constructions import AbstractManifold
-from .exceptions import NonSquareError
+import geotorch.parametrize as P
+from .exceptions import VectorError, NonSquareError
 
 
-class Skew(AbstractManifold):
-    def __init__(self, size, lower=True):
+class Skew(P.Parametrization):
+    def __init__(self, lower=True):
         r"""
         Vector space of skew-symmetric matrices, parametrized in terms of the upper or lower triangular
         part of a matrix.
@@ -13,17 +13,20 @@ class Skew(AbstractManifold):
             lower (bool): Optional. Uses the lower triangular part of the matrix to parametrize
                 the matrix. Default: `True`
         """
-        super().__init__(dimensions=2, size=size)
-        if self.n != self.k:
-            raise NonSquareError(self.__class__.__name__, size)
+        super().__init__()
         self.lower = lower
 
-    def forward(self, X):
-        if self.lower:
+    @staticmethod
+    def frame(X, lower):
+        if lower:
             X = X.tril(-1)
         else:
             X = X.triu(1)
         return X - X.transpose(-2, -1)
 
-    def extra_repr(self):
-        return "n={}".format(self.n)
+    def forward(self, X):
+        if len(X.size()) < 2:
+            raise VectorError(type(self).__name__, X.size())
+        if X.size(-2) != X.size(-1):
+            raise NonSquareError(type(self).__name__, X.size())
+        return self.frame(X, self.lower)

@@ -1,6 +1,7 @@
 import torch
 
 from .stiefel import Stiefel, StiefelTall, non_singular_
+from .utils import base, transpose
 
 
 class Grassmannian(Stiefel):
@@ -25,11 +26,12 @@ class Grassmannian(Stiefel):
         """
         super().__init__(size=size, triv=triv)
 
-    def embedding(self, A):
-        size_z = self.tensorial_size + (self.k, self.k)
-        Z = A.new_zeros(*size_z)
-        A = torch.cat([Z, A[..., self.k :, :]], dim=-2)
-        return super().embedding(A)
+    def frame(self, X):
+        k = X.size(-1)
+        size_z = X.size()[:-2] + (k, k)
+        Z = X.new_zeros(*size_z)
+        X = torch.cat([Z, X[..., k:, :]], dim=-2)
+        return super().frame(X)
 
     def uniform_init_(self):
         r"""Samples an orthogonal matrix uniformly at random according
@@ -59,13 +61,10 @@ class GrassmannianTall(StiefelTall):
         """
         super().__init__(size, triv)
 
-    def uniform_init_(self):
-        r"""Samples an orthogonal matrix uniformly at random according
-        to the Haar measure on :math:`\operatorname{Gr}(n,k)`."""
-        # We reimplement it just to change the documentation
-        super().uniform_init_()
-
-    def trivialization(self, X):
+    @transpose
+    @base
+    def forward(self, X):
+        # TODO This could surely be cleaner
         if torch.is_grad_enabled():
             non_singular_(X)
         # We project onto \hlie^\perp so that X_\hlie = B.t() @ X = 0

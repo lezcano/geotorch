@@ -40,8 +40,7 @@ def symmetric(module, tensor_name, lower=True):
         lower (bool): Optional. Uses the lower triangular part of the matrix to
             parametrize the matrix. Default: `True`
     """
-    size = getattr(module, tensor_name).size()
-    P.register_parametrization(module, tensor_name, Symmetric(size, lower))
+    P.register_parametrization(module, tensor_name, Symmetric(lower))
 
 
 def skew(module, tensor_name, lower=True):
@@ -67,8 +66,7 @@ def skew(module, tensor_name, lower=True):
         lower (bool): Optional. Uses the lower triangular part of the matrix to
             parametrize the matrix. Default: `True`
     """
-    size = getattr(module, tensor_name).size()
-    P.register_parametrization(module, tensor_name, Skew(size, lower))
+    P.register_parametrization(module, tensor_name, Skew(lower))
 
 
 def sphere(module, tensor_name, r=1.0):

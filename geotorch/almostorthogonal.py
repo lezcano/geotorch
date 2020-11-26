@@ -32,7 +32,18 @@ class AlmostOrthogonal(LowRank):
 
         """
         super().__init__(size, AlmostOrthogonal.rank(size), triv=triv)
-        if f not in AlmostOrthogonal.fs.keys() and not callable(f):
+        if lam < 0.0 or lam > 1.0:
+            raise ValueError("The radius has to be between 0 and 1. Got {}".format(lam))
+        self.lam = lam
+        self.f = AlmostOrthogonal.parse_f(f)
+
+    @staticmethod
+    def parse_f(f):
+        if f in AlmostOrthogonal.fs.keys():
+            return AlmostOrthogonal.fs[f]
+        elif callable(f):
+            return f
+        else:
             raise ValueError(
                 "Argument f was not recognized and is "
                 "not callable. Should be one of {}. Found {}".format(
@@ -40,23 +51,12 @@ class AlmostOrthogonal(LowRank):
                 )
             )
 
-        if lam < 0.0 or lam > 1.0:
-            raise ValueError("The radius has to be between 0 and 1. Got {}".format(lam))
-
-        if callable(f):
-            self.f = f
-        else:
-            self.f = AlmostOrthogonal.fs[f]
-
-        self.lam = lam
-
     @classmethod
     def rank(cls, size):
         if len(size) < 2:
             raise VectorError(cls.__name__, size)
         return min(*size[-2:])
 
-    def submersion(self, X):
-        U, S, V = X
+    def submersion(self, U, S, V):
         S = 1.0 + self.lam * self.f(S)
-        return super().submersion((U, S, V))
+        return super().submersion(U, S, V)

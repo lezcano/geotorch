@@ -6,6 +6,7 @@ import torch.nn as nn
 
 import geotorch.parametrize as P
 from geotorch.sphere import Sphere, SphereEmbedded
+from geotorch.utils import update_base
 
 
 class TestSphere(TestCase):
@@ -62,7 +63,7 @@ class TestSphere(TestCase):
                         for w in ["weight", "bias"]:
                             with torch.no_grad():
                                 out_old = layer(input_)
-                                getattr(layer.parametrizations, w).update_base()
+                                update_base(layer, w)
                                 out_new = layer(input_)
                                 self.assertAlmostEqual(
                                     (out_old - out_new).abs().max().item(),

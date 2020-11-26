@@ -28,7 +28,15 @@ class FixedRank(LowRank):
                 callable. Default: `"expm"`
         """
         super().__init__(size, rank, triv=triv)
-        if f not in FixedRank.fs.keys() and not callable(f):
+        self.f = FixedRank.parse_f(f)
+
+    @staticmethod
+    def parse_f(f):
+        if f in FixedRank.fs.keys():
+            return FixedRank.fs[f]
+        elif callable(f):
+            return f
+        else:
             raise ValueError(
                 "Argument f was not recognized and is "
                 "not callable. Should be one of {}. Found {}".format(
@@ -36,12 +44,5 @@ class FixedRank(LowRank):
                 )
             )
 
-        if callable(f):
-            self.f = f
-        else:
-            self.f = FixedRank.fs[f]
-
-    def submersion(self, X):
-        U, S, V = X
-        S = self.f(S)
-        return super().submersion((U, S, V))
+    def submersion(self, U, S, V):
+        return super().submersion(U, self.f(S), V)

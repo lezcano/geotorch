@@ -1,7 +1,9 @@
-from .constructions import Manifold
+import torch
+import geotorch.parametrize as P
+from .utils import base, _extra_repr
 
 
-class Rn(Manifold):
+class Rn(P.Parametrization):
     def __init__(self, size):
         r"""
         Vector space of unconstrained vectors.
@@ -9,9 +11,15 @@ class Rn(Manifold):
         Args:
             size (torch.size): Size of the tensor to be applied to
         """
-        super().__init__(dimensions=1, size=size)
-        self.base.zero_()
+        super().__init__()
+        self.n = size[-1]
+        self.tensorial_size = size[:-1]
+        self.base = torch.zeros(*size)
 
-    def trivialization(self, X):
+    @base
+    def forward(self, X):
         # We implement it with a base to be able to use it within a fibered space
         return X + self.base
+
+    def extra_repr(self):
+        return _extra_repr(n=self.n, tensorial_size=self.tensorial_size)

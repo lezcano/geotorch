@@ -1,5 +1,6 @@
 from .pssdlowrank import PSSDLowRank
 from .exceptions import VectorError, NonSquareError
+from .utils import _extra_repr
 
 
 class PSSD(PSSDLowRank):
@@ -25,3 +26,6 @@ class PSSD(PSSDLowRank):
         if n != k:
             raise NonSquareError(cls.__name__, size)
         return n
+
+    def extra_repr(self):
+        return _extra_repr(n=self.n, tensorial_size=self.tensorial_size)
