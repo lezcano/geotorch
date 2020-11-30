@@ -9,7 +9,7 @@ try:
     from torch import matrix_exp as expm
 except ImportError:
     from .linalg.expm import expm
-from .exceptions import NonSquareError, VectorError
+from .exceptions import NonSquareError, VectorError, InManifoldError
 
 
 def cayley_map(X):
@@ -41,9 +41,7 @@ class SO(nn.Module):
         self.tensorial_size = tensorial_size
         self.lower = lower
         self.triv = SO.parse_triv(triv)
-        self.register_buffer("base", torch.empty(*size))
-
-        self.uniform_init_()
+        self.register_buffer("base", uniform_init_(torch.empty(*size)))
 
     @classmethod
     def parse_size(cls, size):
@@ -75,31 +73,28 @@ class SO(nn.Module):
         X = Skew.frame(X, self.lower)
         return self.base @ self.triv(X)
 
-    def uniform_init_(self):
-        r"""Samples an orthogonal matrix uniformly at random according
-        to the Haar measure on :math:`\operatorname{SO}(n)`."""
+    def initialize_(self, X):
+        if not SO.in_manifold(X, self.base.size()):
+            raise InManifoldError(X, self)
         with torch.no_grad():
-            uniform_init_(self.base)
+            self.base.data = X.data
+        return torch.zeros_like(X)
 
-    def torus_init_(self, init_=None):
-        r"""Samples the 2D input `tensor` as a block-diagonal skew-symmetric matrix
-        which is skew-symmetric in the main diagonal. The blocks are of the form
-        :math:`\begin{pmatrix} 0 & b \\ -b & 0\end{pmatrix}` where :math:`b` is
-        distributed according to `init_`. Then it is projected to the manifold
-        using `triv`.
-
-        .. note::
-
-            This initialization is particularly useful for regularizing RNNs.
-
-        Args:
-            init_: Optional. A function that takes a tensor and fills
-                    it in place according to some distribution. See
-                    `torch.init <https://pytorch.org/docs/stable/nn.init.html?highlight=init>`_.
-                    Default: :math:`\operatorname{Uniform}(-\pi, \pi)`
-        """
-        with torch.no_grad():
-            torus_init_(self.base, init_, self.triv)
+    @staticmethod
+    def in_manifold(X, size, eps=1e-4):
+        if X.size() != size:
+            return False
+        k = X.size(-1)
+        Id = torch.eye(k, dtype=X.dtype, device=X.device)
+        if X.dim() > 2:
+            Id = Id.repeat(*(X.size()[:-2] + (1, 1)))
+        D = X.transpose(-2, -1) @ X - Id
+        # Older torch versions do not implement matrix norm 1
+        if torch.__version__ >= "1.7.0":
+            error = torch.linalg.norm(D, dim=(-2, -1), ord=1) / k
+        else:
+            error = D.abs().sum(dim=-2).max(dim=-1) / k
+        return (error < eps).all()
 
     def extra_repr(self):
         return _extra_repr(n=self.n, tensorial_size=self.tensorial_size, triv=self.triv)

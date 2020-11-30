@@ -19,4 +19,4 @@ class PSSDLowRank(SymF):
                 decomposition. It can be one of `["expm", "cayley"]` or a custom
                 callable. Default: `"expm"`
         """
-        super().__init__(size, rank, torch.abs, triv=triv)
+        super().__init__(size, rank, f=(torch.abs, torch.abs), triv=triv)

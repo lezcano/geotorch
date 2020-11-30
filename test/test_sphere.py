@@ -37,14 +37,13 @@ class TestSphere(TestCase):
                     )
 
                     with torch.no_grad():
-                        if cls == Sphere:
-                            layer.parametrizations.weight.original.zero_()
-                            layer.parametrizations.bias.original.zero_()
-                        elif cls == SphereEmbedded:
-                            uniform_init_sphere_(layer.parametrizations.weight.original)
-                            uniform_init_sphere_(layer.parametrizations.bias.original)
+                        layer.weight = uniform_init_sphere_(layer.weight)
+                        layer.bias = uniform_init_sphere_(layer.bias)
                         self.assertInSn(layer.weight)
                         self.assertInSn(layer.bias)
+                        if cls == Sphere:
+                            self.assertInSn(layer.parametrizations.weight[0].base)
+                            self.assertInSn(layer.parametrizations.bias[0].base)
 
                     input_ = torch.rand(5, n)
                     optim = torch.optim.SGD(layer.parameters(), lr=1.0)

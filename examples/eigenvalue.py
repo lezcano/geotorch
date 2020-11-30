@@ -6,6 +6,7 @@ problem to the Sphere
 import torch
 from torch import nn
 import geotorch
+from geotorch.sphere import uniform_init_sphere_
 
 N = 1000  # matrix size
 LR = 1.0 / N  # step-size.
@@ -17,9 +18,7 @@ class Model(nn.Module):
         super().__init__()
         self.x = nn.Parameter(torch.rand(n))
         geotorch.sphere(self, "x")
-        with torch.no_grad():
-            self.parametrizations.x[0].uniform_init_()
-            self.parametrizations.x.original.zero_()
+        self.x = uniform_init_sphere_(self.x)
 
     def forward(self, A):
         x = self.x

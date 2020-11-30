@@ -1,6 +1,7 @@
 import torch
 from torch import nn
 
+from .exceptions import InManifoldError
 from .utils import base, _extra_repr
 
 
@@ -8,11 +9,12 @@ def project(x):
     return x / x.norm(dim=-1, keepdim=True)
 
 
-def uniform_init_sphere_(x):
+def uniform_init_sphere_(x, r=1.0):
     r"""Samples a point uniformly on the sphere into x"""
     with torch.no_grad():
         x.normal_()
-        x.data = project(x.data)
+        x.data = r * project(x.data)
+    return x
 
 
 class sinc_class(torch.autograd.Function):
@@ -53,29 +55,44 @@ class SphereEmbedded(nn.Module):
                 Radius of the sphere. It has to be positive. Default: 1.
         """
         super().__init__()
+        self.triv = SphereEmbedded.parse_triv(triv)
+        self.r = SphereEmbedded.parse_r(r)
+        self.n = size[-1]
+        self.tensorial_size = size[:-1]
 
-        if triv not in SphereEmbedded.trivializations.keys() and not callable(triv):
+    @staticmethod
+    def parse_triv(triv):
+        if triv in SphereEmbedded.trivializations.keys():
+            return SphereEmbedded.trivializations[triv]
+        elif callable(triv):
+            return triv
+        else:
             raise ValueError(
                 "Argument triv was not recognized and is "
                 "not callable. Should be one of {}. Found {}".format(
                     list(SphereEmbedded.trivializations.keys()), triv
                 )
             )
-        if callable(triv):
-            self.triv = triv
-        else:
-            self.triv = SphereEmbedded.trivializations[triv]
 
+    @staticmethod
+    def parse_r(r):
         if r <= 0.0:
             raise ValueError(
                 "The radius has to be a positive real number. Got {}".format(r)
             )
-        self.n = size[-1]
-        self.tensorial_size = size[:-1]
-        self.r = r
+        return r
 
     def forward(self, x):
         return self.r * self.triv(x)
+
+    def initialize_(self, X):
+        if not SphereEmbedded.in_manifold(X, self.r):
+            raise InManifoldError(X, self)
+        return X / self.r
+
+    @staticmethod
+    def in_manifold(X, r, eps=1e-4):
+        return Sphere.in_manifold(X, r, eps)
 
     def extra_repr(self):
         return _extra_repr(n=self.n, r=self.r, tensorial_size=self.tensorial_size)
@@ -100,8 +117,7 @@ class Sphere(nn.Module):
         self.n = size[-1]
         self.tensorial_size = size[:-1]
         self.r = r
-        self.register_buffer("base", torch.empty(*size))
-        self.uniform_init_()
+        self.register_buffer("base", uniform_init_sphere_(torch.empty(*size)))
 
     def frame(self, x, v):
         projection = (v.unsqueeze(-2) @ x.unsqueeze(-1)).squeeze(-1)
@@ -110,17 +126,25 @@ class Sphere(nn.Module):
 
     @base
     def forward(self, v):
-        # self.base has norm `r` rather than norm 1
-        x = project(self.base)
+        x = self.base
         # Project v onto {<x,v> = 0}
         v = self.frame(x, v)
         vnorm = v.norm(dim=-1, keepdim=True)
         return self.r * (torch.cos(vnorm) * x + sinc(vnorm) * v)
 
-    def uniform_init_(self):
-        r"""Samples a point uniformly on the sphere"""
-        uniform_init_sphere_(self.base)
-        self.base.data *= self.r
+    def initialize_(self, X):
+        if not Sphere.in_manifold(X, self.r):
+            raise InManifoldError(X, self)
+        with torch.no_grad():
+            X = X / self.r
+            self.base.data = X.data
+        return torch.zeros_like(X)
+
+    @staticmethod
+    def in_manifold(X, r, eps=1e-4):
+        norm = X.norm(dim=-1)
+        rs = torch.full_like(norm, r)
+        return (torch.norm(norm - rs, p=float("inf")) < eps).all()
 
     def extra_repr(self):
         return _extra_repr(n=self.n, r=self.r, tensorial_size=self.tensorial_size)

@@ -19,3 +19,8 @@ class RankError(ValueError):
         super().__init__(
             "The rank has to be 1 <= rank <= min({}, {}). Found {}".format(n, k, rank)
         )
+
+
+class InManifoldError(ValueError):
+    def __init__(self, X, M):
+        super().__init__("Tensor not contained in {}. Got\n{}".format(M, X))

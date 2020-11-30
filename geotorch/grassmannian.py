@@ -33,12 +33,6 @@ class Grassmannian(Stiefel):
         X = torch.cat([Z, X[..., k:, :]], dim=-2)
         return super().frame(X)
 
-    def uniform_init_(self):
-        r"""Samples an orthogonal matrix uniformly at random according
-        to the Haar measure on :math:`\operatorname{Gr}(n,k)`."""
-        # We reimplement it just to change the documentation
-        super().uniform_init_()
-
 
 class GrassmannianTall(StiefelTall):
     def __init__(self, size, triv="expm"):

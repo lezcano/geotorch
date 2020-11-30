@@ -5,7 +5,7 @@ from .constructions import ProductManifold
 from .so import SO
 from .stiefel import Stiefel, StiefelTall
 from .reals import Rn
-from .exceptions import VectorError, NonSquareError, RankError
+from .exceptions import VectorError, NonSquareError, RankError, InManifoldError
 from .utils import _extra_repr
 
 
@@ -64,9 +64,9 @@ class SymF(ProductManifold):
         self.n = n
         self.tensorial_size = tensorial_size
         self.rank = rank
-        if not callable(f):
-            raise ValueError("f should be callable. Got {}".format(f))
+        f, inv = SymF.parse_f(f)
         self.f = f
+        self.inv = inv
 
     @classmethod
     def parse_size(cls, size):
@@ -77,6 +77,18 @@ class SymF(ProductManifold):
         if n != k:
             raise NonSquareError(cls.__name__, size)
         return n, tensorial_size
+
+    @staticmethod
+    def parse_f(f):
+        if callable(f):
+            return f, None
+        elif isinstance(f, tuple) and callable(f[0]) and callable(f[1]):
+            return f
+        else:
+            raise ValueError(
+                "Argument f is not callable nor a tuple of callables. "
+                "Found {}".format(f)
+            )
 
     @staticmethod
     def manifolds(n, rank, tensorial_size, triv):
@@ -112,6 +124,49 @@ class SymF(ProductManifold):
         X = self.frame(X)
         Q, L = super().forward(X)
         return self.submersion(Q, L)
+
+    def initialize_(self, X):
+        Q, L = self.submersion_inv(X)
+        X1, X2 = super().initialize_([Q, L])
+        ret = torch.zeros_like(X)
+        return self.frame_inv(X1, X2, ret)
+
+    def frame_inv(self, X1, X2, ret):
+        with torch.no_grad():
+            ret[..., : self.rank] = X1
+            ret[..., : self.rank, : self.rank] = torch.diag_embed(X2)
+        return ret
+
+    def submersion_inv(self, X):
+        with torch.no_grad():
+            L, Q = X.symeig(eigenvectors=True)
+        size = self.tensorial_size + (self.n, self.k)
+        if not SymF.in_manifold_eigen(Q, L, size=size, rank=self.rank, inv=self.inv):
+            raise InManifoldError(X, self)
+        with torch.no_grad():
+            Q = Q[..., : self.rank]
+            L = L[..., : self.rank]
+            L = self.inv(L)
+        return Q, L
+
+    @staticmethod
+    def in_manifold_eigen(Q, L, size, rank, inv, eps=1e-4):
+        # FIXME this does not work if invoked from the outside with a non-transposed matrix
+        if Q.size() != size:
+            return False
+        # We compute the 1-norm of the vector normalising by the size of the vector
+        D = L[rank:]
+        if len(D) == 0:
+            return True
+        err = D.abs().sum(dim=-1) / len(D)
+        return (err < eps).all()
+
+    @staticmethod
+    def in_manifold(X, size, rank, inv, eps=1e-4):
+        if X.size() != size:
+            return False
+        L, Q = X.symeig(eigenvectors=True)
+        return SymF.in_manifold_eigen(Q, L, size, rank, inv, eps)
 
     def extra_repr(self):
         return _extra_repr(n=self.n, rank=self.rank, tensorial_size=self.tensorial_size)

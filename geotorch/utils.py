@@ -53,13 +53,15 @@ def transpose(forward):
 
 
 def _extra_repr(**kwargs):
-    ret = ""
     if "n" in kwargs:
-        ret += "n={}".format(kwargs["n"])
-    elif "k" in kwargs:
-        ret += "k={}".format(kwargs["k"])
+        ret = "n={}".format(kwargs["n"])
     elif "dim" in kwargs:
-        ret += "dim={}".format(kwargs["dim"])
+        ret = "dim={}".format(kwargs["dim"])
+    else:
+        ret = ""
+
+    if "k" in kwargs:
+        ret += ", k={}".format(kwargs["k"])
     if "rank" in kwargs:
         ret += ", rank={}".format(kwargs["rank"])
     if "r" in kwargs:
@@ -70,4 +72,7 @@ def _extra_repr(**kwargs):
             ret += ", tensorial_size={}".format(ts)
     if "triv" in kwargs:
         ret += ", triv={}".format(kwargs["triv"].__name__)
+    if "no_inv" in kwargs:
+        if kwargs["no_inv"]:
+            ret += ", no inverse"
     return ret

@@ -2,14 +2,14 @@ import torch
 from torch import nn
 
 from .utils import transpose, base, _extra_repr
-from .so import SO, uniform_init_, torus_init_, cayley_map
+from .so import SO, uniform_init_, cayley_map
 from .skew import Skew
 
 try:
     from torch import matrix_exp as expm
 except ImportError:
     from .linalg.expm import expm
-from .exceptions import VectorError
+from .exceptions import VectorError, InManifoldError
 
 
 class Stiefel(SO):
@@ -58,32 +58,29 @@ class Stiefel(SO):
         X = super().forward(X)
         return X[..., : self.k]
 
-    def torus_init_(self, init_=None):
-        r"""Samples the 2D input `tensor` as a block-diagonal skew-symmetric matrix
-        which is skew-symmetric in the main diagonal. The blocks are of the form
-        :math:`\begin{pmatrix} 0 & b \\ -b & 0\end{pmatrix}` where :math:`b` is
-        distributed according to `init_`. Then it is projected to the manifold using `triv`.
+    @transpose
+    def initialize_(self, X):
+        if X.size() != (self.base.size()[:-2] + (self.n, self.k)):
+            raise InManifoldError(X, self)
+        if self.n != self.k:
+            size_n = X.size()[:-2] + (self.n, self.n - self.k)
+            # N will be a complement orthogonal to X
+            N = X.new_empty(*size_n)
+            with torch.no_grad():
+                N.normal_()
+                # We assume for now that X is orthogonal.
+                # This will be checked in super().initialize_()
+                # Project N onto orthogonal subspace of X
+                N = N - X @ (X.transpose(-2, -1) @ N)
+                # And make it an orthonormal base of the image
+                N = N.qr().Q
+                X = torch.cat([X, N], dim=-1)
+        return super().initialize_(X)[..., : self.n, : self.k]
 
-        .. warning::
-
-            This initialization is just accessible whenever the underlying matrix is square
-
-        .. note::
-
-            This initialization is particularly useful for regularizing RNNs.
-
-        Args:
-            init_: Optional. A function that takes a tensor and fills
-                    it in place according to some distribution. See
-                    `torch.init <https://pytorch.org/docs/stable/nn.init.html?highlight=init>`_.
-                    Default: :math:`\operatorname{Uniform}(-\pi, \pi)`
-        """
-        if self.k != self.n:
-            raise RuntimeError(
-                "This initialization is just available in square matrices."
-                "This matrix has dimensions ({}, {})".format(self.n, self.k)
-            )
-        super().torus_init_(init_)
+    def extra_repr(self):
+        return _extra_repr(
+            n=self.n, k=self.k, tensorial_size=self.tensorial_size, triv=self.triv
+        )
 
 
 def stable_qr(X):
@@ -106,10 +103,12 @@ def non_singular_(X):
         small = X.norm(dim=(-2, -1)) < eps
         if small.any():
             if X.ndimension() == 2:
-                X[:k] += eps * torch.eye(k, k)
+                X[:k] += eps * torch.eye(k, k, dtype=X.dtype, device=X.device)
             else:
                 size_e = X.size()[:-2] + (k, k)
-                eye = (eps * torch.eye(k)).expand(*size_e)
+                eye = (eps * torch.eye(k, dtype=X.dtype, device=X.device)).expand(
+                    *size_e
+                )
                 small = small.unsqueeze_(-1).unsqueeze_(-1).float().expand(*size_e)
                 X[..., :k, :k] += small * eye
         return X
@@ -151,8 +150,9 @@ class StiefelTall(nn.Module):
         self.k = k
         self.tensorial_size = tensorial_size
         self.triv = StiefelTall.parse_triv(triv)
-        self.register_buffer("base", torch.empty(*(tensorial_size + (n, k))))
-        self.uniform_init_()
+        self.register_buffer(
+            "base", uniform_init_(torch.empty(*(tensorial_size + (n, k))))
+        )
 
     @classmethod
     def parse_size(cls, size):
@@ -216,40 +216,17 @@ class StiefelTall(nn.Module):
         MN = self.triv(Atilde)[..., :, : self.k]
         return BQ @ MN
 
-    def uniform_init_(self):
-        r"""Samples an orthogonal matrix uniformly at random according
-        to the Haar measure"""
+    @transpose
+    def initialize_(self, X):
+        if not Stiefel.in_manifold(X, self.base.size()):
+            raise InManifoldError(X, self)
         with torch.no_grad():
-            uniform_init_(self.base)
+            self.base.data = X.data
+        return torch.zeros_like(X)
 
-    def torus_init_(self, init_=None):
-        r"""Samples the 2D input `tensor` as a block-diagonal skew-symmetric matrix
-        which is skew-symmetric in the main diagonal. The blocks are of the form
-        :math:`\begin{pmatrix} 0 & b \\ -b & 0\end{pmatrix}` where :math:`b` is
-        distributed according to `init_`. Then it is projected to the manifold using `triv`.
-
-        .. warning::
-
-            This initialization is just accessible whenever the underlying matrix is square
-
-        .. note::
-
-            This initialization is particularly useful for regularizing RNNs.
-
-        Args:
-            init_: Optional. A function that takes a tensor and fills
-                    it in place according to some distribution. See
-                    `torch.init <https://pytorch.org/docs/stable/nn.init.html?highlight=init>`_.
-                    Default: :math:`\operatorname{Uniform}(-\pi, \pi)`
-        """
-        if self.k != self.n:
-            raise RuntimeError(
-                "This initialization is just available in square matrices."
-                "This matrix has dimensions ({}, {})".format(self.n, self.k)
-            )
-
-        with torch.no_grad():
-            torus_init_(self.base, init_, self.triv)
+    @staticmethod
+    def in_manifold(X, size, eps=1e-4):
+        return SO.in_manifold(X, size, eps)
 
     def extra_repr(self):
         return _extra_repr(

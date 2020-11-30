@@ -1,6 +1,5 @@
 from .pssdfixedrank import PSSDFixedRank
 from .exceptions import VectorError, NonSquareError
-from .utils import _extra_repr
 
 
 class PSD(PSSDFixedRank):
@@ -10,8 +9,12 @@ class PSD(PSSDFixedRank):
 
         Args:
             size (torch.size): Size of the tensor to be applied to
-            f (str or callable): Optional. The string `"softplus"` or a callable
-                that maps real numbers to the interval :math:`(0, \infty)`. Default: `"softplus"`
+            f (str or callable or tuple of callables): Optional. Either:
+                - "softplus"
+                - A callable that maps real numbers to the interval :math:`(0, \infty)`.
+                - A tuple of callables such that the first maps the real numbers to
+                  :math:`(0, \infty)` and the second is a (right) inverse of the first
+                Default: `"softplus"`
             triv (str or callable): Optional.
                 A map that maps :math:`\operatorname{Skew}(n)` onto the orthogonal
                 matrices surjectively. This is used to optimize the Q in the eigenvalue
@@ -28,6 +31,3 @@ class PSD(PSSDFixedRank):
         if n != k:
             raise NonSquareError(cls.__name__, size)
         return n
-
-    def extra_repr(self):
-        return _extra_repr(n=self.n, tensorial_size=self.tensorial_size)

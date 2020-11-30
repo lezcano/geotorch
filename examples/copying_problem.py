@@ -22,6 +22,7 @@ from torch import nn
 import torch.nn.functional as F
 
 import geotorch
+from geotorch.so import torus_init_
 
 batch_size = 128
 hidden_size = 190
@@ -75,12 +76,7 @@ class ExpRNNCell(nn.Module):
 
     def reset_parameters(self):
         nn.init.kaiming_normal_(self.input_kernel.weight.data, nonlinearity="relu")
-        parametrizations = self.recurrent_kernel.parametrizations.weight
-        # Initialize the base of the parametrization
-        parametrizations[0].torus_init_()
-        # Zero-out the parameters
-        with torch.no_grad():
-            parametrizations.original.zero_()
+        self.recurrent_kernel.weight = torus_init_(self.recurrent_kernel.weight)
 
     def default_hidden(self, input_):
         return input_.new_zeros(input_.size(0), self.hidden_size, requires_grad=False)

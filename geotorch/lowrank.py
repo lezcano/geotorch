@@ -3,7 +3,7 @@ from .constructions import ProductManifold
 from .so import SO
 from .stiefel import Stiefel, StiefelTall
 from .reals import Rn
-from .exceptions import VectorError, RankError
+from .exceptions import VectorError, RankError, InManifoldError
 from .utils import transpose, _extra_repr
 
 
@@ -78,6 +78,45 @@ class LowRank(ProductManifold):
         Xs = self.frame(X)
         U, S, V = super().forward(Xs)
         return self.submersion(U, S, V)
+
+    @transpose
+    def initialize_(self, X):
+        U, S, V = self.submersion_inv(X)
+        X1, X2, X3 = super().initialize_([U, S, V])
+        ret = torch.zeros_like(X)
+        return self.frame_inv(X1, X2, X3, ret)
+
+    def frame_inv(self, X1, X2, X3, ret):
+        with torch.no_grad():
+            ret[..., : self.rank] = X1
+            ret[..., : self.rank, : self.rank] = torch.diag_embed(X2)
+            ret[..., : self.rank] = X3
+        return ret
+
+    def submersion_inv(self, X):
+        with torch.no_grad():
+            U, S, V = X.svd()
+        size = self.tensorial_size + (self.n, self.k)
+        if not LowRank.in_manifold_svd(U, S, V, size=size, rank=self.rank):
+            raise InManifoldError(X, self)
+        return U[..., : self.rank], S[..., : self.rank], V[..., : self.rank]
+
+    @staticmethod
+    def in_manifold_svd(U, S, V, size, rank, eps=1e-4):
+        # FIXME this does not work if invoked from the outside with a non-transposed matrix
+        if U.size() != size:
+            return False
+        # We compute the 1-norm of the vector normalising by the size of the vector
+        D = S[rank:]
+        if len(D) == 0:
+            return True
+        err = D.abs().sum(dim=-1) / len(D)
+        return (err < eps).all()
+
+    @staticmethod
+    def in_manifold(X, size, rank, eps=1e-4):
+        U, S, V = X.svd()
+        return LowRank.in_manifold_svd(U, S, V, size, rank, eps)
 
     def extra_repr(self):
         return _extra_repr(

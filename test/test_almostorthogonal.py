@@ -6,6 +6,7 @@ import torch.nn as nn
 
 import geotorch.parametrize as P
 from geotorch.almostorthogonal import AlmostOrthogonal
+from geotorch.so import uniform_init_
 from geotorch.utils import update_base
 from .test_lowrank import get_svd
 
@@ -14,7 +15,7 @@ class TestLowRank(TestCase):
     def assertIsOrthogonal(self, X):
         if X.size(-2) < X.size(-1):
             X = X.transpose(-2, -1)
-        Id = torch.eye(X.size(-1))
+        Id = torch.eye(X.size(-1), device=X.device, dtype=X.dtype)
         if X.dim() > 2:
             Id = Id.repeat(*(X.size()[:-2] + (1, 1)))
         norm = torch.norm(X.transpose(-2, -1) @ X - Id, dim=(-2, -1))
@@ -60,7 +61,7 @@ class TestLowRank(TestCase):
         ]
 
         lams = [0.0, 0.5, 1.0]
-        fs = ["sigmoid", "sin", "tanh"]
+        fs = ["scaled_sigmoid", "sin", "tanh"]
 
         with torch.random.fork_rng(devices=range(torch.cuda.device_count())):
             torch.random.manual_seed(8888)
@@ -74,8 +75,7 @@ class TestLowRank(TestCase):
                     )
                     M = cls(size=layer.weight.size(), lam=lam, f=f)
                     P.register_parametrization(layer, "weight", M)
-                    with torch.no_grad():
-                        layer.parametrizations.weight.original.zero_()
+                    layer.weight = uniform_init_(layer.weight)
                     self.assertTrue(P.is_parametrized(layer, "weight"))
                     U_orig, S_orig, V_orig = get_svd(layer.parametrizations.weight)
                     S_orig = 1.0 + lam * S_orig

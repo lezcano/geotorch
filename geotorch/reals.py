@@ -1,6 +1,7 @@
 import torch
 from torch import nn
 from .utils import base, _extra_repr
+from .exceptions import InManifoldError
 
 
 class Rn(nn.Module):
@@ -20,6 +21,13 @@ class Rn(nn.Module):
     def forward(self, X):
         # We implement it with a base to be able to use it within a fibered space
         return X + self.base
+
+    def initialize_(self, X):
+        if X.size() != self.base.size():
+            raise InManifoldError(X, self)
+        with torch.no_grad():
+            self.base.data = X.data
+        return torch.zeros_like(X)
 
     def extra_repr(self):
         return _extra_repr(n=self.n, tensorial_size=self.tensorial_size)

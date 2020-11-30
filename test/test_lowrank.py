@@ -26,7 +26,7 @@ class TestLowRank(TestCase):
     def assertIsOrthogonal(self, X):
         if X.size(-2) < X.size(-1):
             X = X.transpose(-2, -1)
-        Id = torch.eye(X.size(-1))
+        Id = torch.eye(X.size(-1), device=X.device, dtype=X.dtype)
         if X.dim() > 2:
             Id = Id.repeat(*(X.size()[:-2] + (1, 1)))
         norm = torch.norm(X.transpose(-2, -1) @ X - Id, dim=(-2, -1))
@@ -87,8 +87,7 @@ class TestLowRank(TestCase):
                         r = min(n, k, r)
                         M = cls(size=layer.weight.size(), rank=r)
                         P.register_parametrization(layer, "weight", M)
-                        with torch.no_grad():
-                            layer.parametrizations.weight.original.zero_()
+                        # TODO Add a reasonable initialisation for low_rank and fixed_rank
                         self.assertTrue(P.is_parametrized(layer, "weight"))
                         U_orig, S_orig, V_orig = get_svd(layer.parametrizations.weight)
                         self.assertIsOrthogonal(U_orig)

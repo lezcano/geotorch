@@ -14,7 +14,7 @@ def _key(module, tensor_name):
 @contextmanager
 def cached():
     r"""Context-manager that enables the caching system within
-    parametrizations registered with :func:`register_paramterization`
+    parametrizations registered with :func:`register_parametrization`
 
     This is useful when one uses certain parametrized parameter more than
     once. An example of this is the loop in an RNN model or when sharing weights
@@ -31,14 +31,26 @@ def cached():
 
 
 class ParametrizationList(ModuleList):
-    r"""A sequential container that holds a Parameter of a buffer
+    r"""A sequential container that holds and manages a Parameter of a buffer.
     Parametrized parameters and buffers have an in-built caching system via the context
     manager :func:`cached`
     """
 
+    def __init__(self, modules, original):
+        super().__init__(modules)
+        if isinstance(original, Parameter):
+            self.register_parameter("original", original)
+        else:
+            self.register_buffer("original", original)
+
     def evaluate(self):
         r"""Evaluates the parametrization"""
         return self(self.original)
+
+    def set_value_(self, value):
+        for module in reversed(self):
+            value = module.initialize_(value)
+        self.original.data = value
 
     def forward(self, input):
         for module in self:
@@ -165,7 +177,11 @@ def _inject_property(module, tensor_name):
         else:
             return module.parametrizations[tensor_name].evaluate()
 
-    setattr(module.__class__, tensor_name, property(get_parametrized))
+    # Define the setter
+    def set_value(module, value):
+        module.parametrizations[tensor_name].set_value_(value)
+
+    setattr(module.__class__, tensor_name, property(get_parametrized, set_value))
 
 
 def register_parametrization(module, tensor_name, parametrization):
@@ -210,17 +226,12 @@ def register_parametrization(module, tensor_name, parametrization):
             _inject_new_class(module)
         # Add a property into the class
         _inject_property(module, tensor_name)
-        # Since module[tensor_name] is not parametrized, we add a ParametrizationList
-        module.parametrizations[tensor_name] = ParametrizationList([parametrization])
+        # Add a ParametrizationList
+        module.parametrizations[tensor_name] = ParametrizationList(
+            [parametrization], original
+        )
         # Set the cache on this tensor
         set_caching(module, tensor_name)
-        # Move the original buffer / parameter into the ParametrizationList
-        if isinstance(original, Parameter):
-            module.parametrizations[tensor_name].register_parameter(
-                "original", original
-            )
-        else:
-            module.parametrizations[tensor_name].register_buffer("original", original)
     else:
         raise ValueError(
             "Module '{}' does not have a parameter, a buffer, nor a "

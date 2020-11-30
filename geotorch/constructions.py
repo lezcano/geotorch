@@ -28,6 +28,9 @@ class ProductManifold(nn.Module):
     def forward(self, Xs):
         return tuple(mani(X) for mani, X in zip(self, Xs))
 
+    def initialize_(self, Xs):
+        return tuple(mani.initialize_(X) for mani, X in zip(self, Xs))
+
     def __getitem__(self, idx):
         return self._manifolds.__getitem__(idx)
 
