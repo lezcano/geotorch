@@ -48,6 +48,13 @@ hidden_size = args.hidden_size
 epochs = args.epochs
 device = torch.device("cuda")
 
+if args.constraints == "lowrank":
+    print(
+        "WARNING. The option lowrank is here for demonstration purposes. "
+        "It does not make sense to put lowrank constraints on the recurrent_kernel "
+        "of this model. As such, the resulting model __does not__ converge."
+    )
+
 
 class modrelu(nn.Module):
     def __init__(self, features):
@@ -82,7 +89,7 @@ class ExpRNNCell(nn.Module):
         if args.constraints == "orthogonal":
             geotorch.orthogonal(self.recurrent_kernel, "weight")
         elif args.constraints == "lowrank":
-            geotorch.lowrank(self.recurrent_kernel, "weight", hidden_size)
+            geotorch.low_rank(self.recurrent_kernel, "weight", hidden_size)
         elif args.constraints == "almostorthogonal":
             geotorch.almost_orthogonal(self.recurrent_kernel, "weight", args.r, args.f)
         else:

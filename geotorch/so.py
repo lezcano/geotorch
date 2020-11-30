@@ -41,7 +41,7 @@ class SO(nn.Module):
         self.tensorial_size = tensorial_size
         self.lower = lower
         self.triv = SO.parse_triv(triv)
-        self.base = torch.empty(*size)
+        self.register_buffer("base", torch.empty(*size))
 
         self.uniform_init_()
 

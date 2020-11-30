@@ -14,7 +14,7 @@ class Rn(nn.Module):
         super().__init__()
         self.n = size[-1]
         self.tensorial_size = size[:-1]
-        self.base = torch.zeros(*size)
+        self.register_buffer("base", torch.zeros(*size))
 
     @base
     def forward(self, X):

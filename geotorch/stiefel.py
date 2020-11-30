@@ -151,7 +151,7 @@ class StiefelTall(nn.Module):
         self.k = k
         self.tensorial_size = tensorial_size
         self.triv = StiefelTall.parse_triv(triv)
-        self.base = torch.empty(*(tensorial_size + (n, k)))
+        self.register_buffer("base", torch.empty(*(tensorial_size + (n, k))))
         self.uniform_init_()
 
     @classmethod

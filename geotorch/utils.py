@@ -17,7 +17,8 @@ def new_base():
 def update_base(layer, tensor_name):
     with torch.no_grad():
         with new_base():
-            _ = getattr(layer, tensor_name)
+            # execute forward pass
+            getattr(layer, tensor_name)
         layer.parametrizations[tensor_name].original.zero_()
 
 

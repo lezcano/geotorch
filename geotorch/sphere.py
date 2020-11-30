@@ -74,7 +74,6 @@ class SphereEmbedded(nn.Module):
         self.tensorial_size = size[:-1]
         self.r = r
 
-    @base
     def forward(self, x):
         return self.r * self.triv(x)
 
@@ -101,7 +100,7 @@ class Sphere(nn.Module):
         self.n = size[-1]
         self.tensorial_size = size[:-1]
         self.r = r
-        self.base = torch.empty(*size)
+        self.register_buffer("base", torch.empty(*size))
         self.uniform_init_()
 
     def frame(self, x, v):

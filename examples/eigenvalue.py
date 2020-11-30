@@ -17,7 +17,9 @@ class Model(nn.Module):
         super().__init__()
         self.x = nn.Parameter(torch.rand(n))
         geotorch.sphere(self, "x")
-        self.parametrizations.x.uniform_init_()
+        with torch.no_grad():
+            self.parametrizations.x[0].uniform_init_()
+            self.parametrizations.x.original.zero_()
 
     def forward(self, A):
         x = self.x
