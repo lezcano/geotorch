@@ -1,9 +1,7 @@
 import torch.nn as nn
 
-import geotorch.parametrize as P
 
-
-class ProductManifold(P.Parametrization):
+class ProductManifold(nn.Module):
     def __init__(self, manifolds):
         r"""
         Product manifold :math:`M_1 \times \dots \times M_k`. It can be indexed like a

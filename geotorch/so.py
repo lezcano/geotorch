@@ -1,7 +1,7 @@
 import math
 import torch
+from torch import nn
 
-import geotorch.parametrize as P
 from .utils import base, _extra_repr
 from .skew import Skew
 
@@ -20,7 +20,7 @@ def cayley_map(X):
     return torch.solve(Id - X, Id + X)[0]
 
 
-class SO(P.Parametrization):
+class SO(nn.Module):
     trivializations = {"expm": expm, "cayley": cayley_map}
 
     def __init__(self, size, triv="expm", lower=True):
@@ -80,10 +80,8 @@ class SO(P.Parametrization):
         to the Haar measure on :math:`\operatorname{SO}(n)`."""
         with torch.no_grad():
             uniform_init_(self.base)
-            if self.is_registered():
-                self.original_tensor().zero_()
 
-    def torus_init_(self, init_=None, triv=expm):
+    def torus_init_(self, init_=None):
         r"""Samples the 2D input `tensor` as a block-diagonal skew-symmetric matrix
         which is skew-symmetric in the main diagonal. The blocks are of the form
         :math:`\begin{pmatrix} 0 & b \\ -b & 0\end{pmatrix}` where :math:`b` is
@@ -99,13 +97,9 @@ class SO(P.Parametrization):
                     it in place according to some distribution. See
                     `torch.init <https://pytorch.org/docs/stable/nn.init.html?highlight=init>`_.
                     Default: :math:`\operatorname{Uniform}(-\pi, \pi)`
-            triv: Optional. A function that maps skew-symmetric matrices
-                    to orthogonal matrices.
         """
         with torch.no_grad():
-            torus_init_(self.base, init_, triv)
-            if self.is_registered():
-                self.original_tensor().zero_()
+            torus_init_(self.base, init_, self.triv)
 
     def extra_repr(self):
         return _extra_repr(n=self.n, tensorial_size=self.tensorial_size, triv=self.triv)
@@ -161,8 +155,9 @@ def torus_init_(tensor, init_=None, triv=expm):
     Args:
         tensor (torch.Tensor): a 2-dimensional tensor
         init_: Optional. A function that takes a tensor and fills
-                it in place according to some distribution. Default:
-                :math:`\mathcal{U}(-\pi, \pi)`
+                it in place according to some distribution. See
+                `torch.init <https://pytorch.org/docs/stable/nn.init.html?highlight=init>`_.
+                Default: :math:`\operatorname{Uniform}(-\pi, \pi)`
         triv: Optional. A function that maps skew-symmetric matrices
                 to orthogonal matrices.
     """

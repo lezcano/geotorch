@@ -1,8 +1,8 @@
-import geotorch.parametrize as P
+from torch import nn
 from .exceptions import VectorError, NonSquareError
 
 
-class Skew(P.Parametrization):
+class Skew(nn.Module):
     def __init__(self, lower=True):
         r"""
         Vector space of skew-symmetric matrices, parametrized in terms of the upper or lower triangular

@@ -74,8 +74,10 @@ class TestLowRank(TestCase):
                     )
                     M = cls(size=layer.weight.size(), lam=lam, f=f)
                     P.register_parametrization(layer, "weight", M)
+                    with torch.no_grad():
+                        layer.parametrizations.weight.original.zero_()
                     self.assertTrue(P.is_parametrized(layer, "weight"))
-                    U_orig, S_orig, V_orig = get_svd(M)
+                    U_orig, S_orig, V_orig = get_svd(layer.parametrizations.weight)
                     S_orig = 1.0 + lam * S_orig
                     self.assertIsOrthogonal(U_orig)
                     self.assertIsOrthogonal(V_orig)
@@ -95,7 +97,7 @@ class TestLowRank(TestCase):
                         loss.backward()
                         optim.step()
 
-                        U_orig, S_orig, V_orig = get_svd(M)
+                        U_orig, S_orig, V_orig = get_svd(layer.parametrizations.weight)
                         S_orig = 1.0 + lam * S_orig
                         self.assertIsOrthogonal(U_orig)
                         self.assertIsOrthogonal(V_orig)

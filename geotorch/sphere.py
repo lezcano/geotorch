@@ -1,11 +1,18 @@
 import torch
+from torch import nn
 
-import geotorch.parametrize as P
 from .utils import base, _extra_repr
 
 
 def project(x):
     return x / x.norm(dim=-1, keepdim=True)
+
+
+def uniform_init_sphere_(x):
+    r"""Samples a point uniformly on the sphere into x"""
+    with torch.no_grad():
+        x.normal_()
+        x.data = project(x.data)
 
 
 class sinc_class(torch.autograd.Function):
@@ -28,7 +35,7 @@ class sinc_class(torch.autograd.Function):
 sinc = sinc_class.apply
 
 
-class SphereEmbedded(P.Parametrization):
+class SphereEmbedded(nn.Module):
     trivializations = {"project": project}
 
     def __init__(self, size, triv="project", r=1.0):
@@ -66,25 +73,16 @@ class SphereEmbedded(P.Parametrization):
         self.n = size[-1]
         self.tensorial_size = size[:-1]
         self.r = r
-        self.uniform_init_()
 
     @base
     def forward(self, x):
         return self.r * self.triv(x)
 
-    def uniform_init_(self):
-        r"""Samples a point uniformly on the sphere"""
-        if self.is_registered():
-            with torch.no_grad():
-                x = self.original_tensor()
-                x.normal_()
-                x.data = project(x.data)
-
     def extra_repr(self):
         return _extra_repr(n=self.n, r=self.r, tensorial_size=self.tensorial_size)
 
 
-class Sphere(P.Parametrization):
+class Sphere(nn.Module):
     def __init__(self, size, r=1.0):
         r"""
         Sphere as a map from the tangent space onto the sphere using the
@@ -122,11 +120,8 @@ class Sphere(P.Parametrization):
 
     def uniform_init_(self):
         r"""Samples a point uniformly on the sphere"""
-        with torch.no_grad():
-            self.base.data.normal_()
-            self.base.data = self.r * project(self.base.data)
-            if self.is_registered():
-                self.original_tensor().zero_()
+        uniform_init_sphere_(self.base)
+        self.base.data *= self.r
 
     def extra_repr(self):
         return _extra_repr(n=self.n, r=self.r, tensorial_size=self.tensorial_size)

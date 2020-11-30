@@ -14,9 +14,11 @@ from geotorch.psd import PSD
 from geotorch.utils import update_base
 
 
-def get_eigen(M):
-    size = M.original.size()
-    X = M.original if size[-2] >= size[-1] else M.original.transpose(-2, -1)
+def get_eigen(param_list):
+    M = param_list[0]
+    X = param_list.original
+    if X.size(-2) < X.size(-1):
+        X = X.transpose(-2, -1)
     Q, L = ProductManifold.forward(M, M.frame(X))
     if hasattr(M, "f"):
         L = M.f(L)
@@ -96,8 +98,10 @@ class TestPSSDLowRank(TestCase):
                         else:
                             M = cls(size=layer.weight.size())
                         P.register_parametrization(layer, "weight", M)
+                        with torch.no_grad():
+                            layer.parametrizations.weight.original.zero_()
                         self.assertTrue(P.is_parametrized(layer, "weight"))
-                        Q_orig, L_orig = get_eigen(M)
+                        Q_orig, L_orig = get_eigen(layer.parametrizations.weight)
                         self.assertIsOrthogonal(Q_orig)
                         self.assertIsSymmetric(layer.weight)
                         self.assertHasEigenvalues(layer.weight, L_orig)
@@ -116,7 +120,7 @@ class TestPSSDLowRank(TestCase):
                             loss.backward()
                             optim.step()
 
-                            Q_orig, L_orig = get_eigen(M)
+                            Q_orig, L_orig = get_eigen(layer.parametrizations.weight)
                             self.assertIsOrthogonal(Q_orig)
                             self.assertIsSymmetric(layer.weight)
                             self.assertHasEigenvalues(layer.weight, L_orig)

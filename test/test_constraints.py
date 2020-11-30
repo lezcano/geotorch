@@ -107,8 +107,8 @@ class TestConstraints(TestCase):
 
     def test_almost_orthogonal(self):
         def is_almost_orthogonal(net, lam):
-            M = net.parametrizations.weight
-            U_orig, S_orig, V_orig = get_svd(M)
+            param_list = net.parametrizations.weight
+            U_orig, S_orig, V_orig = get_svd(param_list)
             S_orig = 1.0 + lam * S_orig
             self.assertIsOrthogonal(U_orig)
             self.assertIsOrthogonal(V_orig)
@@ -122,6 +122,7 @@ class TestConstraints(TestCase):
         net = nn.Linear(7, 7)
         geotorch.almost_orthogonal(net, "weight", lam=0.3, triv="cayley")
         is_almost_orthogonal(net, 0.3)
+        net = nn.Linear(7, 7)
         geotorch.almost_orthogonal(net, "weight", lam=1.0, f="tanh", triv="cayley")
         is_almost_orthogonal(net, 1.0)
         # Try to instantiate it in a vector rather than a matrix
@@ -141,8 +142,8 @@ class TestConstraints(TestCase):
 
     def test_low_and_fixed_rank(self):
         def is_low_rank(net):
-            M = net.parametrizations.weight
-            U_orig, S_orig, V_orig = get_svd(M)
+            param_list = net.parametrizations.weight
+            U_orig, S_orig, V_orig = get_svd(param_list)
             self.assertIsOrthogonal(U_orig)
             self.assertIsOrthogonal(V_orig)
             self.assertHasSingularValues(net.weight, S_orig)
@@ -179,8 +180,8 @@ class TestConstraints(TestCase):
 
     def test_positive_semidefinite(self):
         def is_pssd_low_rank(net):
-            M = net.parametrizations.weight
-            Q_orig, L_orig = get_eigen(M)
+            param_list = net.parametrizations.weight
+            Q_orig, L_orig = get_eigen(param_list)
             self.assertIsOrthogonal(Q_orig)
             self.assertHasEigenvalues(net.weight, L_orig)
 

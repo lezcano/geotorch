@@ -75,8 +75,12 @@ class ExpRNNCell(nn.Module):
 
     def reset_parameters(self):
         nn.init.kaiming_normal_(self.input_kernel.weight.data, nonlinearity="relu")
-        # Initialize the recurrent kernel
-        self.recurrent_kernel.parametrizations.weight.torus_init_()
+        parametrizations = self.recurrent_kernel.parametrizations.weight
+        # Initialize the base of the parametrization
+        parametrizations[0].torus_init_()
+        # Zero-out the parameters
+        with torch.no_grad():
+            parametrizations.original.zero_()
 
     def default_hidden(self, input_):
         return input_.new_zeros(input_.size(0), self.hidden_size, requires_grad=False)

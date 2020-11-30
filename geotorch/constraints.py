@@ -98,6 +98,9 @@ def sphere(module, tensor_name, r=1.0):
     """
     size = getattr(module, tensor_name).size()
     P.register_parametrization(module, tensor_name, Sphere(size, r))
+    # The base is already initialised to a random point
+    with torch.no_grad():
+        module.parametrizations[tensor_name].original.zero_()
 
 
 def orthogonal(module, tensor_name, triv="expm"):
@@ -147,6 +150,9 @@ def orthogonal(module, tensor_name, triv="expm"):
     else:
         cls = Stiefel
     P.register_parametrization(module, tensor_name, cls(size, triv))
+    # The base is already initialised to a random point
+    with torch.no_grad():
+        module.parametrizations[tensor_name].original.zero_()
 
 
 def almost_orthogonal(module, tensor_name, lam, f="sigmoid", triv="expm"):
@@ -185,6 +191,9 @@ def almost_orthogonal(module, tensor_name, lam, f="sigmoid", triv="expm"):
     P.register_parametrization(
         module, tensor_name, AlmostOrthogonal(size, lam, f, triv)
     )
+    # The base is already initialised to a random point
+    with torch.no_grad():
+        module.parametrizations[tensor_name].original.zero_()
 
 
 def grassmannian(module, tensor_name, triv="expm"):
@@ -238,6 +247,9 @@ def grassmannian(module, tensor_name, triv="expm"):
     n, k = max(n, k), min(n, k)
     cls = GrassmannianTall if n > 4 * k else Grassmannian
     P.register_parametrization(module, tensor_name, cls(size, triv))
+    # The base is already initialised to a random point
+    with torch.no_grad():
+        module.parametrizations[tensor_name].original.zero_()
 
 
 def low_rank(module, tensor_name, rank, triv="expm"):
@@ -271,6 +283,9 @@ def low_rank(module, tensor_name, rank, triv="expm"):
     """
     size = getattr(module, tensor_name).size()
     P.register_parametrization(module, tensor_name, LowRank(size, rank, triv))
+    # The base is already initialised to a random point
+    with torch.no_grad():
+        module.parametrizations[tensor_name].original.zero_()
 
 
 def fixed_rank(module, tensor_name, rank, f="softplus", triv="expm"):
@@ -306,6 +321,9 @@ def fixed_rank(module, tensor_name, rank, f="softplus", triv="expm"):
     """
     size = getattr(module, tensor_name).size()
     P.register_parametrization(module, tensor_name, FixedRank(size, rank, f, triv))
+    # The base is already initialised to a random point
+    with torch.no_grad():
+        module.parametrizations[tensor_name].original.zero_()
 
 
 def invertible(module, tensor_name, f="softplus", triv="expm"):
@@ -339,6 +357,9 @@ def invertible(module, tensor_name, f="softplus", triv="expm"):
     """
     size = getattr(module, tensor_name).size()
     P.register_parametrization(module, tensor_name, GLp(size, f, triv))
+    # The base is already initialised to a random point
+    with torch.no_grad():
+        module.parametrizations[tensor_name].original.zero_()
 
 
 def positive_definite(module, tensor_name, f="softplus", triv="expm"):
@@ -373,6 +394,9 @@ def positive_definite(module, tensor_name, f="softplus", triv="expm"):
     """
     size = getattr(module, tensor_name).size()
     P.register_parametrization(module, tensor_name, PSD(size, f, triv))
+    # The base is already initialised to a random point
+    with torch.no_grad():
+        module.parametrizations[tensor_name].original.zero_()
 
 
 def positive_semidefinite(module, tensor_name, triv="expm"):
@@ -407,6 +431,9 @@ def positive_semidefinite(module, tensor_name, triv="expm"):
     """
     size = getattr(module, tensor_name).size()
     P.register_parametrization(module, tensor_name, PSSD(size, triv))
+    # The base is already initialised to a random point
+    with torch.no_grad():
+        module.parametrizations[tensor_name].original.zero_()
 
 
 def positive_semidefinite_low_rank(
@@ -448,6 +475,9 @@ def positive_semidefinite_low_rank(
     """
     size = getattr(module, tensor_name).size()
     P.register_parametrization(module, tensor_name, PSSDLowRank(size, rank, triv))
+    # The base is already initialised to a random point
+    with torch.no_grad():
+        module.parametrizations[tensor_name].original.zero_()
 
 
 def positive_semidefinite_fixed_rank(
@@ -491,3 +521,6 @@ def positive_semidefinite_fixed_rank(
     """
     size = getattr(module, tensor_name).size()
     P.register_parametrization(module, tensor_name, PSSDFixedRank(size, rank, f, triv))
+    # The base is already initialised to a random point
+    with torch.no_grad():
+        module.parametrizations[tensor_name].original.zero_()

@@ -104,20 +104,23 @@ class ExpRNNCell(nn.Module):
         # product space, we have to initialise each space in the product space
         # separately
 
+        M = self.recurrent_kernel.parametrizations.weight[0]
         if args.constraints == "orthogonal":
-            self.recurrent_kernel.parametrizations.weight.torus_init_(f_)
+            M.torus_init_(f_)
         elif args.constraints == "lowrank":
-            USV = self.recurrent_kernel.parametrizations.weight.total_space
             # Initialise the parts U S V
-            USV[0].torus_init_(f_)
-            USV[1].base.zero_()
-            USV[2].torus_init_(f_)
+            M[0].torus_init_(f_)
+            M[1].base.zero_()
+            M[2].torus_init_(f_)
         elif args.constraints == "almostorthogonal":
-            USV = self.recurrent_kernel.parametrizations.weight.total_space
             # Initialise the parts U S V
-            USV[0].torus_init_(f_)
-            USV[1].base.zero_()
-            USV[2].torus_init_(f_)
+            M[0].torus_init_(f_)
+            M[1].base.zero_()
+            M[2].torus_init_(f_)
+
+        # Zero-out the weight
+        with torch.no_grad():
+            self.recurrent_kernel.parametrizations.weight.original.zero_()
 
     def default_hidden(self, input_):
         return input_.new_zeros(input_.size(0), self.hidden_size, requires_grad=False)

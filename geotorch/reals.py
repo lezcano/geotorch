@@ -1,9 +1,9 @@
 import torch
-import geotorch.parametrize as P
+from torch import nn
 from .utils import base, _extra_repr
 
 
-class Rn(P.Parametrization):
+class Rn(nn.Module):
     def __init__(self, size):
         r"""
         Vector space of unconstrained vectors.

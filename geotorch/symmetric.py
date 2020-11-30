@@ -1,5 +1,5 @@
 import torch
-import geotorch.parametrize as P
+from torch import nn
 
 from .constructions import ProductManifold
 from .so import SO
@@ -9,7 +9,7 @@ from .exceptions import VectorError, NonSquareError, RankError
 from .utils import _extra_repr
 
 
-class Symmetric(P.Parametrization):
+class Symmetric(nn.Module):
     def __init__(self, lower=True):
         r"""
         Vector space of symmetric matrices, parametrized in terms of the upper or lower

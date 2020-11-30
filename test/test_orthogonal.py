@@ -51,25 +51,25 @@ class TestOrthogonal(TestCase):
             for layers in self._test_layers(cls, cls_tall):
                 # Check that the initialization of the layers is orthogonal
                 for layer in layers:
-                    layer.parametrizations.weight.uniform_init_()
+                    layer.parametrizations.weight[0].uniform_init_()
                     self.assertIsOrthogonal(layer.weight)
-                    self.assertIsOrthogonal(layer.parametrizations.weight.base)
+                    self.assertIsOrthogonal(layer.parametrizations.weight[0].base)
 
                 # Make the initialization the same
                 if torch.__version__ >= "1.7.0":
-                    X = layers[0].parametrizations.weight.base
+                    X = layers[0].parametrizations.weight[0].base
                 else:
                     X = layers[0].weight
                     X = X.t() if X.size(-1) > X.size(-2) else X
                 for layer in layers[1:]:
                     with torch.no_grad():
-                        layer.parametrizations.weight.base.copy_(X)
+                        layer.parametrizations.weight[0].base.copy_(X)
                         self.assertAlmostEqual(
                             torch.norm(layers[0].weight - layer.weight).item(),
                             0.0,
                             places=4,
                         )
-                        self.assertIsOrthogonal(layer.parametrizations.weight.base)
+                        self.assertIsOrthogonal(layer.parametrizations.weight[0].base)
 
                 if isinstance(layers[0], nn.Linear):
                     input_ = torch.rand(5, layers[0].in_features)
@@ -165,23 +165,27 @@ class TestOrthogonal(TestCase):
 
         for layers in self._test_layers(cls, cls_tall):
             for layer in layers:
-                p = layer.parametrizations.weight
-                p.uniform_init_()
+                param_list = layer.parametrizations.weight
+                M = param_list[0]
+                M.uniform_init_()
+                with torch.no_grad():
+                    param_list.original.zero_()
                 W = layer.weight
                 self.assertIsOrthogonal(W)
                 if W.size(-1) == W.size(-2):
                     self.assertTrue((W.det() > 0.0).all())
-                    p.torus_init_()
+                    M.torus_init_()
+                    with torch.no_grad():
+                        param_list.original.zero_()
                     W = layer.weight
                     self.assertIsOrthogonal(W)
                     self.assertTrue((W.det() > 0.0).all())
                 else:
                     with self.assertRaises(RuntimeError):
-                        p.torus_init_()
+                        M.torus_init_()
         t = torch.empty(3, 4)
         uniform_init_(t)
         self.assertIsOrthogonal(t)
-        t.zero_()
         # torus_init_ is just available for square matrices
         with self.assertRaises(ValueError):
             torus_init_(t)
@@ -238,6 +242,10 @@ class TestOrthogonal(TestCase):
                     with self.assertRaises(ValueError):
                         size = layer.weight.size()[:-2] + (n, k)
                         SO(size=size, triv=triv)
+
+                with torch.no_grad():
+                    for li in layers:
+                        li.parametrizations.weight.original.zero_()
 
                 yield layers
 

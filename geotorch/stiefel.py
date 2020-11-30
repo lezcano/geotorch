@@ -1,5 +1,5 @@
 import torch
-import geotorch.parametrize as P
+from torch import nn
 
 from .utils import transpose, base, _extra_repr
 from .so import SO, uniform_init_, torus_init_, cayley_map
@@ -58,7 +58,7 @@ class Stiefel(SO):
         X = super().forward(X)
         return X[..., : self.k]
 
-    def torus_init_(self, init_=None, triv=expm):
+    def torus_init_(self, init_=None):
         r"""Samples the 2D input `tensor` as a block-diagonal skew-symmetric matrix
         which is skew-symmetric in the main diagonal. The blocks are of the form
         :math:`\begin{pmatrix} 0 & b \\ -b & 0\end{pmatrix}` where :math:`b` is
@@ -77,15 +77,13 @@ class Stiefel(SO):
                     it in place according to some distribution. See
                     `torch.init <https://pytorch.org/docs/stable/nn.init.html?highlight=init>`_.
                     Default: :math:`\operatorname{Uniform}(-\pi, \pi)`
-            triv: Optional. A function that maps skew-symmetric matrices
-                    to orthogonal matrices.
         """
         if self.k != self.n:
             raise RuntimeError(
                 "This initialization is just available in square matrices."
                 "This matrix has dimensions ({}, {})".format(self.n, self.k)
             )
-        super().torus_init_(init_, triv)
+        super().torus_init_(init_)
 
 
 def stable_qr(X):
@@ -117,7 +115,7 @@ def non_singular_(X):
         return X
 
 
-class StiefelTall(P.Parametrization):
+class StiefelTall(nn.Module):
     trivializations = {"expm": expm, "cayley": cayley_map}
 
     def __init__(self, size, triv="expm"):
@@ -223,10 +221,8 @@ class StiefelTall(P.Parametrization):
         to the Haar measure"""
         with torch.no_grad():
             uniform_init_(self.base)
-            if self.is_registered():
-                self.original_tensor().zero_()
 
-    def torus_init_(self, init_=None, triv=expm):
+    def torus_init_(self, init_=None):
         r"""Samples the 2D input `tensor` as a block-diagonal skew-symmetric matrix
         which is skew-symmetric in the main diagonal. The blocks are of the form
         :math:`\begin{pmatrix} 0 & b \\ -b & 0\end{pmatrix}` where :math:`b` is
@@ -245,8 +241,6 @@ class StiefelTall(P.Parametrization):
                     it in place according to some distribution. See
                     `torch.init <https://pytorch.org/docs/stable/nn.init.html?highlight=init>`_.
                     Default: :math:`\operatorname{Uniform}(-\pi, \pi)`
-            triv: Optional. A function that maps skew-symmetric matrices
-                    to orthogonal matrices.
         """
         if self.k != self.n:
             raise RuntimeError(
@@ -255,9 +249,7 @@ class StiefelTall(P.Parametrization):
             )
 
         with torch.no_grad():
-            torus_init_(self.base, init_, triv)
-            if self.is_registered():
-                self.original_tensor().zero_()
+            torus_init_(self.base, init_, self.triv)
 
     def extra_repr(self):
         return _extra_repr(

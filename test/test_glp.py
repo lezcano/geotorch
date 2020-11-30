@@ -35,6 +35,9 @@ class TestGLp(TestCase):
                     print("GLp({}) on {}".format(n, str(layer)))
                     M = GLp(size=layer.weight.size())
                     P.register_parametrization(layer, "weight", M)
+                    with torch.no_grad():
+                        layer.parametrizations.weight.original.zero_()
+
                     self.assertTrue(P.is_parametrized(layer, "weight"))
                     self.assertPositiveDet(layer.weight)
 

@@ -5,7 +5,7 @@ import torch
 import torch.nn as nn
 
 import geotorch.parametrize as P
-from geotorch.sphere import Sphere, SphereEmbedded
+from geotorch.sphere import Sphere, SphereEmbedded, uniform_init_sphere_
 from geotorch.utils import update_base
 
 
@@ -37,8 +37,12 @@ class TestSphere(TestCase):
                     )
 
                     with torch.no_grad():
-                        layer.parametrizations.weight.uniform_init_()
-                        layer.parametrizations.bias.uniform_init_()
+                        if cls == Sphere:
+                            layer.parametrizations.weight.original.zero_()
+                            layer.parametrizations.bias.original.zero_()
+                        elif cls == SphereEmbedded:
+                            uniform_init_sphere_(layer.parametrizations.weight.original)
+                            uniform_init_sphere_(layer.parametrizations.bias.original)
                         self.assertInSn(layer.weight)
                         self.assertInSn(layer.bias)
 

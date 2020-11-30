@@ -11,10 +11,11 @@ from geotorch.fixedrank import FixedRank
 from geotorch.utils import update_base
 
 
-def get_svd(M):
-    # Very hacky, but will do for now
-    size = M.original.size()
-    X = M.original if size[-2] >= size[-1] else M.original.transpose(-2, -1)
+def get_svd(param_list):
+    M = param_list[0]
+    X = param_list.original
+    if X.size(-2) < X.size(-1):
+        X = X.transpose(-2, -1)
     U, S, V = ProductManifold.forward(M, M.frame(X))
     if hasattr(M, "f"):
         S = M.f(S)
@@ -86,8 +87,10 @@ class TestLowRank(TestCase):
                         r = min(n, k, r)
                         M = cls(size=layer.weight.size(), rank=r)
                         P.register_parametrization(layer, "weight", M)
+                        with torch.no_grad():
+                            layer.parametrizations.weight.original.zero_()
                         self.assertTrue(P.is_parametrized(layer, "weight"))
-                        U_orig, S_orig, V_orig = get_svd(M)
+                        U_orig, S_orig, V_orig = get_svd(layer.parametrizations.weight)
                         self.assertIsOrthogonal(U_orig)
                         self.assertIsOrthogonal(V_orig)
                         self.assertHasSingularValues(layer.weight, S_orig)
@@ -106,7 +109,9 @@ class TestLowRank(TestCase):
                             loss.backward()
                             optim.step()
 
-                            U_orig, S_orig, V_orig = get_svd(M)
+                            U_orig, S_orig, V_orig = get_svd(
+                                layer.parametrizations.weight
+                            )
                             self.assertIsOrthogonal(U_orig)
                             self.assertIsOrthogonal(V_orig)
                             self.assertHasSingularValues(layer.weight, S_orig)
