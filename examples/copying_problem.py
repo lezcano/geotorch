@@ -27,8 +27,8 @@ batch_size = 128
 hidden_size = 190
 iterations = 4000  # Training iterations
 L = 1000  # Length of sequence before asking to remember
-K = 10  # Length of sequence to remember
-n_classes = 9  # Number of possible classes
+S = 10  # Length of sequence to remember
+alphabet_size = 8
 lr = 1e-3
 lr_orth = 2e-4
 device = torch.device("cuda")
@@ -89,11 +89,11 @@ class ExpRNNCell(nn.Module):
 
 
 class Model(nn.Module):
-    def __init__(self, n_classes, hidden_size):
+    def __init__(self, alphabet_size, hidden_size):
         super(Model, self).__init__()
         self.hidden_size = hidden_size
-        self.rnn = ExpRNNCell(n_classes + 1, hidden_size)
-        self.lin = nn.Linear(hidden_size, n_classes)
+        self.rnn = ExpRNNCell(alphabet_size + 2, hidden_size)
+        self.lin = nn.Linear(hidden_size, alphabet_size + 1)
         self.loss_func = nn.CrossEntropyLoss()
         self.reset_parameters()
 
@@ -123,16 +123,16 @@ def copy_data(batch_size):
     # 14221----------:----
     # ---------------14221
     # Numbers go from 1 to 8
-    # We generate K of them and we have to recall them
+    # We generate S of them and we have to recall them
     # L is the waiting between the last number and the
     # signal to start outputting the numbers
     # We codify `-` as a 0 and `:` as a 9.
 
-    seq = torch.randint(1, n_classes, (batch_size, K), dtype=torch.long, device=device)
+    seq = torch.randint(1, alphabet_size + 1, (batch_size, S), dtype=torch.long, device=device)
     zeros1 = torch.zeros((batch_size, L), dtype=torch.long, device=device)
-    zeros2 = torch.zeros((batch_size, K - 1), dtype=torch.long, device=device)
-    zeros3 = torch.zeros((batch_size, K + L), dtype=torch.long, device=device)
-    marker = torch.full((batch_size, 1), n_classes, dtype=torch.long, device=device)
+    zeros2 = torch.zeros((batch_size, S - 1), dtype=torch.long, device=device)
+    zeros3 = torch.zeros((batch_size, S + L), dtype=torch.long, device=device)
+    marker = torch.full((batch_size, 1), alphabet_size + 1, dtype=torch.long, device=device)
 
     x = torch.cat([seq, zeros1, marker, zeros2], dim=1)
     y = torch.cat([zeros3, seq], dim=1)
@@ -141,13 +141,11 @@ def copy_data(batch_size):
 
 
 def main():
-    model = Model(n_classes, hidden_size).to(device)
+    model = Model(alphabet_size, hidden_size).to(device)
 
     p_orth = model.rnn.recurrent_kernel
     orth_params = p_orth.parameters()
-    non_orth_params = (
-        param for param in model.parameters() if param not in set(p_orth.parameters())
-    )
+    non_orth_params = (p for p in model.parameters() if p not in set(p_orth.parameters()))
 
     if RGD:
         # Implement Stochstic Riemannian Gradient Descent via SGD
@@ -157,11 +155,11 @@ def main():
     else:
         # These recurrent models benefit of slightly larger mixing constants
         # on the adaptive term. They also work with beta_2 = 0.999, but they
-        # give better results with beta_2 = 0.99 or even 0.95
+        # give better results with beta_2 \in [0.9, 0.99]
         optim = torch.optim.Adam(
             [
                 {"params": non_orth_params},
-                {"params": orth_params, "lr": lr_orth, "betas": (0.9, 0.99)},
+                {"params": orth_params, "lr": lr_orth, "betas": (0.9, 0.95)},
             ],
             lr=lr,
         )
@@ -169,7 +167,7 @@ def main():
     model.train()
     for step in range(iterations):
         batch_x, batch_y = copy_data(batch_size)
-        x_onehot = F.one_hot(batch_x, num_classes=n_classes + 1).float()
+        x_onehot = F.one_hot(batch_x, num_classes=alphabet_size + 2).float()
         logits = model(x_onehot)
         loss = model.loss(logits, batch_y)
 
@@ -189,15 +187,7 @@ def main():
         print("Iter {} Loss: {:.6f}, Accuracy: {:.5f}".format(step, loss, accuracy))
 
     # The evaluation in this model is not quite necessary, as we do not repeat any
-    # element of the training batch, but we leave it for completeness
-    model.eval()
-    with torch.no_grad():
-        test_x, test_y = copy_data(batch_size)
-        x_onehot = F.one_hot(test_x, num_classes=n_classes + 1).float()
-        logits = model(x_onehot)
-        loss = model.loss(logits, test_y)
-        accuracy = model.accuracy(logits, test_y)
-        print("Test result. Loss: {:.6f}, Accuracy: {:.5f}".format(loss, accuracy))
+    # element of the training batch
 
 
 if __name__ == "__main__":
