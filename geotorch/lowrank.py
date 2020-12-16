@@ -1,5 +1,5 @@
 import torch
-from .constructions import ProductManifold
+from .product import ProductManifold
 from .so import SO
 from .stiefel import Stiefel, StiefelTall
 from .reals import Rn

@@ -6,7 +6,7 @@ import torch.nn as nn
 
 import geotorch.parametrize as P
 
-from geotorch.constructions import ProductManifold
+from geotorch.product import ProductManifold
 from geotorch.pssdlowrank import PSSDLowRank
 from geotorch.pssdfixedrank import PSSDFixedRank
 from geotorch.pssd import PSSD

@@ -13,7 +13,7 @@ from .constraints import (
     positive_semidefinite_low_rank,
     positive_semidefinite_fixed_rank,
 )
-from .constructions import ProductManifold
+from .product import ProductManifold
 from .reals import Rn
 from .skew import Skew
 from .symmetric import Symmetric

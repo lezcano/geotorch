@@ -5,7 +5,7 @@ import torch
 import torch.nn as nn
 import geotorch.parametrize as P
 
-from geotorch.constructions import ProductManifold
+from geotorch.product import ProductManifold
 from geotorch.lowrank import LowRank
 from geotorch.fixedrank import FixedRank
 from geotorch.utils import update_base
