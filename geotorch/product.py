@@ -9,9 +9,9 @@ class ProductManifold(nn.ModuleList):
 
         .. note::
 
-            This is an abstract manifold. It may be used by precomposing and
-            postcomposing by an apropriate linear immersion / submersion.
-            See for example :class:`~geotorch.LowRank`
+            This is an abstract manifold. It may be used by composing it on the
+            left and the right by an apropriate linear immersion / submersion.
+            See for example the implementation in :class:`~geotorch.LowRank`
 
         Args:
             manifolds (iterable): an iterable of manifolds
@@ -20,3 +20,6 @@ class ProductManifold(nn.ModuleList):
 
     def forward(self, Xs):
         return tuple(mani(X) for mani, X in zip(self, Xs))
+
+    def initialize_(self, Xs):
+        return tuple(mani.initialize_(X) for mani, X in zip(self, Xs))

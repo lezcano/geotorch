@@ -10,7 +10,10 @@ def project(x):
 
 
 def uniform_init_sphere_(x, r=1.0):
-    r"""Samples a point uniformly on the sphere into x"""
+    r"""Samples a point uniformly on the sphere into the tensor ``x``.
+    If ``x`` has :math:`d > 1` dimensions, the first :math:`d-1` dimensions
+    are treated as batch dimensions.
+    """
     with torch.no_grad():
         x.normal_()
         x.data = r * project(x.data)
@@ -38,41 +41,20 @@ sinc = sinc_class.apply
 
 
 class SphereEmbedded(nn.Module):
-    trivializations = {"project": project}
-
-    def __init__(self, size, triv="project", r=1.0):
+    def __init__(self, size, r=1.0):
         r"""
-        Sphere as a map from :math:`\mathbb{R}^n` to :math:`\mathbb{S}^{n-1}`.
-        By default it uses the orthogonal projection
-        :math:`x \mapsto \frac{x}{\lVert x \rVert}`.
+        Sphere as the orthogonal projection from
+        :math:`\mathbb{R}^n` to :math:`\mathbb{S}^{n-1}`.
 
         Args:
-            size (torch.size): Size of the tensor to be applied to
-            triv (str or callable): Optional.
-                A map that maps :math:`\mathbb{R}^n` onto the sphere surjectively.
-                It can be either `"project"` or a custom callable. Default: `"project"`
+            size (torch.size): Size of the tensor to be parametrized
             r (float): Optional.
-                Radius of the sphere. It has to be positive. Default: 1.
+                Radius of the sphere. It has to be positive. Default: ``1.``
         """
         super().__init__()
-        self.triv = SphereEmbedded.parse_triv(triv)
         self.r = SphereEmbedded.parse_r(r)
         self.n = size[-1]
         self.tensorial_size = size[:-1]
-
-    @staticmethod
-    def parse_triv(triv):
-        if triv in SphereEmbedded.trivializations.keys():
-            return SphereEmbedded.trivializations[triv]
-        elif callable(triv):
-            return triv
-        else:
-            raise ValueError(
-                "Argument triv was not recognized and is "
-                "not callable. Should be one of {}. Found {}".format(
-                    list(SphereEmbedded.trivializations.keys()), triv
-                )
-            )
 
     @staticmethod
     def parse_r(r):
@@ -83,7 +65,7 @@ class SphereEmbedded(nn.Module):
         return r
 
     def forward(self, x):
-        return self.r * self.triv(x)
+        return self.r * project(x)
 
     def initialize_(self, X):
         if not SphereEmbedded.in_manifold(X, self.r):
@@ -105,9 +87,9 @@ class Sphere(nn.Module):
         exponential map.
 
         Args:
-            size (torch.size): Size of the tensor to be applied to
+            size (torch.size): Size of the tensor to be parametrized
             r (float): Optional.
-                Radius of the sphere. It has to be positive. Default: 1.
+                Radius of the sphere. It has to be positive. Default: ``1.``
         """
         super().__init__()
         if r <= 0.0:

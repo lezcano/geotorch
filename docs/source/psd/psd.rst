@@ -19,7 +19,7 @@ It is realized via an eigen-like factorization. In particular, it is implemented
             (Q, \Lambda) &\mapsto Qf(\Lambda)Q^\intercal
     \end{align*}
 
-where we have identified :math:`\mathbb{R}^r` with a diagonal matrix in :math:`\mathbb{R}^{r \times r}` and :math:`\left|Lambda\right|` denotes the absolute value of the diagonal entries. The function :math:`f\colon \mathbb{R} \to (0, \infty)` is applied element-wise to the diagonal. By default, the `softmax` function is used
+where we have identified :math:`\mathbb{R}^r` with a diagonal matrix in :math:`\mathbb{R}^{r \times r}`. The function :math:`f\colon \mathbb{R} \to (0, \infty)` is applied element-wise to the diagonal. By default, the `softmax` function is used
 
 .. math::
 

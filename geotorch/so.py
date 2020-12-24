@@ -29,11 +29,13 @@ class SO(nn.Module):
         in terms of its Lie algebra, the skew-symmetric matrices.
 
         Args:
-                A map that maps :math:`\operatorname{Skew}(n)` onto the orthogonal
-                matrices surjectively. It can be one of `["expm", "cayley"]` or a custom
-                callable. Default: `"expm"`
+            size (torch.size): Size of the tensor to be parametrized
+            triv (str or callable): Optional.
+                A map that maps skew-symmetric onto :math:`\operatorname{SO}(n)`
+                surjectively. It can be one of ``["expm", "cayley"]`` or a custom
+                callable. Default: ``"expm"``
             lower (bool): Optional. Uses the lower triangular part of the matrix to
-                parametrize the skew-symmetric matrices. Default: `True`
+                parametrize the skew-symmetric matrices. Default: ``True``
         """
         super().__init__()
         n, tensorial_size = SO.parse_size(size)
@@ -101,9 +103,11 @@ class SO(nn.Module):
 
 
 def uniform_init_(tensor):
-    r"""Fills the input with an orthogonal matrix. If square, the matrix will have
-    positive determinant.  The input tensor must have at least 2 dimensions,
-    and for tensors with more than 2 dimensions the first dimensions are treated as
+    r"""Fills in the input ``tensor`` in place with an orthogonal matrix.
+    If square, the matrix will have positive determinant.
+    The tensor will be distributed according to the Haar measure.
+    The input tensor must have at least 2 dimensions.
+    For tensors with more than 2 dimensions the first dimensions are treated as
     batch dimensions.
 
     Args:
@@ -142,14 +146,18 @@ def uniform_init_(tensor):
 
 
 def torus_init_(tensor, init_=None, triv=expm):
-    r"""Samples the 2D input `tensor` as a block-diagonal skew-symmetric matrix
-    which is skew-symmetric in the main diagonal. The blocks are of the form
+    r"""Fills in the input ``tensor`` in place as a block-diagonal skew-symmetric matrix.
+    The blocks are of the form
     :math:`\begin{pmatrix} 0 & b \\ -b & 0\end{pmatrix}` where :math:`b` is
-    distributed according to `init_`. Then it is projected to the manifold using `triv`.
+    distributed according to ``init_``.
+    This matrix is then projected to the manifold using ``triv``.
+
+    The input tensor must have at least 2 dimension. For tensors with more than 2 dimensions
+    the first dimensions are treated as batch dimensions.
 
     Args:
         tensor (torch.Tensor): a 2-dimensional tensor
-        init_: Optional. A function that takes a tensor and fills
+        init\_: Optional. A function that takes a tensor and fills
                 it in place according to some distribution. See
                 `torch.init <https://pytorch.org/docs/stable/nn.init.html?highlight=init>`_.
                 Default: :math:`\operatorname{Uniform}(-\pi, \pi)`

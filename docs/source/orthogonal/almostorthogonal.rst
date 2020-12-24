@@ -31,7 +31,7 @@ If :math:`\lambda = 1` is chosen, the resulting space is not a manifold, althoug
 
 .. note::
 
-    There are no restrictions in place for the image of the function :math:`f`. For a function :math:`f` with image :math:`[a,b]`, the function :math:`f_\lambda` will take values in :math:`[r(1+a), r(1+b)]`. As such, rescaling the function :math:`f`, one may use this class to perform optimization with singular values constrained to any prescribed interval of :math:`\mathbb{R}^+`.
+    There are no restrictions in place for the image of the function :math:`f`. For a function :math:`f` with image :math:`[a,b]`, the function :math:`f_\lambda` will take values in :math:`[\lambda (1+a), \lambda (1+b)]`. As such, rescaling the function :math:`f`, one may use this class to perform optimization with singular values constrained to any prescribed interval of :math:`\mathbb{R}^+`.
 
 
 .. autoclass:: AlmostOrthogonal

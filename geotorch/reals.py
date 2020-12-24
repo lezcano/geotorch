@@ -10,7 +10,7 @@ class Rn(nn.Module):
         Vector space of unconstrained vectors.
 
         Args:
-            size (torch.size): Size of the tensor to be applied to
+            size (torch.size): Size of the tensor to be parametrized
         """
         super().__init__()
         self.n = size[-1]

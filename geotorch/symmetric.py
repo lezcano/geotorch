@@ -16,9 +16,9 @@ class Symmetric(nn.Module):
         triangular part of a matrix.
 
         Args:
-            size (torch.size): Size of the tensor to be applied to
+            size (torch.size): Size of the tensor to be parametrized
             lower (bool): Optional. Uses the lower triangular part of the matrix to
-                parametrize the matrix. Default: `True`
+                parametrize the matrix. Default: ``True``
         """
         super().__init__()
         self.lower = lower
@@ -45,17 +45,17 @@ class SymF(ProductManifold):
         in the image of a given function
 
         Args:
-            size (torch.size): Size of the tensor to be applied to
+            size (torch.size): Size of the tensor to be parametrized
             rank (int): Rank of the matrices.
                 It has to be less or equal to
                 :math:`\min(\texttt{size}[-1], \texttt{size}[-2])`
             f (callable): Function parametrizing the space of possible
                 eigenvalues of the matrix
             triv (str or callable): Optional.
-                A map that maps :math:`\operatorname{Skew}(n)` onto the orthogonal
-                matrices surjectively. This is used to optimize the Q in the eigenvalue
-                decomposition. It can be one of `["expm", "cayley"]` or a custom
-                callable. Default: `"expm"`
+                A map that maps skew-symmetric matrices onto the orthogonal matrices
+                surjectively. This is used to optimize the :math:`Q` in the eigenvalue
+                decomposition. It can be one of ``["expm", "cayley"]`` or a custom
+                callable. Default: ``"expm"``
         """
         n, tensorial_size = SymF.parse_size(size)
         if rank > n or rank < 1:

@@ -15,9 +15,9 @@ from .exceptions import VectorError, InManifoldError
 class Stiefel(SO):
     def __init__(self, size, triv="expm"):
         r"""
-        Manifold of rectangular orthogonal matrices parametrized as a projection from
-        the square orthogonal matrices :math:`\operatorname{SO}(n)`.
-        The metric considered is the canonical.
+        Manifold of rectangular orthogonal matrices parametrized as a projection onto the
+        first :math:`k` columns from the space of square orthogonal matrices
+        :math:`\operatorname{SO}(n)`. The metric considered is the canonical.
 
         .. note::
 
@@ -26,11 +26,11 @@ class Stiefel(SO):
             :math:`n \leq 4k`.
 
         Args:
-            size (torch.size): Size of the tensor to be applied to
+            size (torch.size): Size of the tensor to be parametrized
             triv (str or callable): Optional.
-                A map that maps :math:`\operatorname{Skew}(n)` onto the orthogonal
-                matrices surjectively. It can be one of `["expm", "cayley"]` or a custom
-                callable. Default: `"expm"`
+                A map that maps skew-symmetric matrices onto the orthogonal matrices
+                surjectively. It can be one of ``["expm", "cayley"]`` or a custom
+                callable. Default: ``"expm"``
         """
         super().__init__(size=Stiefel.size_so(size), triv=triv, lower=True)
         self.k = min(size[-1], size[-2])
@@ -129,11 +129,11 @@ class StiefelTall(nn.Module):
             when :math:`n` is of a much larger than :math:`k`. For example, :math:`n > 4k`.
 
         Args:
-            size (torch.size): Size of the tensor to be applied to
+            size (torch.size): Size of the tensor to be parametrized
             triv (str or callable): Optional.
                 A map that maps :math:`\operatorname{Skew}(n)` onto the orthogonal
-                matrices surjectively. It can be one of `["expm", "cayley"]` or a custom
-                callable. Default: `"expm"`
+                matrices surjectively. It can be one of ``["expm", "cayley"]`` or a custom
+                callable. Default: ``"expm"``
         """
         super().__init__()
         if torch.__version__ >= "1.7.0":
@@ -204,7 +204,7 @@ class StiefelTall(nn.Module):
                          [R,        0   ]] in Skew(2k)`
         and returns
         :math:`\pi([B, Q] expm(Atilde))`
-        where `pi` is the projection of a matrix into its first :math:`k` columns
+        where :math:`pi` is the projection of a matrix into its first :math:`k` columns
         """
         Q, R = stable_qr(X)
         AR = torch.cat([A, R], dim=-2)

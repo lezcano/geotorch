@@ -13,15 +13,15 @@ class LowRank(ProductManifold):
         Variety of the matrices of rank :math:`r` or less.
 
         Args:
-            size (torch.size): Size of the tensor to be applied to
+            size (torch.size): Size of the tensor to be parametrized
             rank (int): Rank of the matrices.
                 It has to be less or equal to
                 :math:`\min(\texttt{size}[-1], \texttt{size}[-2])`
             triv (str or callable): Optional.
-                A map that maps :math:`\operatorname{Skew}(n)` onto the orthogonal
+                A map that maps skew-symmetric matrices onto the orthogonal
                 matrices surjectively. This is used to optimize the U and V in the
-                SVD. It can be one of `["expm", "cayley"]` or a custom
-                callable. Default: `"expm"`
+                SVD. It can be one of ``["expm", "cayley"]`` or a custom
+                callable. Default: ``"expm"``
         """
         n, k, tensorial_size = LowRank.parse_size(size)
         if rank > min(n, k) or rank < 1:

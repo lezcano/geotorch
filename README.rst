@@ -112,6 +112,7 @@ GeoTorch currently supports the following spaces:
 - |pssd|_: Cone of ``n×n`` symmetric positive semi-definite matrices
 - |pssdlow|_: Variety of ``n×n`` symmetric positive semi-definite matrices of rank ``r`` or less
 - |pssdfixed|_: Manifold of ``n×n`` symmetric positive semi-definite matrices of rank ``r``
+- |product|_: Product of manifolds M₁ × ... × Mₖ
 
 .. |reals| replace:: ``Rn(n)``
 .. _reals: https://geotorch.readthedocs.io/en/latest/vector_spaces/reals.html
@@ -143,32 +144,20 @@ GeoTorch currently supports the following spaces:
 .. _pssdlow: https://geotorch.readthedocs.io/en/latest/psd/pssdlowrank.html
 .. |pssdfixed| replace:: ``PSSDFixedRank(n,r)``
 .. _pssdfixed: https://geotorch.readthedocs.io/en/latest/psd/pssdfixedrank.html
+.. |product| replace:: ``ProductManifold(M₁, ..., Mₖ)``
+.. _product: https://geotorch.readthedocs.io/en/latest/product.html
 
 
 Every space of dimension ``(n, k)`` can be applied to tensors of shape ``(*, n, k)``, so we also get efficient parallel implementations of product spaces such as
 
 - ``ObliqueManifold(n,k)``: Matrix with unit length columns, Sⁿ⁻¹ × ...ᵏ⁾ × Sⁿ⁻¹
 
-GeoTorch also provides the following constructions which help the user to implement other spaces:
-
-- |manif|_: Manifold that supports Riemannian Gradient Descent and trivializations
-- |fib|_: Fibered space π : E → M, constructed from a ``Manifold`` E, a submersion π and the adjoint dπ*
-- |prod|_: M₁ × ... × Mₖ
-
-
-.. |manif| replace:: ``Manifold``
-.. _manif: https://geotorch.readthedocs.io/en/latest/constructions.html#geotorch.constructions.Manifold
-.. |fib| replace:: ``FiberedSpace``
-.. _fib: https://geotorch.readthedocs.io/en/latest/constructions.html#geotorch.constructions.FiberedSpace
-.. |prod| replace:: ``ProductManifold``
-.. _prod: https://geotorch.readthedocs.io/en/latest/constructions.html#geotorch.constructions.ProductManifold
-
 Using GeoTorch in your Code
 ---------------------------
 
-The files `examples/copying_problem.py`_ and `examples/sequential_mnist.py`_ serve as tutorials to see how to handle the initialization and usage of GeoTorch in some real code. They also show how to implement Riemannian Gradient Descent and some other tricks.
+The files in `examples/copying_problem.py`_ and `examples/sequential_mnist.py`_ serve as tutorials to see how to handle the initialization and usage of GeoTorch in some real code. They also show how to implement Riemannian Gradient Descent and some other tricks.
 
-If you have installed PyTorch v1.5 at least, you may try GeoTorch installing it via
+You may try GeoTorch installing it with
 
 .. code:: bash
 

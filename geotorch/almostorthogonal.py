@@ -21,27 +21,31 @@ class AlmostOrthogonal(LowRank):
     }
 
     def __init__(self, size, lam, f="sin", inverse=None, triv="expm"):
-        r"""
-        Manifold of matrices with singular values in the interval :math:`(1-\lambda, 1+\lambda)`.
+        r"""Manifold of matrices with singular values in the interval
+        :math:`(1-\lambda, 1+\lambda)`.
 
         The possible default maps are the :math:`\sin,\,\tanh` functions and a scaled
-        sigmoid. The sigmoid is scaled as :math:`\operatorname{scaled_sigmoid}(x) = 2\sigma(x) - 1`
+        sigmoid. The sigmoid is scaled as :math:`\operatorname{scaled\_sigmoid}(x) = 2\sigma(x) - 1`
         where :math:`\sigma` is the usual sigmoid function.
+        This is dones so that the image of the scaled sigmoid is :math:`(-1, 1)`.
 
         Args:
-            size (torch.size): Size of the tensor to be applied to
-            lam (float): Radius. A float in the interval [0, 1]
+            size (torch.size): Size of the tensor to be parametrized
+            lam (float): Radius. A float in the interval :math:`[0, 1]`
             f (str or callable or tuple of callables): Optional. Either:
-                - One of `["scaled_sigmoid", "tanh", "sin"]`
-                - A callable that maps real numbers to the interval :math:`[-1, 1]`.
+
+                - One of ``["scaled_sigmoid", "tanh", "sin"]``
+
+                - A callable that maps real numbers to the interval :math:`(-1, 1)`.
+
                 - A tuple of callables such that the first maps the real numbers to
-                  :math:`[-1, 1]` and the second is a (right) inverse of the first
-                Default: `"sin"`
+                  :math:`(-1, 1)` and the second is a (right) inverse of the first
+                Default: ``"sin"``
             triv (str or callable): Optional.
-                A map that maps :math:`\operatorname{Skew}(n)` onto the orthogonal
-                matrices surjectively. This is used to optimize the Q in the eigenvalue
-                decomposition. It can be one of `["expm", "cayley"]` or a custom
-                callable. Default: `"expm"`
+                A map that maps skew-symmetric matrices onto the orthogonal matrices
+                surjectively. This is used to optimize the :math:`Q` in the eigenvalue
+                decomposition. It can be one of ``["expm", "cayley"]`` or a custom
+                callable. Default: ``"expm"``
 
         """
         super().__init__(size, AlmostOrthogonal.rank(size), triv=triv)

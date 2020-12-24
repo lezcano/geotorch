@@ -18,11 +18,11 @@ class Grassmannian(Stiefel):
             :math:`n \leq 4k`.
 
         Args:
-            size (torch.size): Size of the tensor to be applied to
+            size (torch.size): Size of the tensor to be parametrized
             triv (str or callable): Optional.
-                A map that maps :math:`\operatorname{Skew}(n)` onto the orthogonal
-                matrices surjectively. It can be one of `["expm", "cayley"]` or a custom
-                callable. Default: `"expm"`
+                A map that maps skew-symmetric matrices onto the orthogonal matrices
+                surjectively. It can be one of ``["expm", "cayley"]`` or a custom
+                callable. Default: ``"expm"``
         """
         super().__init__(size=size, triv=triv)
 
@@ -47,11 +47,11 @@ class GrassmannianTall(StiefelTall):
             when :math:`n` is of a much larger than :math:`k`. For example, :math:`n > 4k`.
 
         Args:
-            size (torch.size): Size of the tensor to be applied to
+            size (torch.size): Size of the tensor to be parametrized
             triv (str or callable): Optional.
-                A map that maps :math:`\operatorname{Skew}(n)` onto the orthogonal
-                matrices surjectively. It can be one of `["expm", "cayley"]` or a custom
-                callable. Default: `"expm"`
+                A map that maps skew-symmetric matrices onto the orthogonal matrices
+                surjectively. It can be one of ``["expm", "cayley"]`` or a custom
+                callable. Default: ``"expm"``
         """
         super().__init__(size, triv)
 

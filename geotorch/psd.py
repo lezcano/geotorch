@@ -8,18 +8,21 @@ class PSD(PSSDFixedRank):
         Manifold of symmetric positive definite matrices
 
         Args:
-            size (torch.size): Size of the tensor to be applied to
+            size (torch.size): Size of the tensor to be parametrized
             f (str or callable or tuple of callables): Optional. Either:
-                - "softplus"
+
+                - ``"softplus"``
+
                 - A callable that maps real numbers to the interval :math:`(0, \infty)`.
+
                 - A tuple of callables such that the first maps the real numbers to
                   :math:`(0, \infty)` and the second is a (right) inverse of the first
-                Default: `"softplus"`
+                Default: ``"softplus"``
             triv (str or callable): Optional.
-                A map that maps :math:`\operatorname{Skew}(n)` onto the orthogonal
-                matrices surjectively. This is used to optimize the Q in the eigenvalue
-                decomposition. It can be one of `["expm", "cayley"]` or a custom
-                callable. Default: `"expm"`
+                A map that maps skew-symmetric matrices onto the orthogonal matrices
+                surjectively. This is used to optimize the :math:`Q` in the eigenvalue
+                decomposition. It can be one of ``["expm", "cayley"]`` or a custom
+                callable. Default: ``"expm"``
         """
         super().__init__(size, PSD.rank(size), f, triv=triv)
 

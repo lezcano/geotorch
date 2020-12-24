@@ -27,6 +27,7 @@ from .fixedrank import FixedRank
 from .glp import GLp
 from .psd import PSD
 from .pssd import PSSD
+from .pssdfixedrank import PSSDFixedRank
 from .pssdlowrank import PSSDLowRank
 from .utils import update_base
 

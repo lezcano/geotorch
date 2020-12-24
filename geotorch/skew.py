@@ -9,9 +9,9 @@ class Skew(nn.Module):
         part of a matrix.
 
         Args:
-            size (torch.size): Size of the tensor to be applied to
+            size (torch.size): Size of the tensor to be parametrized
             lower (bool): Optional. Uses the lower triangular part of the matrix to parametrize
-                the matrix. Default: `True`
+                the matrix. Default: ``True``
         """
         super().__init__()
         self.lower = lower
