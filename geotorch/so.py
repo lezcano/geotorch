@@ -96,6 +96,8 @@ class SO(nn.Module):
             error = torch.linalg.norm(D, dim=(-2, -1), ord=1) / k
         else:
             error = D.abs().sum(dim=-2).max(dim=-1) / k
+        if not (error < eps).all():
+            U = X[0,0]
         return (error < eps).all()
 
     def extra_repr(self):

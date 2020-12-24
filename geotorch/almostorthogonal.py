@@ -86,16 +86,21 @@ class AlmostOrthogonal(LowRank):
     def submersion_inv(self, X):
         U, S, V = super().submersion_inv(X)
         with torch.no_grad():
-            S = (S - 1.0) / self.lam
-        if (S.abs() > 1.0).any():
-            raise InManifoldError(X, self)
+            S = S - 1.0
+            if self.lam != 0.0:
+                S = S / self.lam
+                if (S.abs() > 1.0).any():
+                    raise InManifoldError(X, self)
+            else:
+                if (S.abs() > 1e-4).any():
+                    raise InManifoldError(X, self)
         return U, self.inv(S), V
 
     def extra_repr(self):
         return _extra_repr(
             n=self.n,
             k=self.k,
-            rank=self.rank,
+            lam=self.lam,
             tensorial_size=self.tensorial_size,
             f=self.f,
             no_inv=self.inv is None,

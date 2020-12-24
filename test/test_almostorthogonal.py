@@ -4,9 +4,9 @@ import itertools
 import torch
 import torch.nn as nn
 
+import geotorch
 import geotorch.parametrize as P
 from geotorch.almostorthogonal import AlmostOrthogonal
-from geotorch.so import uniform_init_
 from geotorch.utils import update_base
 from .test_lowrank import get_svd
 
@@ -19,6 +19,7 @@ class TestLowRank(TestCase):
         if X.dim() > 2:
             Id = Id.repeat(*(X.size()[:-2] + (1, 1)))
         norm = torch.norm(X.transpose(-2, -1) @ X - Id, dim=(-2, -1))
+        print(norm)
         self.assertTrue((norm < 1e-3).all())
 
     def vector_error(self, X, Y):
@@ -66,16 +67,11 @@ class TestLowRank(TestCase):
         with torch.random.fork_rng(devices=range(torch.cuda.device_count())):
             torch.random.manual_seed(8888)
             for (n, k), lam, f in itertools.product(sizes, lams, fs):
-                for layer in [nn.Linear(n, k), nn.Conv2d(n, 4, k)]:
-                    cls = AlmostOrthogonal
-                    print(
-                        "{}({}, {}, {}, {}) on {}".format(
-                            cls.__name__, n, k, lam, f, str(layer)
-                        )
-                    )
-                    M = cls(size=layer.weight.size(), lam=lam, f=f)
+                for layer in [nn.Linear(n, k), nn.Conv2d(5, 4, (n, k))]:
+                    M = AlmostOrthogonal(size=layer.weight.size(), lam=lam, f=f)
+                    print(M)
                     P.register_parametrization(layer, "weight", M)
-                    layer.weight = uniform_init_(layer.weight)
+                    layer.weight = geotorch.so.uniform_init_(layer.weight)
                     self.assertTrue(P.is_parametrized(layer, "weight"))
                     U_orig, S_orig, V_orig = get_svd(layer.parametrizations.weight)
                     S_orig = 1.0 + lam * S_orig
@@ -88,7 +84,7 @@ class TestLowRank(TestCase):
                         input_ = torch.rand(5, n)
                     elif isinstance(layer, nn.Conv2d):
                         # batch x in_channel x in_length x in_width
-                        input_ = torch.rand(6, n, 9, 8)
+                        input_ = torch.rand(6, 5, 9, 8)
 
                     for i in range(2):
                         print(i)
@@ -112,6 +108,59 @@ class TestLowRank(TestCase):
                         0.0,
                         places=3,
                     )
+
+    def test_almostorthogonal_init(self):
+        sizes = [
+            (8, 1),
+            (8, 4),
+            (8, 8),
+            (7, 1),
+            (7, 3),
+            (7, 4),
+            (7, 7),
+            (1, 7),
+            (2, 7),
+            (1, 8),
+            (2, 8),
+            (1, 1),
+            (2, 1),
+            (1, 2),
+        ]
+
+        lams = [0.0, 0.5, 1.0]
+        fs = ["scaled_sigmoid", "sin", "tanh"]
+        with torch.random.fork_rng(devices=range(torch.cuda.device_count())):
+            torch.random.manual_seed(8888)
+            for (n, k), lam, f in itertools.product(sizes, lams, fs):
+                for layer in [nn.Linear(n, k), nn.Conv2d(5, 4, (n, k))]:
+                    M = AlmostOrthogonal(size=layer.weight.size(), lam=lam, f=f)
+                    P.register_parametrization(layer, "weight", M)
+                    print(layer)
+                    U = geotorch.so.uniform_init_(torch.empty(*(M.tensorial_size + (M.n, M.k))))
+                    V = geotorch.so.uniform_init_(torch.empty(*(M.tensorial_size + (M.k, M.k))))
+                    self.assertIsOrthogonal(U)
+                    self.assertIsOrthogonal(V)
+                    # L is in [0,1)
+                    S = torch.rand(*(M.tensorial_size + (M.k,)))
+                    # Move S to [1-lam, 1+lam]
+                    S = 1.0 + lam * (2.0 * S - 1.0)
+                    layer.weight = U, S, V
+
+                    # Correct singular values
+                    self.assertHasSingularValues(layer.weight, S, lam)
+                    # Correct initialisation
+
+                    # Multiply the three of them, S as a diagonal matrix
+                    Vt = V.transpose(-2, -1)
+                    init = U @ (S.unsqueeze(-1).expand_as(Vt) * Vt)
+
+                    self.assertAlmostEqual(
+                        torch.norm(init - layer.weight).abs().max().item(),
+                        0.0,
+                        places=3,
+                    )
+
+
 
     def test_almostorthogonal_errors(self):
         with self.assertRaises(ValueError):

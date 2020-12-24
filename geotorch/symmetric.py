@@ -128,20 +128,24 @@ class SymF(ProductManifold):
     def initialize_(self, X):
         Q, L = self.submersion_inv(X)
         X1, X2 = super().initialize_([Q, L])
-        ret = torch.zeros_like(X)
-        return self.frame_inv(X1, X2, ret)
+        return self.frame_inv(X1, X2)
 
-    def frame_inv(self, X1, X2, ret):
+    def frame_inv(self, X1, X2):
+        size = self.tensorial_size + (self.n, self.n)
+        ret = torch.zeros(*size, dtype=X1.dtype, device=X1.device)
         with torch.no_grad():
             ret[..., : self.rank] = X1
             ret[..., : self.rank, : self.rank] = torch.diag_embed(X2)
         return ret
 
     def submersion_inv(self, X):
-        with torch.no_grad():
-            L, Q = X.symeig(eigenvectors=True)
-        size = self.tensorial_size + (self.n, self.k)
-        if not SymF.in_manifold_eigen(Q, L, size=size, rank=self.rank, inv=self.inv):
+        if isinstance(X, torch.Tensor):
+            with torch.no_grad():
+                L, Q = X.symeig(eigenvectors=True)
+        else:
+            # We assume that we got the Q L factorised in a tuple / list
+            Q, L = X
+        if not SymF.in_manifold_eigen(L, rank=self.rank):
             raise InManifoldError(X, self)
         with torch.no_grad():
             Q = Q[..., : self.rank]
@@ -150,23 +154,20 @@ class SymF(ProductManifold):
         return Q, L
 
     @staticmethod
-    def in_manifold_eigen(Q, L, size, rank, inv, eps=1e-4):
-        # FIXME this does not work if invoked from the outside with a non-transposed matrix
-        if Q.size() != size:
-            return False
+    def in_manifold_eigen(L, rank, eps=1e-4):
         # We compute the 1-norm of the vector normalising by the size of the vector
         D = L[rank:]
         if len(D) == 0:
             return True
-        err = D.abs().sum(dim=-1) / len(D)
-        return (err < eps).all()
+        avg_err = D.abs().sum(dim=-1) / len(D)
+        return (avg_err < eps).all()
 
     @staticmethod
-    def in_manifold(X, size, rank, inv, eps=1e-4):
+    def in_manifold(X, size, rank, eps=1e-4):
         if X.size() != size:
             return False
-        L, Q = X.symeig(eigenvectors=True)
-        return SymF.in_manifold_eigen(Q, L, size, rank, inv, eps)
+        L = X.symeig().eigenvalues
+        return SymF.in_manifold_eigen(L, rank, eps)
 
     def extra_repr(self):
         return _extra_repr(n=self.n, rank=self.rank, tensorial_size=self.tensorial_size)

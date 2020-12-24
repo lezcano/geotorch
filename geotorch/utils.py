@@ -41,6 +41,10 @@ def base(forward):
 
 def transpose(forward):
     def new_forward(self, X, *args, **kwargs):
+        # It might happen that we get at tuple inside ``initialize_``
+        # In that case we do nothing
+        if not isinstance(X, torch.Tensor):
+            return forward(self, X, *args, **kwargs)
         transpose = X.size(-2) < X.size(-1)
         if transpose:
             X = X.transpose(-2, -1)
@@ -66,10 +70,14 @@ def _extra_repr(**kwargs):
         ret += ", rank={}".format(kwargs["rank"])
     if "r" in kwargs:
         ret += ", radius={}".format(kwargs["r"])
+    if "lam" in kwargs:
+        ret += ", lambda={}".format(kwargs["lam"])
+    if "f" in kwargs:
+        ret += ", f={}".format(kwargs["f"].__name__)
     if "tensorial_size" in kwargs:
         ts = kwargs["tensorial_size"]
         if len(ts) != 0:
-            ret += ", tensorial_size={}".format(ts)
+            ret += ", tensorial_size={}".format(tuple(ts))
     if "triv" in kwargs:
         ret += ", triv={}".format(kwargs["triv"].__name__)
     if "no_inv" in kwargs:

@@ -43,14 +43,10 @@ class Stiefel(SO):
         size_so[-1] = size_so[-2] = max(size[-1], size[-2])
         return tuple(size_so)
 
-    @staticmethod
-    def _frame(X):
+    def frame(self, X):
         n, k = X.size(-2), X.size(-1)
         size_z = X.size()[:-2] + (n, n - k)
         return torch.cat([X, X.new_zeros(*size_z)], dim=-1)
-
-    def frame(self, X):
-        return Stiefel._frame(X)
 
     @transpose
     def forward(self, X):
@@ -60,7 +56,8 @@ class Stiefel(SO):
 
     @transpose
     def initialize_(self, X):
-        if X.size() != (self.base.size()[:-2] + (self.n, self.k)):
+        size = self.tensorial_size + (self.n , self.k)
+        if not Stiefel.in_manifold(X, size):
             raise InManifoldError(X, self)
         if self.n != self.k:
             size_n = X.size()[:-2] + (self.n, self.n - self.k)
@@ -70,12 +67,19 @@ class Stiefel(SO):
                 N.normal_()
                 # We assume for now that X is orthogonal.
                 # This will be checked in super().initialize_()
-                # Project N onto orthogonal subspace of X
-                N = N - X @ (X.transpose(-2, -1) @ N)
-                # And make it an orthonormal base of the image
-                N = N.qr().Q
+                # Project N onto the orthogonal complement to X
+                # We iterate this twice for this algorithm to be numerically stable
+                # This is standard, as done in some stochastic SVD algorithms
+                for _ in range(2):
+                    N = N - X @ (X.transpose(-2, -1) @ N)
+                    # And make it an orthonormal base of the image
+                    N = N.qr().Q
                 X = torch.cat([X, N], dim=-1)
         return super().initialize_(X)[..., : self.n, : self.k]
+
+    @staticmethod
+    def in_manifold(X, size, eps=1e-4):
+        return SO.in_manifold(X, size, eps)
 
     def extra_repr(self):
         return _extra_repr(

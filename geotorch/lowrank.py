@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 import torch
 from .product import ProductManifold
 from .so import SO
@@ -81,42 +82,46 @@ class LowRank(ProductManifold):
 
     @transpose
     def initialize_(self, X):
-        U, S, V = self.submersion_inv(X)
-        X1, X2, X3 = super().initialize_([U, S, V])
-        ret = torch.zeros_like(X)
-        return self.frame_inv(X1, X2, X3, ret)
+        USV = self.submersion_inv(X)
+        X1, X2, X3 = super().initialize_(USV)
+        return self.frame_inv(X1, X2, X3)
 
-    def frame_inv(self, X1, X2, X3, ret):
+    def frame_inv(self, X1, X2, X3):
+        # X1 is lower-triangular
+        # X2 is a vector
+        # X3 is upper-triangular
+        size = self.tensorial_size + (self.n, self.k)
+        ret = torch.zeros(*size, dtype=X1.dtype, device=X1.device)
         with torch.no_grad():
             ret[..., : self.rank] = X1
             ret[..., : self.rank, : self.rank] = torch.diag_embed(X2)
-            ret[..., : self.rank] = X3
+            ret[..., : self.rank, :] = X3
         return ret
 
     def submersion_inv(self, X):
-        with torch.no_grad():
-            U, S, V = X.svd()
-        size = self.tensorial_size + (self.n, self.k)
-        if not LowRank.in_manifold_svd(U, S, V, size=size, rank=self.rank):
+        if isinstance(X, torch.Tensor):
+            with torch.no_grad():
+                U, S, V = X.svd()
+        else:
+            # We assume that we got he U S V factorised in a tuple / list
+            U, S, V = X
+        if not LowRank.in_manifold_singular_values(S, rank=self.rank):
             raise InManifoldError(X, self)
         return U[..., : self.rank], S[..., : self.rank], V[..., : self.rank]
 
     @staticmethod
-    def in_manifold_svd(U, S, V, size, rank, eps=1e-4):
-        # FIXME this does not work if invoked from the outside with a non-transposed matrix
-        if U.size() != size:
-            return False
+    def in_manifold_singular_values(S, rank, eps=1e-3):
         # We compute the 1-norm of the vector normalising by the size of the vector
-        D = S[rank:]
-        if len(D) == 0:
+        D = S[..., rank:]
+        if D.size(-1) == 0:
             return True
-        err = D.abs().sum(dim=-1) / len(D)
-        return (err < eps).all()
+        avg_err = D.abs().sum(dim=-1) / len(D)
+        return (avg_err < eps).all()
 
     @staticmethod
-    def in_manifold(X, size, rank, eps=1e-4):
-        U, S, V = X.svd()
-        return LowRank.in_manifold_svd(U, S, V, size, rank, eps)
+    def in_manifold(X, size, rank, eps=1e-3):
+        _, S, _ = X.svd()
+        return LowRank.in_manifold_svd(S, size, rank, eps)
 
     def extra_repr(self):
         return _extra_repr(
