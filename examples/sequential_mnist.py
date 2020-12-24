@@ -6,9 +6,9 @@ A good result for this task for size 170 would be 98.0% accuracy with orthogonal
 and 98.5% for the almostorthogonal. Lowrank is here for demonstration purposes, it should
 not perform as well as the other two
 
-The GeoTorch code happens in `ExpRNNCell.__init__`, `ExpRNNCell.reset_parameters` and line 143.
+The GeoTorch code happens in `ExpRNNCell.__init__`, `ExpRNNCell.reset_parameters` and line 132.
 The rest of the code is normal PyTorch.
-Lines 174-187 show how to assign different learning rates to parametrized weights
+Lines 167-176 show how to assign different learning rates to parametrized weights
 """
 
 import torch
@@ -53,7 +53,6 @@ device = torch.device("cuda")
 
 class modrelu(nn.Module):
     def __init__(self, features):
-        # For now we just support square layers
         super(modrelu, self).__init__()
         self.features = features
         self.b = nn.Parameter(torch.Tensor(self.features))

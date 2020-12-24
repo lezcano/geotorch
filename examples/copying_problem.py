@@ -13,7 +13,7 @@ The GeoTorch code happens in `ExpRNNCell.__init__`, `ExpRNNCell.reset_parameters
 The rest of the code is normal PyTorch.
 Lines 146-167 shows how to assign different learning rates to parametrized weights.
 
-This file also implements in lines 154 and 184 Riemannian Gradient Descent (RGD). As shown, RGD
+This file also implements in lines 152 and 180 Riemannian Gradient Descent (RGD). As shown, RGD
 dynamics account for using SGD as the optimizer calling `update_basis()` after every optization step.
 """
 
@@ -22,7 +22,6 @@ from torch import nn
 import torch.nn.functional as F
 
 import geotorch
-from geotorch.so import torus_init_
 
 batch_size = 128
 hidden_size = 190
@@ -42,7 +41,6 @@ RGD = False
 
 class modrelu(nn.Module):
     def __init__(self, features):
-        # For now we just support square layers
         super(modrelu, self).__init__()
         self.features = features
         self.b = nn.Parameter(torch.Tensor(self.features))
@@ -76,7 +74,9 @@ class ExpRNNCell(nn.Module):
 
     def reset_parameters(self):
         nn.init.kaiming_normal_(self.input_kernel.weight.data, nonlinearity="relu")
-        self.recurrent_kernel.weight = torus_init_(self.recurrent_kernel.weight)
+        self.recurrent_kernel.weight = geotorch.so.torus_init_(
+            self.recurrent_kernel.weight
+        )
 
     def default_hidden(self, input_):
         return input_.new_zeros(input_.size(0), self.hidden_size, requires_grad=False)
@@ -181,7 +181,7 @@ def main():
             # Updating the base after every step and using SGD gives us
             # Riemannian Gradient Descent. More on this in Section 5
             # https://arxiv.org/abs/1909.09501
-            model.rnn.recurrent_kernel.parametrizations.weight.update_base()
+            geotorch.update_base(model.rnn.recurrent_kernel, "weight")
 
         with torch.no_grad():
             accuracy = model.accuracy(logits, batch_y)

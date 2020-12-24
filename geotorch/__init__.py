@@ -28,9 +28,10 @@ from .glp import GLp
 from .psd import PSD
 from .pssd import PSSD
 from .pssdlowrank import PSSDLowRank
-from .pssdfixedrank import PSSDFixedRank
+from .utils import update_base
 
-__version__ = "0.1.0"
+
+__version__ = "0.2.0"
 
 
 __all__ = [
@@ -66,4 +67,5 @@ __all__ = [
     "positive_semidefinite",
     "positive_semidefinite_low_rank",
     "positive_semidefinite_fixed_rank",
+    "update_base",
 ]
