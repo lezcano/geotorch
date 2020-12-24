@@ -30,7 +30,7 @@ Welcome to GeoTorch's documentation!
    invertibility/index
    lowrank/index
    psd/index
-   constructions
+   product
 
 .. Indices and tables
 .. ==================

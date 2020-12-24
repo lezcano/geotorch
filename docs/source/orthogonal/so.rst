@@ -12,6 +12,5 @@ orthonormal columns and positive determinant:
 
 
 .. autoclass:: SO
-
-   .. automethod:: uniform_init_
-   .. automethod:: torus_init_
+.. autofunction:: geotorch.so.uniform_init_
+.. autofunction:: geotorch.so.torus_init_

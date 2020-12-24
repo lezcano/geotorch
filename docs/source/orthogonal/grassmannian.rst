@@ -10,8 +10,4 @@ of the :ref:`Stiefel Manifold <RST Stiefel>`.
 
 .. autoclass:: Grassmannian
 
-   .. automethod:: uniform_init_
-
 .. autoclass:: GrassmannianTall
-
-   .. automethod:: uniform_init_
