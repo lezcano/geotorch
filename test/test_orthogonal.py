@@ -65,7 +65,6 @@ class TestOrthogonal(TestCase):
                     for _ in range(2):
                         with P.cached():
                             self.assertIsOrthogonal(layer.weight)
-                            print(layer.weight.size())
                             loss = layer(input_).sum()
                         optim.zero_grad()
                         loss.backward()
@@ -208,7 +207,6 @@ class TestOrthogonal(TestCase):
                 layer.weight = uniform_init_(layer.weight)
                 # Same init
                 layers[1].weight = layers[0].weight
-                print(layers[1].weight.size())
                 if cls == Stiefel and n == k:
                     layers.append(deepcopy(layer))
                     P.register_parametrization(

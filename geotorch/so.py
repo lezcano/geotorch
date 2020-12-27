@@ -95,9 +95,7 @@ class SO(nn.Module):
         if torch.__version__ >= "1.7.0":
             error = torch.linalg.norm(D, dim=(-2, -1), ord=1) / k
         else:
-            error = D.abs().sum(dim=-2).max(dim=-1) / k
-        if not (error < eps).all():
-            U = X[0,0]
+            error = D.abs().sum(dim=-2).max(dim=-1).values / k
         return (error < eps).all()
 
     def extra_repr(self):
@@ -159,11 +157,11 @@ def torus_init_(tensor, init_=None, triv=expm):
 
     Args:
         tensor (torch.Tensor): a 2-dimensional tensor
-        init\_: Optional. A function that takes a tensor and fills
+        init\_ (callable): Optional. A function that takes a tensor and fills
                 it in place according to some distribution. See
                 `torch.init <https://pytorch.org/docs/stable/nn.init.html?highlight=init>`_.
                 Default: :math:`\operatorname{Uniform}(-\pi, \pi)`
-        triv: Optional. A function that maps skew-symmetric matrices
+        triv (callable): Optional. A function that maps skew-symmetric matrices
                 to orthogonal matrices.
     """
     if tensor.ndimension() < 2 or tensor.size(-1) != tensor.size(-2):
