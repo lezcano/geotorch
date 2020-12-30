@@ -69,7 +69,7 @@ class FixedRank(LowRank):
             raise InverseError(self)
         return U, self.inv(S), V
 
-    def in_manifold_singular_values(self, S, eps=1e-6):
+    def in_manifold_singular_values(self, S, eps=1e-5):
         r"""
         Checks that a vector of singular values is in the manifold.
 
@@ -80,7 +80,7 @@ class FixedRank(LowRank):
             S (torch.Tensor): Vector of singular values
             eps (float): Optional. Threshold at which the singular values are
                 considered to be zero
-                Default: ``1e-6``
+                Default: ``1e-5``
         """
         if not super().in_manifold_singular_values(S, eps):
             return False
@@ -89,36 +89,7 @@ class FixedRank(LowRank):
         infty_norm = D.abs().max(dim=-1).values
         return (infty_norm > eps).all().item()
 
-    def project(self, X, factorized=True, eps=1e-6):
-        r"""
-        Project a matrix onto the manifold.
-
-        If ``factorized==True``, it returns a tuple containing the SVD decomposition of
-        the matrix.
-
-        If the matrix has more than `self.rank` small singular values, the
-        smallest ones are clamped to be at least ``eps`` in absolute value.
-
-        Args:
-            X (torch.Tensor): Matrix to be projected onto the manifold
-            factorized (bool): Optional. Return the tuple with the SVD decomposition of
-                    the sampled matrix. This can also be used to initialize the layer.
-                    Default: ``True``
-            eps (float): Optional. Minimum singular value of the sampled matrix.
-                    Default: ``1e-6``
-        """
-        U, S, V = super().project(X, factorized=True)
-        with torch.no_grad():
-            S[S < eps] = eps
-        if factorized:
-            return U, S, V
-        else:
-            X = self.submersion(U, S, V)
-            if self.transposed:
-                X = X.transpose(-2, -1)
-            return X
-
-    def sample(self, factorized=True, init_=torch.nn.init.xavier_normal_, eps=1e-6):
+    def sample(self, factorized=True, init_=torch.nn.init.xavier_normal_, eps=5e-6):
         r"""
         Returns a randomly sampled matrix on the manifold by sampling a matrix according
         to ``init_`` and projecting it onto the manifold.
@@ -135,9 +106,18 @@ class FixedRank(LowRank):
                     `torch.init <https://pytorch.org/docs/stable/nn.init.html>`_.
                     Default: ``torch.nn.init.xavier_normal_``
             eps (float): Optional. Minimum singular value of the sampled matrix.
-                    Default: ``1e-6``
+                    Default: ``5e-6``
         """
+        U, S, V= super().sample(factorized=True, init_=init_)
         with torch.no_grad():
-            X = torch.empty(*(self.tensorial_size + (self.n, self.k)))
-            init_(X)
-            return self.project(X, factorized=factorized, eps=eps)
+            # S >= 0, as given by torch.symeig()
+            S[S < eps] = eps
+        if factorized:
+            return U, S, V
+        else:
+            Vt = V.transpose(-2, -1)
+            # Multiply the three of them, S as a diagonal matrix
+            X = U @ (S.unsqueeze(-1).expand_as(Vt) * Vt)
+            if self.transposed:
+                X = X.transpose(-2, -1)
+            return X

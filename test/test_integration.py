@@ -25,6 +25,7 @@ from geotorch.utils import update_base
 
 
 def dicts_product(**kwargs):
+    """ Returns a product of all the lists of the keys """
     keys = kwargs.keys()
     vals = kwargs.values()
     for instance in itertools.product(*vals):
@@ -33,19 +34,21 @@ def dicts_product(**kwargs):
 
 class TestHomogeneous(TestCase):
     def sizes(self, square):
-        sizes = [(i, i) for i in range(1, 11)]
-        if not square:
-            sizes.extend(
-                [
-                    (i, j)
-                    for i, j in itertools.product(range(1, 5), range(1, 5))
-                    if i != j
-                ]
-            )
-            sizes.extend(
-                [(1, 7), (2, 7), (1, 8), (2, 8), (7, 1), (7, 2), (8, 1), (8, 2)]
-            )
-        if torch.cuda.is_available():
+        sizes = []
+        if not torch.cuda.is_available():
+            sizes = [(i, i) for i in range(1, 11)]
+            if not square:
+                sizes.extend(
+                    [
+                        (i, j)
+                        for i, j in itertools.product(range(1, 5), range(1, 5))
+                        if i != j
+                    ]
+                )
+                sizes.extend(
+                    [(1, 7), (2, 7), (1, 8), (2, 8), (7, 1), (7, 2), (8, 1), (8, 2)]
+                )
+        else:
             sizes.extend([(256, 256), (512, 512)])
             if not square:
                 sizes.extend([(256, 128), (128, 512), (1024, 512)])
@@ -57,11 +60,14 @@ class TestHomogeneous(TestCase):
     def lambdas(self):
         return [0.01, 0.5, 1.0]
 
+    def radii(self):
+        return [0.01, 1.0, 2.0, 10.0]
+
     def devices(self):
-        ret = [torch.device("cpu")]
         if torch.cuda.is_available():
-            ret.append(torch.device("cuda"))
-        return ret
+            return [torch.device("cuda")]
+        else:
+            return [torch.device("cpu")]
 
     def test_so(self):
         self._test_manifolds(
@@ -121,7 +127,7 @@ class TestHomogeneous(TestCase):
         self._test_manifolds(
             [Sphere, SphereEmbedded, geotorch.sphere],
             [{}],
-            [{}],
+            dicts_product(radius=self.radii()),
             self.devices(),
             self.sizes(square=False),
         )
@@ -153,21 +159,23 @@ class TestHomogeneous(TestCase):
         self.assertEqual(old_size, layer.weight.size(), msg=f"{layer}")
         self._test_interface(layer, args_sample, input_)
 
-        # Test Convolutionar (tensorial)
-        layer = nn.Conv2d(5, 4, size)
-        input_ = torch.rand(6, 5, size[0] + 7, size[1] + 3).to(device)
-        old_size = layer.weight.size()
-        # Somewhat dirty but will do
-        if isinstance(M, types.FunctionType):
-            M(layer, "weight", **args_constr)
-        else:
-            P.register_parametrization(
-                layer, "weight", M(size=layer.weight.size(), **args_constr)
-            )
-        layer = layer.to(device)
-        # Check that it does not change the size of the layer
-        self.assertEqual(old_size, layer.weight.size(), msg=f"{layer}")
-        self._test_interface(layer, args_sample, input_)
+        # Just for the smaller ones, for the large ones this is just too expensive
+        if min(size) < 100:
+            # Test Convolutionar (tensorial)
+            layer = nn.Conv2d(5, 4, size)
+            input_ = torch.rand(6, 5, size[0] + 7, size[1] + 3).to(device)
+            old_size = layer.weight.size()
+            # Somewhat dirty but will do
+            if isinstance(M, types.FunctionType):
+                M(layer, "weight", **args_constr)
+            else:
+                P.register_parametrization(
+                    layer, "weight", M(size=layer.weight.size(), **args_constr)
+                )
+            layer = layer.to(device)
+            # Check that it does not change the size of the layer
+            self.assertEqual(old_size, layer.weight.size(), msg=f"{layer}")
+            self._test_interface(layer, args_sample, input_)
 
     def matrix_from_factor_svd(self, U, S, V):
         Vt = V.transpose(-2, -1)
@@ -198,13 +206,16 @@ class TestHomogeneous(TestCase):
         initial_size = layer.weight.size()
         X = M.sample(**args_sample)
         self.assertTrue(M.in_manifold(X), msg=msg)
-        X_matrix = self.matrix_from_factor(X, M)
         layer.weight = X
         with P.cached():
+            # Compute the product if it is factorized
+            X_matrix = self.matrix_from_factor(X, M).to(layer.weight.device)
+            # The sampled matrix should not have a gradient
+            self.assertFalse(X_matrix.requires_grad)
             # Size does not change
             self.assertEqual(initial_size, layer.weight.size(), msg=msg)
             # Tha initialisation initialisation is equal to what we passed
-            self.assertTrue(torch.allclose(layer.weight, X_matrix, atol=1e-6), msg=msg)
+            self.assertTrue(torch.allclose(layer.weight, X_matrix, atol=1e-5), msg=msg)
 
         # Take a couple SGD steps
         optim = torch.optim.SGD(layer.parameters(), lr=1e-3)

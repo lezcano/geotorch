@@ -143,12 +143,14 @@ class AlmostOrthogonal(LowRank):
                     Default: ``True``
         """
         with torch.no_grad():
-            X = SO(self.tensorial_size + (self.n, self.n), triv=self[0].triv).sample(
-                distribution=distribution, init_=init_
-            )
+            device = self[0].base.device
+            dtype = self[0].base.dtype
+            # We sample U and set V to be the identity and eigenvalues == 1
+            X = self[0].sample(distribution=distribution, init_=init_)
+            # This seems stupid, but it helps avoiding some svd convergence problems at times...
+            U, S, V = X.svd()
+
             if factorized:
-                U, S, V = X.svd()
-                S = torch.ones_like(S)
                 return U, S, V
             else:
                 return X

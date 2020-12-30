@@ -65,7 +65,7 @@ class PSSDFixedRank(SymF):
             and (L[..., : self.rank] >= eps).all().item()
         )
 
-    def sample(self, factorized=True, init_=torch.nn.init.xavier_normal_, eps=1e-5):
+    def sample(self, factorized=True, init_=torch.nn.init.xavier_normal_, eps=5e-6):
         r"""
         Returns a randomly sampled matrix on the manifold as
 
@@ -88,6 +88,8 @@ class PSSDFixedRank(SymF):
                     to some distribution. See
                     `torch.init <https://pytorch.org/docs/stable/nn.init.html>`_.
                     Default: ``torch.nn.init.xavier_normal_``
+            eps (float): Optional. Minimum eigenvalue of the sampled matrix.
+                    Default: ``5e-6``
         """
         L, Q = super().sample(factorized=True, init_=init_)
         with torch.no_grad():

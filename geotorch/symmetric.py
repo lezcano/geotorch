@@ -51,7 +51,7 @@ class Symmetric(nn.Module):
         return self.frame(X, self.lower)
 
     @staticmethod
-    def in_manifold(X, eps=1e-4):
+    def in_manifold(X, eps=1e-6):
         if X.dim() < 2 or X.size(-2) != X.size(-1):
             return False
         D = 0.5 * (X - X.transpose(-2, -1))
@@ -142,15 +142,16 @@ class SymF(ProductManifold):
         return ret
 
     def submersion_inv(self, X, check_in_manifold=True):
-        # A bit more expensive but more robust, this could be optimised
-        if check_in_manifold and not self.in_manifold(X):
-            raise InManifoldError(X, self)
         if isinstance(X, torch.Tensor):
             with torch.no_grad():
                 L, Q = _decreasing_symeig(X, eigenvectors=True)
+            if check_in_manifold and not self.in_manifold_eigen(L):
+                raise InManifoldError(X, self)
         else:
             # We assume that we got the L, Q factorised in a tuple / list
             L, Q = X
+            if check_in_manifold and not self.in_manifold_tuple(L, Q):
+                raise InManifoldError(X, self)
         if self.inv is None:
             raise InverseError(self)
         with torch.no_grad():
@@ -162,7 +163,7 @@ class SymF(ProductManifold):
 
     def initialize_(self, X, check_in_manifold=True):
         L, Q = self.submersion_inv(X, check_in_manifold)
-        X1, X2 = super().initialize_([Q, L], check_in_manifold)
+        X1, X2 = super().initialize_([Q, L], check_in_manifold=False)
         return self.frame_inv(X1, X2)
 
     def in_manifold_eigen(self, L, eps=1e-6):
@@ -184,7 +185,7 @@ class SymF(ProductManifold):
             # We compute the \infty-norm of the remaining dimension
             D = L[..., self.rank :]
             infty_norm_err = D.abs().max(dim=-1).values
-            if (infty_norm_err > eps).any():
+            if (infty_norm_err > 5.0*eps).any():
                 return False
         return (L[..., : self.rank] >= -eps).all().item()
 
@@ -246,7 +247,9 @@ class SymF(ProductManifold):
                     Default: ``torch.nn.init.xavier_normal_``
         """
         with torch.no_grad():
-            X = torch.empty(*(self.tensorial_size + (self.n, self.n)))
+            device = self[0].base.device
+            dtype = self[0].base.dtype
+            X = torch.empty(*(self.tensorial_size + (self.n, self.n)), device=device, dtype=dtype)
             init_(X)
             X = X @ X.transpose(-2, -1)
             L, Q = _decreasing_symeig(X, eigenvectors=True)

@@ -1,3 +1,4 @@
+import torch
 from torch.nn.modules.container import ModuleList, ModuleDict
 from torch.nn.parameter import Parameter
 from contextlib import contextmanager
@@ -48,9 +49,10 @@ class ParametrizationList(ModuleList):
         return self(self.original)
 
     def set_value_(self, value):
-        for module in reversed(self):
-            value = module.initialize_(value)
-        self.original.data = value
+        with torch.no_grad():
+            for module in reversed(self):
+                value = module.initialize_(value)
+            self.original.copy_(value)
 
     def forward(self, input):
         for module in self:

@@ -3,7 +3,8 @@ from .product import ProductManifold
 from .stiefel import Stiefel
 from .reals import Rn
 from .exceptions import VectorError, RankError, InManifoldError
-from .utils import transpose, _extra_repr
+from .utils import transpose, _extra_repr, normalized_matrix_one_norm
+
 
 
 class LowRank(ProductManifold):
@@ -62,17 +63,17 @@ class LowRank(ProductManifold):
 
     @transpose
     def forward(self, X):
-        Xs = self.frame(X)
-        U, S, V = super().forward(Xs)
+        X = self.frame(X)
+        U, S, V = super().forward(X)
         return self.submersion(U, S, V)
 
     def frame_inv(self, X1, X2, X3):
-        # X1 is lower-triangular
-        # X2 is a vector
-        # X3 is upper-triangular
-        size = self.tensorial_size + (self.n, self.k)
-        ret = torch.zeros(*size, dtype=X1.dtype, device=X1.device)
         with torch.no_grad():
+            # X1 is lower-triangular
+            # X2 is a vector
+            # X3 is upper-triangular
+            size = self.tensorial_size + (self.n, self.k)
+            ret = torch.zeros(*size, dtype=X1.dtype, device=X1.device)
             ret[..., : self.rank] += X1
             ret[..., : self.rank, : self.rank] += torch.diag_embed(X2)
             ret[..., : self.rank, :] += X3.transpose(-2, -1)
@@ -80,19 +81,20 @@ class LowRank(ProductManifold):
 
     def submersion_inv(self, X, check_in_manifold=True):
         if isinstance(X, torch.Tensor):
-            with torch.no_grad():
-                U, S, V = X.svd()
+            U, S, V = X.svd()
+            if check_in_manifold and not self.in_manifold_singular_values(S):
+                raise InManifoldError(X, self)
         else:
             # We assume that we got he U S V factorized in a tuple / list
             U, S, V = X
-        if check_in_manifold and not self.in_manifold_singular_values(S):
-            raise InManifoldError(X, self)
+            if check_in_manifold and not self.in_manifold_tuple(U, S, V):
+                raise InManifoldError(X, self)
         return U[..., : self.rank], S[..., : self.rank], V[..., : self.rank]
 
     @transpose
     def initialize_(self, X, check_in_manifold=True):
         USV = self.submersion_inv(X, check_in_manifold)
-        X1, X2, X3 = super().initialize_(USV, check_in_manifold)
+        X1, X2, X3 = super().initialize_(USV, check_in_manifold=False)
         return self.frame_inv(X1, X2, X3)
 
     def in_manifold_singular_values(self, S, eps=1e-5):
@@ -191,9 +193,21 @@ class LowRank(ProductManifold):
                     Default: ``torch.nn.init.xavier_normal_``
         """
         with torch.no_grad():
-            X = torch.empty(*(self.tensorial_size + (self.n, self.k)))
+            device = self[0].base.device
+            dtype = self[0].base.dtype
+            X = torch.empty(*(self.tensorial_size + (self.n, self.k)), device=device, dtype=dtype)
             init_(X)
-            return self.project(X, factorized=factorized)
+            U, S, V = X.svd()
+            U, S, V = U[..., : self.rank], S[..., : self.rank], V[..., : self.rank]
+            if factorized:
+                return U, S, V
+            else:
+                Vt = V.transpose(-2, -1)
+                # Multiply the three of them, S as a diagonal matrix
+                X = U @ (S.unsqueeze(-1).expand_as(Vt) * Vt)
+                if self.transposed:
+                    X = X.transpose(-2, -1)
+                return X
 
     def extra_repr(self):
         return _extra_repr(

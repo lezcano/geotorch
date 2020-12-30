@@ -91,7 +91,7 @@ class SO(nn.Module):
         if check_in_manifold and not self.in_manifold(X):
             raise InManifoldError(X, self)
         with torch.no_grad():
-            self.base.data = X.data
+            self.base.copy_(X)
         return torch.zeros_like(X)
 
     def in_manifold(self, X, in_so=False, eps=1e-4):
@@ -143,7 +143,9 @@ class SO(nn.Module):
                     `torch.init <https://pytorch.org/docs/stable/nn.init.html>`_.
                     Default: :math:`\operatorname{Uniform}(-\pi, \pi)`
         """
-        ret = torch.empty(*(self.tensorial_size + (self.n, self.n)))
+        device = self.base.device
+        dtype = self.base.dtype
+        ret = torch.empty(*(self.tensorial_size + (self.n, self.n)), device=device, dtype=dtype)
         if distribution == "uniform":
             uniform_init_(ret)
         elif distribution == "torus":
@@ -180,7 +182,7 @@ def uniform_init_(tensor):
     n, k = tensor.size()[-2:]
     transpose = n < k
     with torch.no_grad():
-        x = tensor.new(tensor.size()).normal_(0, 1)
+        x = torch.empty_like(tensor).normal_(0, 1)
         if transpose:
             x.transpose_(-2, -1)
         q, r = torch.qr(x)
@@ -243,6 +245,6 @@ def torus_init_(tensor, init_=None, triv=expm):
         # First non-central diagonal
         diag_z = tensor.new_zeros(tensorial_size + (n - 1,))
         diag_z[..., ::2] = diag
-        tensor.data = torch.diag_embed(diag_z, offset=-1)
-        tensor.data = triv(tensor - tensor.transpose(-2, -1))
+        x = torch.diag_embed(diag_z, offset=-1)
+        tensor.copy_(triv(x - x.transpose(-2, -1)))
     return tensor

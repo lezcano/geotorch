@@ -16,7 +16,7 @@ def uniform_init_sphere_(x, r=1.0):
     """
     with torch.no_grad():
         x.normal_()
-        x.data = r * project(x.data)
+        x.data = r * project(x)
     return x
 
 
@@ -136,7 +136,7 @@ class Sphere(nn.Module):
             raise InManifoldError(x, self)
         with torch.no_grad():
             x = x / self.radius
-            self.base.data = x.data
+            self.base.copy_(x)
         return torch.zeros_like(x)
 
     def in_manifold(self, x, eps=1e-4):
@@ -146,7 +146,9 @@ class Sphere(nn.Module):
         r"""
         Returns a uniformly sampled vector on the sphere.
         """
-        x = torch.empty(*(self.tensorial_size) + (self.n,))
+        device = self.base.device
+        dtype = self.base.dtype
+        x = torch.empty(*(self.tensorial_size) + (self.n,), device=device, dtype=dtype)
         return uniform_init_sphere_(x, r=self.radius)
 
     def extra_repr(self):

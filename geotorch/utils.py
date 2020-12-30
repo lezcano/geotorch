@@ -4,7 +4,7 @@ import torch
 
 def update_base(layer, tensor_name):
     with torch.no_grad():
-        setattr(layer, tensor_name, getattr(layer, tensor_name))
+        setattr(layer, tensor_name, getattr(layer, tensor_name).data)
 
 
 def transpose(fun):

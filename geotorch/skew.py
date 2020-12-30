@@ -33,7 +33,7 @@ class Skew(nn.Module):
         return self.frame(X, self.lower)
 
     @staticmethod
-    def in_manifold(X, eps=1e-4):
+    def in_manifold(X, eps=1e-5):
         if X.dim() < 2 or X.size(-2) != X.size(-1):
             return False
         D = 0.5 * (X + X.transpose(-2, -1))

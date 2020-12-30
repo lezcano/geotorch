@@ -36,7 +36,7 @@ device = torch.device("cuda")
 # This is to demonstrate how one may implement RGD with
 # just one extra line of code.
 # RGD does not perform very well in these problems though.
-RGD = False
+RGD = True
 
 
 class modrelu(nn.Module):

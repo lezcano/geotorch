@@ -67,7 +67,7 @@ def skew(module, tensor_name, lower=True):
     P.register_parametrization(module, tensor_name, Skew(lower))
 
 
-def sphere(module, tensor_name, r=1.0, embedded=False):
+def sphere(module, tensor_name, radius=1.0, embedded=False):
     r"""Adds a spherical parametrization to the vector (or tensor) ``module.tensor_name``.
 
     When accessing ``module.tensor_name``, the module will return the parametrized
@@ -90,7 +90,7 @@ def sphere(module, tensor_name, r=1.0, embedded=False):
         module (nn.Module): module on which to register the parametrization
         tensor_name (string): name of the parameter, buffer, or parametrization
             on which the parametrization will be applied
-        r (float): Optional.
+        radius (float): Optional.
             Radius of the sphere. It has to be positive. Default: 1.
         embedded (bool): Optional.
             Chooses between the implementation of the sphere using the exponential
@@ -99,7 +99,7 @@ def sphere(module, tensor_name, r=1.0, embedded=False):
     """
     size = getattr(module, tensor_name).size()
     cls = SphereEmbedded if embedded else Sphere
-    M = cls(size, r)
+    M = cls(size, radius)
     P.register_parametrization(module, tensor_name, M)
     setattr(module, tensor_name, M.sample())
 
