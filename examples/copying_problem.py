@@ -74,9 +74,8 @@ class ExpRNNCell(nn.Module):
 
     def reset_parameters(self):
         nn.init.kaiming_normal_(self.input_kernel.weight.data, nonlinearity="relu")
-        self.recurrent_kernel.weight = geotorch.so.torus_init_(
-            self.recurrent_kernel.weight
-        )
+        M = self.recurrent_kernel.parametrizations.weight[0]
+        self.recurrent_kernel.weight = M.sample("torus")
 
     def default_hidden(self, input_):
         return input_.new_zeros(input_.size(0), self.hidden_size, requires_grad=False)
