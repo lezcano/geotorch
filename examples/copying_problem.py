@@ -36,7 +36,9 @@ device = torch.device("cuda")
 # This is to demonstrate how one may implement RGD with
 # just one extra line of code.
 # RGD does not perform very well in these problems though.
-RGD = True
+RGD = False
+if RGD:
+    print("Optimizing using RGD. The perfomance will be _much_ worse than with Adam or RMSprop.")
 
 
 class modrelu(nn.Module):
@@ -74,7 +76,9 @@ class ExpRNNCell(nn.Module):
 
     def reset_parameters(self):
         nn.init.kaiming_normal_(self.input_kernel.weight.data, nonlinearity="relu")
+        # The manifold class is under `layer.parametrizations.tensor_name[0]`
         M = self.recurrent_kernel.parametrizations.weight[0]
+        # Every manifold has a convenience sample method, but you can use your own initializer
         self.recurrent_kernel.weight = M.sample("torus")
 
     def default_hidden(self, input_):
