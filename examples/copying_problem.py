@@ -13,7 +13,7 @@ The GeoTorch code happens in `ExpRNNCell.__init__`, `ExpRNNCell.reset_parameters
 The rest of the code is normal PyTorch.
 Lines 146-167 shows how to assign different learning rates to parametrized weights.
 
-This file also implements in lines 154 and 184 Riemannian Gradient Descent (RGD). As shown, RGD
+This file also implements in lines 152 and 180 Riemannian Gradient Descent (RGD). As shown, RGD
 dynamics account for using SGD as the optimizer calling `update_basis()` after every optization step.
 """
 
@@ -37,11 +37,14 @@ device = torch.device("cuda")
 # just one extra line of code.
 # RGD does not perform very well in these problems though.
 RGD = False
+if RGD:
+    print(
+        "Optimizing using RGD. The perfomance will be _much_ worse than with Adam or RMSprop."
+    )
 
 
 class modrelu(nn.Module):
     def __init__(self, features):
-        # For now we just support square layers
         super(modrelu, self).__init__()
         self.features = features
         self.b = nn.Parameter(torch.Tensor(self.features))
@@ -75,8 +78,10 @@ class ExpRNNCell(nn.Module):
 
     def reset_parameters(self):
         nn.init.kaiming_normal_(self.input_kernel.weight.data, nonlinearity="relu")
-        # Initialize the recurrent kernel
-        self.recurrent_kernel.parametrizations.weight.torus_init_()
+        # The manifold class is under `layer.parametrizations.tensor_name[0]`
+        M = self.recurrent_kernel.parametrizations.weight[0]
+        # Every manifold has a convenience sample method, but you can use your own initializer
+        self.recurrent_kernel.weight = M.sample("torus")
 
     def default_hidden(self, input_):
         return input_.new_zeros(input_.size(0), self.hidden_size, requires_grad=False)
@@ -179,7 +184,7 @@ def main():
             # Updating the base after every step and using SGD gives us
             # Riemannian Gradient Descent. More on this in Section 5
             # https://arxiv.org/abs/1909.09501
-            model.rnn.recurrent_kernel.parametrizations.weight.update_base()
+            geotorch.update_base(model.rnn.recurrent_kernel, "weight")
 
         with torch.no_grad():
             accuracy = model.accuracy(logits, batch_y)

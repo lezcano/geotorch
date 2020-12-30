@@ -1,42 +1,28 @@
 import torch
 
-from .constructions import Manifold, FiberedSpace
-from .so import SO, uniform_init_, torus_init_, cayley_map
+from .utils import transpose, _extra_repr
+from .so import SO, _has_orthonormal_columns
 
-try:
-    from torch import matrix_exp as expm
-except ImportError:
-    from .linalg.expm import expm
-from .exceptions import VectorError
+from .exceptions import VectorError, InManifoldError
 
 
-class Stiefel(FiberedSpace):
+class Stiefel(SO):
     def __init__(self, size, triv="expm"):
         r"""
-        Manifold of rectangular orthogonal matrices parametrized as a projection from
-        the square orthogonal matrices :math:`\operatorname{SO}(n)`.
-        The metric considered is the canonical.
-
-        .. note::
-
-            This class is equivalent to :class:`StiefelTall`, but it is faster for the
-            case when :math:`n` is of a similar size of :math:`k`. For example,
-            :math:`n \leq 4k`.
+        Manifold of rectangular orthogonal matrices parametrized as a projection
+        onto the first :math:`k` columns from the space of square orthogonal matrices
+        :math:`\operatorname{SO}(n)`. The metric considered is the canonical.
 
         Args:
-            size (torch.size): Size of the tensor to be applied to
+            size (torch.size): Size of the tensor to be parametrized
             triv (str or callable): Optional.
-                A map that maps :math:`\operatorname{Skew}(n)` onto the orthogonal
-                matrices surjectively. It can be one of `["expm", "cayley"]` or a custom
-                callable. Default: `"expm"`
+                A map that maps skew-symmetric matrices onto the orthogonal matrices
+                surjectively. It can be one of ``["expm", "cayley"]`` or a custom
+                callable. Default: ``"expm"``
         """
-
-        super().__init__(
-            dimensions=2,
-            size=size,
-            total_space=SO(size=Stiefel.size_so(size), triv=triv, lower=True),
-        )
-        self.triv = triv
+        super().__init__(size=Stiefel.size_so(size), triv=triv, lower=True)
+        self.k = min(size[-1], size[-2])
+        self.transposed = size[-2] < size[-1]
 
     @classmethod
     def size_so(cls, size):
@@ -46,211 +32,91 @@ class Stiefel(FiberedSpace):
         size_so[-1] = size_so[-2] = max(size[-1], size[-2])
         return tuple(size_so)
 
-    def embedding(self, X):
-        # Returns the matrix
-        # A = [ X 0 ] \in R^{n x n}
-        # The skew symmetric embedding will make it into A - A^t, which is an
-        # identification of T_pSt(n,k) as a subset of Skew(n) via left-invariant
-        # vector fields
-        size_z = self.tensorial_size + (self.n, self.n - self.k)
+    def frame(self, X):
+        n, k = X.size(-2), X.size(-1)
+        size_z = X.size()[:-2] + (n, n - k)
         return torch.cat([X, X.new_zeros(*size_z)], dim=-1)
 
-    def submersion(self, X):
-        return X[..., :, : self.k]
+    @transpose
+    def forward(self, X):
+        X = self.frame(X)
+        X = super().forward(X)
+        return X[..., : self.k]
 
-    def uniform_init_(self):
-        r"""Samples an orthogonal matrix uniformly at random according
-        to the Haar measure on :math:`\operatorname{St}(n,k)`."""
-        self.total_space.uniform_init_()
+    @transpose
+    def initialize_(self, X, check_in_manifold=True):
+        if check_in_manifold and not self.in_manifold(X):
+            raise InManifoldError(X, self)
+        if self.n != self.k:
+            # N will be a completion of X to an orthogonal basis of R^n
+            N = X.new_empty(*(self.tensorial_size + (self.n, self.n - self.k)))
+            with torch.no_grad():
+                N.normal_()
+                # We assume for now that X is orthogonal.
+                # This will be checked in super().initialize_()
+                # Project N onto the orthogonal complement to X
+                # We iterate this twice for this algorithm to be numerically stable
+                # This is standard, as done in some stochastic SVD algorithms
+                for _ in range(2):
+                    N = N - X @ (X.transpose(-2, -1) @ N)
+                    # And make it an orthonormal base of the image
+                    N = N.qr().Q
+                X = torch.cat([X, N], dim=-1)
+        return super().initialize_(X, check_in_manifold=False)[..., : self.k]
 
-    def torus_init_(self, init_=None, triv=expm):
-        r"""Samples the 2D input `tensor` as a block-diagonal skew-symmetric matrix
-        which is skew-symmetric in the main diagonal. The blocks are of the form
-        :math:`\begin{pmatrix} 0 & b \\ -b & 0\end{pmatrix}` where :math:`b` is
-        distributed according to `init_`. Then it is projected to the manifold using `triv`.
-
-        .. warning::
-
-            This initialization is just accessible whenever the underlying matrix is square
-
-        .. note::
-
-            This initialization is particularly useful for regularizing RNNs.
-
-        Args:
-            init_: Optional. A function that takes a tensor and fills
-                    it in place according to some distribution. See
-                    `torch.init <https://pytorch.org/docs/stable/nn.init.html?highlight=init>`_.
-                    Default: :math:`\operatorname{Uniform}(-\pi, \pi)`
-            triv: Optional. A function that maps skew-symmetric matrices
-                    to orthogonal matrices.
-        """
-        if self.k != self.n:
-            raise RuntimeError(
-                "This initialization is just available in square matrices."
-                "This matrix has dimensions ({}, {})".format(self.n, self.k)
-            )
-
-        with torch.no_grad():
-            torus_init_(self.base, init_, triv)
-            if self.is_registered():
-                self.original_tensor().zero_()
-
-    def extra_repr(self):
-        return super().extra_repr() + ", triv={}".format(self.triv)
-
-
-def stable_qr(X):
-    # Make the QR decomposition unique provided X is non-singular
-    # so that no subgradients are needed
-    # This should be done with QR with pivoting...
-    Q, R = torch.qr(X)
-    d = R.diagonal(dim1=-2, dim2=-1).sign()
-    return Q * d.unsqueeze(-2).expand_as(Q), R * d.unsqueeze(-1).expand_as(R)
-
-
-def non_singular_(X):
-    # This should be done with QR with pivoting...
-    # If this works it's because the gradients of the QR in
-    # PyTorch are not correctly implemented at zero... Check that
-    with torch.no_grad():
-        n, k = X.size()[-2:]
-        eps = k * 1e-7
-        # If it's close to zero, we give it a wiggle
-        small = X.norm(dim=(-2, -1)) < eps
-        if small.any():
-            if X.ndimension() == 2:
-                X[:k] += eps * torch.eye(k, k)
-            else:
-                size_e = X.size()[:-2] + (k, k)
-                eye = (eps * torch.eye(k)).expand(*size_e)
-                small = small.unsqueeze_(-1).unsqueeze_(-1).float().expand(*size_e)
-                X[..., :k, :k] += small * eye
-        return X
-
-
-class StiefelTall(Manifold):
-    trivializations = {"expm": expm, "cayley": cayley_map}
-
-    def __init__(self, size, triv="expm"):
+    def in_manifold(self, X, eps=1e-4):
         r"""
-        Manifold of rectangular orthogonal matrices parametrized using its tangent space.
-        To parametrize this tangent space we use the orthogonal projection from the ambient
-        space :math:`\mathbb{R}^{n \times k}`. The metric considered is the canonical.
+        Checks that a matrix is in the manifold.
 
-        .. note::
-
-            This class is equivalent to :class:`Stiefel`, but it is faster for the case
-            when :math:`n` is of a much larger than :math:`k`. For example, :math:`n > 4k`.
+        For tensors with more than 2 dimensions the first dimensions are
+        treated as batch dimensions.
 
         Args:
-            size (torch.size): Size of the tensor to be applied to
-            triv (str or callable): Optional.
-                A map that maps :math:`\operatorname{Skew}(n)` onto the orthogonal
-                matrices surjectively. It can be one of `["expm", "cayley"]` or a custom
-                callable. Default: `"expm"`
+            X (torch.Tensor): The matrix to be checked
+            eps (float): Optional. Tolerance to numerical errors.
+                Default: ``1e-4``
         """
-        super().__init__(dimensions=2, size=size)
-        if torch.__version__ >= "1.7.0":
-            cls = self.__class__.__name__
-            raise RuntimeError(
-                "{} not available in PyTorch 1.7.0, "
-                "as it introduced a breaking change in the "
-                "gradients of the QR decomposition. "
-                "Use {} instead.".format(cls, cls[: -len("Tall")])
-            )
+        if X.size(-1) > X.size(-2):
+            X = X.transpose(-2, -1)
+        if X.size() != self.tensorial_size + (self.n, self.k):
+            return False
+        return _has_orthonormal_columns(X, eps)
 
-        if triv not in StiefelTall.trivializations.keys() and not callable(triv):
-            raise ValueError(
-                "Argument triv was not recognized and is "
-                "not callable. Should be one of {}. Found {}".format(
-                    list(StiefelTall.trivializations.keys()), triv
-                )
-            )
+    def sample(self, distribution="uniform", init_=None):
+        r"""
+        Returns a randomly sampled matrix on the manifold according to the
+        specified ``distribution``. The options are:
 
-        if callable(triv):
-            self.triv = triv
-        else:
-            self.triv = StiefelTall.trivializations[triv]
-        self.uniform_init_()
+        - ``"uniform"``: Samples a tensor distributed according to the Haar measure
+            on :math:`\operatorname{SO}(n)`
 
-    def trivialization(self, X):
-        # We compute the exponential map as per Edelman
-        # This also works for the Cayley
-        # Note that this Cayley map is not the same as that of Wen & Yin
-
-        if torch.is_grad_enabled():
-            non_singular_(X)
-        # Equivalent to (in the paper):
-        # (Id - B @ B.t())X
-        B = self.base
-        BtX = B.transpose(-2, -1) @ X
-        X = X - B @ BtX
-        A = BtX.tril(-1)
-        return self._expm_aux(X, A)
-
-    def _expm_aux(self, X, A):
-        r"""Forms
-        :math:`X \in \mathbb{R}^{n x k}`
-        :math:`Q, R = qr(X)`
-        :math:`A` is lower-triangular
-        :math:`hat{A} = A - A.t() \in \Skew(n)`
-        :math:`Atilde = [[hat{A}, -R.t()],
-                         [R,        0   ]] in Skew(2k)`
-        and returns
-        :math:`\pi([B, Q] expm(Atilde))`
-        where `pi` is the projection of a matrix into its first :math:`k` columns
-        """
-        Q, R = stable_qr(X)
-        z_size = self.tensorial_size + (2 * self.k, self.k)
-        Atilde = torch.cat([torch.cat([A, R], dim=-2), X.new_zeros(*z_size)], dim=-1)
-        Atilde = Atilde - Atilde.transpose(-2, -1)
-
-        B = self.base
-        BQ = torch.cat([B, Q], dim=-1)
-        MN = self.triv(Atilde)[..., :, : self.k]
-        return BQ @ MN
-
-    def uniform_init_(self):
-        r"""Samples an orthogonal matrix uniformly at random according
-        to the Haar measure on :math:`\operatorname{St}(n,k)`."""
-        with torch.no_grad():
-            uniform_init_(self.base)
-            if self.is_registered():
-                self.original_tensor().zero_()
-
-    def torus_init_(self, init_=None, triv=expm):
-        r"""Samples the 2D input `tensor` as a block-diagonal skew-symmetric matrix
-        which is skew-symmetric in the main diagonal. The blocks are of the form
-        :math:`\begin{pmatrix} 0 & b \\ -b & 0\end{pmatrix}` where :math:`b` is
-        distributed according to `init_`. Then it is projected to the manifold using `triv`.
-
-        .. warning::
-
-            This initialization is just accessible whenever the underlying matrix is square
-
-        .. note::
-
-            This initialization is particularly useful for regularizing RNNs.
+        - ``"torus"``: Samples a block-diagonal skew-symmetric matrix on the top
+            :math:`k \times k` submatrix.
+            The lower :math:`(n-k)\times k` matrix will be zeros.
+            The blocks are of the form
+            :math:`\begin{pmatrix} 0 & b \\ -b & 0\end{pmatrix}` where :math:`b` is
+            distributed according to ``init_``. This matrix will be then projected onto
+            :math:`\operatorname{SO}(n)` using ``self.triv``.
 
         Args:
-            init_: Optional. A function that takes a tensor and fills
-                    it in place according to some distribution. See
-                    `torch.init <https://pytorch.org/docs/stable/nn.init.html?highlight=init>`_.
+            distribution (string): Optional. One of ``["uniform", "torus"]``.
+            init\_ (callable): Optional. To be used with the ``"torus"`` option.
+                    A function that takes a tensor and fills it in place according
+                    to some distribution. See
+                    `torch.init <https://pytorch.org/docs/stable/nn.init.html>`_.
                     Default: :math:`\operatorname{Uniform}(-\pi, \pi)`
-            triv: Optional. A function that maps skew-symmetric matrices
-                    to orthogonal matrices.
         """
-        if self.k != self.n:
-            raise RuntimeError(
-                "This initialization is just available in square matrices."
-                "This matrix has dimensions ({}, {})".format(self.n, self.k)
-            )
-
-        with torch.no_grad():
-            torus_init_(self.base, init_, triv)
-            if self.is_registered():
-                self.original_tensor().zero_()
+        X = super().sample(distribution, init_)
+        if not self.transposed:
+            return X[..., : self.k]
+        else:
+            return X[..., : self.k, :]
 
     def extra_repr(self):
-        return super().extra_repr() + ", triv={}".format(self.triv.__name__)
+        return _extra_repr(
+            n=self.n,
+            k=self.k,
+            tensorial_size=self.tensorial_size,
+            triv=self.triv,
+            transposed=self.transposed,
+        )

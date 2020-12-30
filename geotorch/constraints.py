@@ -1,12 +1,10 @@
-import torch
 import geotorch.parametrize as P
 
 from .symmetric import Symmetric
 from .skew import Skew
-from .sphere import Sphere
-from .so import SO
-from .stiefel import Stiefel, StiefelTall
-from .grassmannian import Grassmannian, GrassmannianTall
+from .sphere import Sphere, SphereEmbedded
+from .stiefel import Stiefel
+from .grassmannian import Grassmannian
 from .almostorthogonal import AlmostOrthogonal
 from .lowrank import LowRank
 from .fixedrank import FixedRank
@@ -18,9 +16,9 @@ from .pssdfixedrank import PSSDFixedRank
 
 
 def symmetric(module, tensor_name, lower=True):
-    r"""Adds a symmetric parametrization to the matrix ``module[tensor_name]``.
+    r"""Adds a symmetric parametrization to the matrix ``module.tensor_name``.
 
-    When accessing ``module[tensor_name]``, the module will return the parametrized
+    When accessing ``module.tensor_name``, the module will return the parametrized
     version :math:`X` so that :math:`X^\intercal = X`.
 
     If the tensor has more than two dimensions, the parametrization will be
@@ -38,16 +36,15 @@ def symmetric(module, tensor_name, lower=True):
         tensor_name (string): name of the parameter, buffer, or parametrization
             on which the parametrization will be applied
         lower (bool): Optional. Uses the lower triangular part of the matrix to
-            parametrize the matrix. Default: `True`
+            parametrize the matrix. Default: ``True``
     """
-    size = getattr(module, tensor_name).size()
-    P.register_parametrization(module, tensor_name, Symmetric(size, lower))
+    P.register_parametrization(module, tensor_name, Symmetric(lower))
 
 
 def skew(module, tensor_name, lower=True):
-    r"""Adds a skew-symmetric parametrization to the matrix ``module[tensor_name]``.
+    r"""Adds a skew-symmetric parametrization to the matrix ``module.tensor_name``.
 
-    When accessing ``module[tensor_name]``, the module will return the parametrized
+    When accessing ``module.tensor_name``, the module will return the parametrized
     version :math:`X` so that :math:`X^\intercal = -X`.
 
     If the tensor has more than two dimensions, the parametrization will be
@@ -65,17 +62,15 @@ def skew(module, tensor_name, lower=True):
         tensor_name (string): name of the parameter, buffer, or parametrization
             on which the parametrization will be applied
         lower (bool): Optional. Uses the lower triangular part of the matrix to
-            parametrize the matrix. Default: `True`
+            parametrize the matrix. Default: ``True``
     """
-    size = getattr(module, tensor_name).size()
-    P.register_parametrization(module, tensor_name, Skew(size, lower))
+    P.register_parametrization(module, tensor_name, Skew(lower))
 
 
-def sphere(module, tensor_name, r=1.0):
-    r"""Adds a spherical parametrization to the vector (or tensor)
-    ``module[tensor_name]``.
+def sphere(module, tensor_name, radius=1.0, embedded=False):
+    r"""Adds a spherical parametrization to the vector (or tensor) ``module.tensor_name``.
 
-    When accessing ``module[tensor_name]``, the module will return the parametrized
+    When accessing ``module.tensor_name``, the module will return the parametrized
     version :math:`v` so that :math:`\lVert v \rVert = 1`.
 
     If the tensor has more than one dimension, the parametrization will be
@@ -95,18 +90,25 @@ def sphere(module, tensor_name, r=1.0):
         module (nn.Module): module on which to register the parametrization
         tensor_name (string): name of the parameter, buffer, or parametrization
             on which the parametrization will be applied
-        r (float): Optional.
+        radius (float): Optional.
             Radius of the sphere. It has to be positive. Default: 1.
+        embedded (bool): Optional.
+            Chooses between the implementation of the sphere using the exponential
+            map (``embedded=False``) and that using the projection from the ambient space (``embedded=True``)
+            Default. ``True``
     """
     size = getattr(module, tensor_name).size()
-    P.register_parametrization(module, tensor_name, Sphere(size, r))
+    cls = SphereEmbedded if embedded else Sphere
+    M = cls(size, radius)
+    P.register_parametrization(module, tensor_name, M)
+    setattr(module, tensor_name, M.sample())
 
 
 def orthogonal(module, tensor_name, triv="expm"):
-    r"""Adds an orthogonal parametrization to the tensor ``module[tensor_name]``.
+    r"""Adds an orthogonal parametrization to the tensor ``module.tensor_name``.
 
-    When accessing ``module[tensor_name]``, the module will return the
-    parametrized version :math:`X` so that :math:`X^\intercal X = \operatorname{Id}`.
+    When accessing ``module.tensor_name``, the module will return the
+    parametrized version :math:`X` so that :math:`X^\intercal X = \operatorname{I}`.
 
     If the tensor has more than two dimensions, the parametrization will be
     applied to the last two dimensions.
@@ -130,31 +132,18 @@ def orthogonal(module, tensor_name, triv="expm"):
         triv (str or callable): Optional.
             A map that maps a skew-symmetric matrix to an orthogonal matrix.
             It can be the exponential of matrices or the cayley transform passing
-            `["expm", "cayley"]` or a custom callable.  Default: `"expm"`
+            ``["expm", "cayley"]`` or a custom callable.  Default: ``"expm"``
     """
     size = getattr(module, tensor_name).size()
-    if len(size) < 2:
-        raise ValueError(
-            "Cannot put orthogonal constraints on a vector. "
-            "Got a tensor of size {}".format(size)
-        )
-    n, k = size[-2:]
-    n, k = max(n, k), min(n, k)
-    if n == k:
-        cls = SO
-    elif torch.__version__ >= "1.7.0":
-        cls = Stiefel
-    elif n > 4 * k:
-        cls = StiefelTall
-    else:
-        cls = Stiefel
-    P.register_parametrization(module, tensor_name, cls(size, triv))
+    M = Stiefel(size, triv)
+    P.register_parametrization(module, tensor_name, M)
+    setattr(module, tensor_name, M.sample())
 
 
-def almost_orthogonal(module, tensor_name, lam, f="sigmoid", triv="expm"):
-    r"""Adds an almost orthogonal parametrization to the tensor ``module[tensor_name]``.
+def almost_orthogonal(module, tensor_name, lam, f="sin", triv="expm"):
+    r"""Adds an almost orthogonal parametrization to the tensor ``module.tensor_name``.
 
-    When accessing ``module[tensor_name]``, the module will return the
+    When accessing ``module.tensor_name``, the module will return the
     parametrized version :math:`X` which will have its singular values in
     the interval :math:`[1-\texttt{lam}, 1+\texttt{lam}]`
 
@@ -173,32 +162,38 @@ def almost_orthogonal(module, tensor_name, lam, f="sigmoid", triv="expm"):
         module (nn.Module): module on which to register the parametrization
         tensor_name (string): name of the parameter, buffer, or parametrization
             on which the parametrization will be applied
-        lam (float): Radius. A float in the interval [0, 1]
-        f (str or callable): Optional. One of `["sigmoid", "tanh", "sin"]`
-            or a callable that maps real numbers onto the interval :math:`[-1, 1]`.
-            Default: `"sigmoid"`
+        lam (float): Radius of the interval for the singular values. A float in the interval :math:`[0, 1]`
+        f (str or callable or tuple of callables): Optional. Either:
+
+            - One of ``["scaled_sigmoid", "tanh", "sin"]``
+
+            - A callable that maps real numbers to the interval :math:`[-1, 1]`.
+
+            - A tuple of callables such that the first maps the real numbers to
+              :math:`[-1, 1]` and the second is a (right) inverse of the first
+            Default: ``"sin"``
         triv (str or callable): Optional.
-            A map that maps :math:`\operatorname{Skew}(n)` onto the orthogonal
-            matrices surjectively. This is used to optimize the U, V in the
-            SVD. It can be one of `["expm", "cayley"]` or a custom
-            callable. Default: `"expm"`
+            A map that maps skew-symmetric matrices onto the orthogonal matrices
+            surjectively. This is used to optimize the :math:`U` and :math:`V` in the
+            SVD. It can be one of ``["expm", "cayley"]`` or a custom
+            callable. Default: ``"expm"``
     """
     size = getattr(module, tensor_name).size()
-    P.register_parametrization(
-        module, tensor_name, AlmostOrthogonal(size, lam, f, triv)
-    )
+    M = AlmostOrthogonal(size, lam, f, triv)
+    P.register_parametrization(module, tensor_name, M)
+    setattr(module, tensor_name, M.sample())
 
 
 def grassmannian(module, tensor_name, triv="expm"):
-    r"""Adds an parametrization to the tensor ``module[tensor_name]`` so that the
+    r"""Adds an parametrization to the tensor ``module.tensor_name`` so that the
     result represents a subspace. If the initial matrix was of size :math:`n \times k`
     the parametrized matrix will represent a subspace of dimension :math:`k` of
     :math:`\mathbb{R}^n`.
 
-    When accessing ``module[tensor_name]``, the module will return the parametrized
+    When accessing ``module.tensor_name``, the module will return the parametrized
     version :math:`X` so that :math:`X` represents :math:`k` orthogonal vectors of
     :math:`\mathbb{R}^n` that span the subspace. That is, the resulting matrix will
-    be orthogonal, :math:`X^\intercal X = \operatorname{Id}`.
+    be orthogonal, :math:`X^\intercal X = \operatorname{I}`.
 
     If the tensor has more than two dimensions, the parametrization will be
     applied to the last two dimensions.
@@ -228,24 +223,18 @@ def grassmannian(module, tensor_name, triv="expm"):
         triv (str or callable): Optional.
             A map that maps a skew-symmetric matrix to an orthogonal matrix.
             It can be the exponential of matrices or the cayley transform passing
-            `["expm", "cayley"]` or a custom callable.  Default: `"expm"`
+            ``["expm", "cayley"]`` or a custom callable.  Default: ``"expm"``
     """
     size = getattr(module, tensor_name).size()
-    if len(size) < 2:
-        raise ValueError(
-            "Cannot put grassmannian constraints on a vector. "
-            "Got a tensor of size {}".format(size)
-        )
-    n, k = size[-2:]
-    n, k = max(n, k), min(n, k)
-    cls = GrassmannianTall if n > 4 * k else Grassmannian
-    P.register_parametrization(module, tensor_name, cls(size, triv))
+    M = Grassmannian(size, triv)
+    P.register_parametrization(module, tensor_name, M)
+    setattr(module, tensor_name, M.sample())
 
 
 def low_rank(module, tensor_name, rank, triv="expm"):
-    r"""Adds a low rank parametrization to the tensor ``module[tensor_name]``.
+    r"""Adds a low rank parametrization to the tensor ``module.tensor_name``.
 
-    When accessing ``module[tensor_name]``, the module will return the
+    When accessing ``module.tensor_name``, the module will return the
     parametrized version :math:`X` which will have rank at most ``rank``.
 
     If the tensor has more than two dimensions, the parametrization will be
@@ -266,19 +255,21 @@ def low_rank(module, tensor_name, rank, triv="expm"):
             It has to be less than the minimum of the two dimensions of the
             matrix
         triv (str or callable): Optional.
-            A map that maps :math:`\operatorname{Skew}(n)` onto the orthogonal
-            matrices surjectively. This is used to optimize the U, V in the
-            SVD. It can be one of `["expm", "cayley"]` or a custom
-            callable. Default: `"expm"`
+            A map that maps skew-symmetric matrices onto the orthogonal matrices
+            surjectively. This is used to optimize the :math:`U` and :math:`V` in the
+            SVD. It can be one of ``["expm", "cayley"]`` or a custom
+            callable. Default: ``"expm"``
     """
     size = getattr(module, tensor_name).size()
-    P.register_parametrization(module, tensor_name, LowRank(size, rank, triv))
+    M = LowRank(size, rank, triv)
+    P.register_parametrization(module, tensor_name, M)
+    setattr(module, tensor_name, M.sample())
 
 
 def fixed_rank(module, tensor_name, rank, f="softplus", triv="expm"):
-    r"""Adds a fixed rank parametrization to the tensor ``module[tensor_name]``.
+    r"""Adds a fixed rank parametrization to the tensor ``module.tensor_name``.
 
-    When accessing ``module[tensor_name]``, the module will return the
+    When accessing ``module.tensor_name``, the module will return the
     parametrized version :math:`X` which will have rank equal to ``rank``.
 
     If the tensor has more than two dimensions, the parametrization will be
@@ -298,22 +289,31 @@ def fixed_rank(module, tensor_name, rank, f="softplus", triv="expm"):
         rank (int): Rank of the matrix.
             It has to be less than the minimum of the two dimensions of the
             matrix
-        f (str or callable): Optional. The string `"softplus"` or a callable
-            that maps real numbers onto the interval :math:`(0, \infty)`. Default: `"softplus"`
+        f (str or callable or tuple of callables): Optional. Either:
+
+            - ``"softplus"``
+
+            - A callable that maps real numbers to the interval :math:`(0, \infty)`.
+
+            - A tuple of callables such that the first maps the real numbers to
+              :math:`(0, \infty)` and the second is a (right) inverse of the first
+            Default: ``"softplus"``
         triv (str or callable): Optional.
-            A map that maps :math:`\operatorname{Skew}(n)` onto the orthogonal
-            matrices surjectively. This is used to optimize the U, V in the
-            SVD. It can be one of `["expm", "cayley"]` or a custom
-            callable. Default: `"expm"`
+            A map that maps skew-symmetric matrices onto the orthogonal matrices
+            surjectively. This is used to optimize the :math:`U` and :math:`V` in the
+            SVD. It can be one of ``["expm", "cayley"]`` or a custom
+            callable. Default: ``"expm"``
     """
     size = getattr(module, tensor_name).size()
-    P.register_parametrization(module, tensor_name, FixedRank(size, rank, f, triv))
+    M = FixedRank(size, rank, f, triv)
+    P.register_parametrization(module, tensor_name, M)
+    setattr(module, tensor_name, M.sample())
 
 
 def invertible(module, tensor_name, f="softplus", triv="expm"):
-    r"""Adds an invertibility constraint to the tensor ``module[tensor_name]``.
+    r"""Adds an invertibility constraint to the tensor ``module.tensor_name``.
 
-    When accessing ``module[tensor_name]``, the module will return the
+    When accessing ``module.tensor_name``, the module will return the
     parametrized version :math:`X` which will have positive determinant and,
     in particular, it will be invertible.
 
@@ -331,23 +331,31 @@ def invertible(module, tensor_name, f="softplus", triv="expm"):
         module (nn.Module): module on which to register the parametrization
         tensor_name (string): name of the parameter, buffer, or parametrization
             on which the parametrization will be applied
-        f (str or callable): Optional. The string `"softplus"` or a callable
-            that maps real numbers onto the interval :math:`(0, \infty)`. Default: `"softplus"`
+        f (str or callable or tuple of callables): Optional. Either:
+
+            - ``"softplus"``
+
+            - A callable that maps real numbers to the interval :math:`(0, \infty)`.
+
+            - A tuple of callables such that the first maps the real numbers to
+              :math:`(0, \infty)` and the second is a (right) inverse of the first
+            Default: ``"softplus"``
         triv (str or callable): Optional.
-            A map that maps :math:`\operatorname{Skew}(n)` onto the orthogonal
-            matrices surjectively. This is used to optimize the U, V in the
-            SVD. It can be one of `["expm", "cayley"]` or a custom
-            callable. Default: `"expm"`
+            A map that maps skew-symmetric matrices onto the orthogonal matrices
+            surjectively. This is used to optimize the :math:`U` and :math:`V` in the
+            SVD. It can be one of ``["expm", "cayley"]`` or a custom
+            callable. Default: ``"expm"``
     """
     size = getattr(module, tensor_name).size()
-    P.register_parametrization(module, tensor_name, GLp(size, f, triv))
+    M = GLp(size, f, triv)
+    P.register_parametrization(module, tensor_name, M)
+    setattr(module, tensor_name, M.sample())
 
 
 def positive_definite(module, tensor_name, f="softplus", triv="expm"):
-    r"""Adds a positive definiteness constraint to the tensor
-    ``module[tensor_name]``.
+    r"""Adds a positive definiteness constraint to the tensor ``module.tensor_name``.
 
-    When accessing ``module[tensor_name]``, the module will return the
+    When accessing ``module.tensor_name``, the module will return the
     parametrized version :math:`X` which will be symmetric and with positive
     eigenvalues
 
@@ -365,23 +373,31 @@ def positive_definite(module, tensor_name, f="softplus", triv="expm"):
         module (nn.Module): module on which to register the parametrization
         tensor_name (string): name of the parameter, buffer, or parametrization
             on which the parametrization will be applied
-        f (str or callable): Optional. The string `"softplus"` or a callable
-            that maps real numbers onto the interval :math:`(0, \infty)`. Default: `"softplus"`
+        f (str or callable or tuple of callables): Optional. Either:
+
+            - ``"softplus"``
+
+            - A callable that maps real numbers to the interval :math:`(0, \infty)`.
+
+            - A tuple of callables such that the first maps the real numbers to
+              :math:`(0, \infty)` and the second is a (right) inverse of the first
+            Default: ``"softplus"``
         triv (str or callable): Optional.
-            A map that maps :math:`\operatorname{Skew}(n)` onto the orthogonal
-            matrices surjectively. This is used to optimize the Q in the eigenvalue
-            decomposition. It can be one of `["expm", "cayley"]` or a custom
-            callable. Default: `"expm"`
+            A map that maps skew-symmetric matrices onto the orthogonal
+            matrices surjectively. This is used to optimize the :math:`Q` in the eigenvalue
+            decomposition. It can be one of ``["expm", "cayley"]`` or a custom
+            callable. Default: ``"expm"``
     """
     size = getattr(module, tensor_name).size()
-    P.register_parametrization(module, tensor_name, PSD(size, f, triv))
+    M = PSD(size, f, triv)
+    P.register_parametrization(module, tensor_name, M)
+    setattr(module, tensor_name, M.sample())
 
 
 def positive_semidefinite(module, tensor_name, triv="expm"):
-    r"""Adds a positive definiteness constraint to the tensor
-    ``module[tensor_name]``.
+    r"""Adds a positive definiteness constraint to the tensor ``module.tensor_name``.
 
-    When accessing ``module[tensor_name]``, the module will return the
+    When accessing ``module.tensor_name``, the module will return the
     parametrized version :math:`X` which will be symmetric and with
     non-negative eigenvalues
 
@@ -402,24 +418,23 @@ def positive_semidefinite(module, tensor_name, triv="expm"):
         tensor_name (string): name of the parameter, buffer, or parametrization
             on which the parametrization will be applied
         triv (str or callable): Optional.
-            A map that maps :math:`\operatorname{Skew}(n)` onto the orthogonal
-            matrices surjectively. This is used to optimize the Q in the eigenvalue
-            decomposition. It can be one of `["expm", "cayley"]` or a custom
-            callable. Default: `"expm"`
+            A map that maps skew-symmetric matrices onto the orthogonal
+            matrices surjectively. This is used to optimize the :math:`Q` in the eigenvalue
+            decomposition. It can be one of ``["expm", "cayley"]`` or a custom
+            callable. Default: ``"expm"``
     """
     size = getattr(module, tensor_name).size()
-    P.register_parametrization(module, tensor_name, PSSD(size, triv))
+    M = PSSD(size, triv)
+    P.register_parametrization(module, tensor_name, M)
+    setattr(module, tensor_name, M.sample())
 
 
-def positive_semidefinite_low_rank(
-    module, tensor_name, rank, f="softplus", triv="expm"
-):
-    r"""Adds a positive definiteness constraint to the tensor
-    ``module[tensor_name]``.
+def positive_semidefinite_low_rank(module, tensor_name, rank, triv="expm"):
+    r"""Adds a positive definiteness constraint to the tensor ``module.tensor_name``.
 
-    When accessing ``module[tensor_name]``, the module will return the
+    When accessing ``module.tensor_name``, the module will return the
     parametrized version :math:`X` which will be symmetric and with non-negative
-    eigenvalues and at most `rank` of them non-zero.
+    eigenvalues and at most ``rank`` of them non-zero.
 
     If the tensor has more than two dimensions, the parametrization will be
     applied to the last two dimensions.
@@ -443,24 +458,25 @@ def positive_semidefinite_low_rank(
             It has to be less than the minimum of the two dimensions of the
             matrix
         triv (str or callable): Optional.
-            A map that maps :math:`\operatorname{Skew}(n)` onto the orthogonal
-            matrices surjectively. This is used to optimize the Q in the eigenvalue
-            decomposition. It can be one of `["expm", "cayley"]` or a custom
-            callable. Default: `"expm"`
+            A map that maps skew-symmetric matrices onto the orthogonal
+            matrices surjectively. This is used to optimize the :math:`Q` in the eigenvalue
+            decomposition. It can be one of ``["expm", "cayley"]`` or a custom
+            callable. Default: ``"expm"``
     """
     size = getattr(module, tensor_name).size()
-    P.register_parametrization(module, tensor_name, PSSDLowRank(size, rank, triv))
+    M = PSSDLowRank(size, rank, triv)
+    P.register_parametrization(module, tensor_name, M)
+    setattr(module, tensor_name, M.sample())
 
 
 def positive_semidefinite_fixed_rank(
     module, tensor_name, rank, f="softplus", triv="expm"
 ):
-    r"""Adds a positive definiteness constraint to the tensor
-    ``module[tensor_name]``.
+    r"""Adds a positive definiteness constraint to the tensor ``module.tensor_name``.
 
-    When accessing ``module[tensor_name]``, the module will return the
+    When accessing ``module.tensor_name``, the module will return the
     parametrized version :math:`X` which will be symmetric and with non-negative
-    eigenvalues and exactly `rank` of them non-zero.
+    eigenvalues and exactly ``rank`` of them non-zero.
 
     If the tensor has more than two dimensions, the parametrization will be
     applied to the last two dimensions.
@@ -483,13 +499,22 @@ def positive_semidefinite_fixed_rank(
         rank (int): Rank of the matrix.
             It has to be less than the minimum of the two dimensions of the
             matrix
-        f (str or callable): Optional. The string `"softplus"` or a callable
-            that maps real numbers onto the interval :math:`(0, \infty)`. Default: `"softplus"`
+        f (str or callable or tuple of callables): Optional. Either:
+
+            - ``"softplus"``
+
+            - A callable that maps real numbers to the interval :math:`(0, \infty)`.
+
+            - A tuple of callables such that the first maps the real numbers to
+              :math:`(0, \infty)` and the second is a (right) inverse of the first
+            Default: ``"softplus"``
         triv (str or callable): Optional.
-            A map that maps :math:`\operatorname{Skew}(n)` onto the orthogonal
-            matrices surjectively. This is used to optimize the Q in the eigenvalue
-            decomposition. It can be one of `["expm", "cayley"]` or a custom
-            callable. Default: `"expm"`
+            A map that maps skew-symmetric matrices onto the orthogonal
+            matrices surjectively. This is used to optimize the :math:`Q` in the
+            eigenvalue decomposition. It can be one of ``["expm", "cayley"]`` or
+            a custom callable. Default: ``"expm"``
     """
     size = getattr(module, tensor_name).size()
-    P.register_parametrization(module, tensor_name, PSSDFixedRank(size, rank, f, triv))
+    M = PSSDFixedRank(size, rank, f, triv)
+    P.register_parametrization(module, tensor_name, M)
+    setattr(module, tensor_name, M.sample())

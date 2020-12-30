@@ -13,33 +13,31 @@ from .constraints import (
     positive_semidefinite_low_rank,
     positive_semidefinite_fixed_rank,
 )
-from .constructions import AbstractManifold, Manifold, FiberedSpace, ProductManifold
+from .product import ProductManifold
 from .reals import Rn
 from .skew import Skew
 from .symmetric import Symmetric
 from .so import SO
 from .sphere import Sphere, SphereEmbedded
-from .stiefel import Stiefel, StiefelTall
-from .grassmannian import Grassmannian, GrassmannianTall
+from .stiefel import Stiefel
+from .grassmannian import Grassmannian
 from .almostorthogonal import AlmostOrthogonal
 from .lowrank import LowRank
 from .fixedrank import FixedRank
 from .glp import GLp
 from .psd import PSD
 from .pssd import PSSD
-from .pssdlowrank import PSSDLowRank
 from .pssdfixedrank import PSSDFixedRank
+from .pssdlowrank import PSSDLowRank
+from .utils import update_base
 
-__version__ = "0.1.0"
+
+__version__ = "0.2.0"
 
 
 __all__ = [
-    "AbstractManifold",
-    "Manifold",
-    "FiberedSpace",
     "ProductManifold",
     "Grassmannian",
-    "GrassmannianTall",
     "LowRank",
     "Rn",
     "Skew",
@@ -48,7 +46,6 @@ __all__ = [
     "Sphere",
     "SphereEmbedded",
     "Stiefel",
-    "StiefelTall",
     "AlmostOrthogonal",
     "GLp",
     "FixedRank",
@@ -69,4 +66,5 @@ __all__ = [
     "positive_semidefinite",
     "positive_semidefinite_low_rank",
     "positive_semidefinite_fixed_rank",
+    "update_base",
 ]

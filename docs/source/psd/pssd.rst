@@ -19,6 +19,6 @@ It is realized via an eigen-like factorization. In particular, it is implemented
             (Q, \Lambda) &\mapsto Q\left|\Lambda\right|Q^\intercal
     \end{align*}
 
-where we have identified :math:`\mathbb{R}^r` with a diagonal matrix in :math:`\mathbb{R}^{r \times r}` and :math:`\left|Lambda\right|` denotes the absolute value of the diagonal entries.
+where we have identified :math:`\mathbb{R}^r` with a diagonal matrix in :math:`\mathbb{R}^{r \times r}` and :math:`\left|\Lambda\right|` denotes the absolute value of the diagonal entries.
 
 .. autoclass:: PSSD

@@ -10,7 +10,7 @@ orthonormal columns for :math:`n \geq k`:
 
 .. math::
 
-    \operatorname{St}(n,k) = \{X \in \mathbb{R}^{n\times k}\:\mid\:X^\intercal X = \mathrm{Id}\}
+    \operatorname{St}(n,k) = \{X \in \mathbb{R}^{n\times k}\:\mid\:X^\intercal X = \mathrm{I}_k\}
 
 If :math:`n < k`, then we consider the space of matrices with orthonormal rows, that is,
 :math:`X^\intercal \in \operatorname{St}(n,k)`.
@@ -18,9 +18,3 @@ If :math:`n < k`, then we consider the space of matrices with orthonormal rows, 
 
 
 .. autoclass:: Stiefel
-
-   .. automethod:: uniform_init_
-
-.. autoclass:: StiefelTall
-
-   .. automethod:: uniform_init_

@@ -1,17 +1,30 @@
-from .constructions import Manifold
+from torch import nn
+from .utils import _extra_repr
+from .exceptions import InManifoldError
 
 
-class Rn(Manifold):
+class Rn(nn.Module):
     def __init__(self, size):
         r"""
         Vector space of unconstrained vectors.
 
         Args:
-            size (torch.size): Size of the tensor to be applied to
+            size (torch.size): Size of the tensor to be parametrized
         """
-        super().__init__(dimensions=1, size=size)
-        self.base.zero_()
+        super().__init__()
+        self.n = size[-1]
+        self.tensorial_size = size[:-1]
 
-    def trivialization(self, X):
-        # We implement it with a base to be able to use it within a fibered space
-        return X + self.base
+    def forward(self, X):
+        return X
+
+    def initialize_(self, X, check_in_manifold=True):
+        if check_in_manifold and not self.in_manifold(X):
+            raise InManifoldError(X, self)
+        return X
+
+    def in_manifold(self, X):
+        return X.size() == self.tensorial_size + (self.n,)
+
+    def extra_repr(self):
+        return _extra_repr(n=self.n, tensorial_size=self.tensorial_size)

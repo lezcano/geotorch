@@ -10,11 +10,6 @@ from geotorch.symmetric import Symmetric, SymF
 
 
 class TestSymmetric(TestCase):
-    def assertIsSymmetric(self, X):
-        self.assertAlmostEqual(
-            torch.norm(X - X.transpose(-2, -1), p=float("inf")).item(), 0.0, places=6
-        )
-
     def test_backprop(self):
         r"""Test that we may instantiate the parametrizations and
         register them in modules of several sizes. Check that the
@@ -24,18 +19,15 @@ class TestSymmetric(TestCase):
 
         for n, lower in itertools.product(sizes, [True, False]):
             layer = nn.Linear(n, n)
-            P.register_parametrization(
-                layer, "weight", Symmetric(size=layer.weight.size(), lower=lower)
-            )
+            P.register_parametrization(layer, "weight", Symmetric(lower=lower))
 
             input_ = torch.rand(5, n)
             optim = torch.optim.SGD(layer.parameters(), lr=1.0)
 
             # Assert that is stays in Sym(n) after some optimiser steps
             for i in range(2):
-                print(i)
                 with P.cached():
-                    self.assertIsSymmetric(layer.weight)
+                    self.assertTrue(Symmetric.in_manifold(layer.weight))
                     loss = layer(input_).sum()
                 optim.zero_grad()
                 loss.backward()
@@ -44,14 +36,14 @@ class TestSymmetric(TestCase):
     def test_construction(self):
         # Non-square sym
         with self.assertRaises(ValueError):
-            Symmetric(size=(3, 2))
+            Symmetric()(torch.rand(3, 2))
 
         with self.assertRaises(ValueError):
-            Symmetric(size=(1, 3))
+            Symmetric()(torch.rand(1, 3))
 
         # Try to instantiate it in a vector rather than a matrix
         with self.assertRaises(ValueError):
-            Symmetric(size=(4,))
+            Symmetric()(torch.rand(4))
 
         # Instantiate it with a non-callable object
         with self.assertRaises(ValueError):
@@ -69,4 +61,4 @@ class TestSymmetric(TestCase):
             SymF(size=(4, 3), rank=2, f=lambda: None)
 
     def test_repr(self):
-        print(Symmetric(size=(4, 4)))
+        print(Symmetric())

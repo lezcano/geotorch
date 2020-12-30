@@ -27,11 +27,13 @@ where we have identified :math:`\mathbb{R}^k` with a diagonal matrix in :math:`\
 
 The function :math:`f_\lambda` is then applied element-wise to the diagonal of :math:`\Sigma`.
 
-If :math:`\lambda = 1` is chosen, the resulting space is not a manifold, although this should not hurt optimization in practice. If :math:`\lambda = 0` is chosen, then the resulting manifold is exactly the :ref:`Stiefel manifold <RST Stiefel>` with a different optimization method than that implemented in :class:`geotorch.Stiefel` or :class:`geotorch.StiefelTall`. This implementation of the Stiefel manifold might sometimes outperform the usual one, as it is slightly overparametrized.
+If :math:`\lambda = 1` is chosen, the resulting space is not a manifold, although this should not hurt optimization in practice.
+
+If :math:`\lambda = 0` is chosen, then the resulting manifold is exactly the :ref:`Special Orthogonal group <RST SO>`. Furthermore, for small values of :math:`\lambda` the algorithm in this class becomes numerically unstable, so we would recommend to choose :class:`geotorch.SO` over this one in that scenario.
 
 .. note::
 
-    There are no restrictions in place for the image of the function :math:`f`. For a function :math:`f` with image :math:`[a,b]`, the function :math:`f_\lambda` will take values in :math:`[r(1+a), r(1+b)]`. As such, rescaling the function :math:`f`, one may use this class to perform optimization with singular values constrained to any prescribed interval of :math:`\mathbb{R}^+`.
+    There are no restrictions in place for the image of the function :math:`f`. For a function :math:`f` with image :math:`[a,b]`, the function :math:`f_\lambda` will take values in :math:`[\lambda (1+a), \lambda (1+b)]`. As such, rescaling the function :math:`f`, one may use this class to perform optimization with singular values constrained to any prescribed interval of :math:`\mathbb{R}_{\geq 0}`.
 
 
 .. autoclass:: AlmostOrthogonal

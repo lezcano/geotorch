@@ -3,11 +3,12 @@ Slightly more advanced example of usage of GeoTorch
 
 Implements a constrained RNN to classify MNIST processing the images one pixel at a time
 A good result for this task for size 170 would be 98.0% accuracy with orthogonal constraints
-and 98.5% for the almostorthogonal. Lowrank is here as an example, it should not perform well
+and 98.5% for the almostorthogonal. Lowrank is here for demonstration purposes, it should
+not perform as well as the other two
 
-The GeoTorch code happens in `ExpRNNCell.__init__`, `ExpRNNCell.reset_parameters` and line 143.
+The GeoTorch code happens in `ExpRNNCell.__init__`, `ExpRNNCell.reset_parameters` and line 132.
 The rest of the code is normal PyTorch.
-Lines 174-187 show how to assign different learning rates to parametrized weights
+Lines 167-176 show how to assign different learning rates to parametrized weights
 """
 
 import torch
@@ -17,6 +18,7 @@ import argparse
 from torchvision import datasets, transforms
 
 import geotorch
+from geotorch.so import torus_init_
 
 parser = argparse.ArgumentParser(description="Exponential Layer MNIST Task")
 parser.add_argument("--batch_size", type=int, default=128)
@@ -33,8 +35,8 @@ parser.add_argument(
 )
 parser.add_argument(
     "--f",
-    choices=["sigmoid", "tanh", "sin"],
-    default="sigmoid",
+    choices=["scaled_sigmoid", "tanh", "sin"],
+    default="scaled_sigmoid",
     type=str,
 )
 parser.add_argument("--r", type=float, default=0.1)
@@ -51,7 +53,6 @@ device = torch.device("cuda")
 
 class modrelu(nn.Module):
     def __init__(self, features):
-        # For now we just support square layers
         super(modrelu, self).__init__()
         self.features = features
         self.b = nn.Parameter(torch.Tensor(self.features))
@@ -82,7 +83,7 @@ class ExpRNNCell(nn.Module):
         if args.constraints == "orthogonal":
             geotorch.orthogonal(self.recurrent_kernel, "weight")
         elif args.constraints == "lowrank":
-            geotorch.lowrank(self.recurrent_kernel, "weight", hidden_size)
+            geotorch.low_rank(self.recurrent_kernel, "weight", hidden_size)
         elif args.constraints == "almostorthogonal":
             geotorch.almost_orthogonal(self.recurrent_kernel, "weight", args.r, args.f)
         else:
@@ -92,32 +93,17 @@ class ExpRNNCell(nn.Module):
 
     def reset_parameters(self):
         nn.init.kaiming_normal_(self.input_kernel.weight.data, nonlinearity="relu")
-        # Initialize the recurrent kernel à la Cayley, as having most values closer
-        # to the identity seems to help in classification problems
+
+        # Initialize the recurrent kernel à la Cayley, as having a block-diagonal matrix
+        # seems to help in classification problems
 
         def f_(x):
             x.uniform_(0.0, math.pi / 2.0)
             c = torch.cos(x.data)
             x.data = -torch.sqrt((1.0 - c) / (1.0 + c))
 
-        # As both lowrank and almostorthogonal are composed by a projection from a
-        # product space, we have to initialise each space in the product space
-        # separately
-
-        if args.constraints == "orthogonal":
-            self.recurrent_kernel.parametrizations.weight.torus_init_(f_)
-        elif args.constraints == "lowrank":
-            USV = self.recurrent_kernel.parametrizations.weight.total_space
-            # Initialise the parts U S V
-            USV[0].torus_init_(f_)
-            USV[1].base.zero_()
-            USV[2].torus_init_(f_)
-        elif args.constraints == "almostorthogonal":
-            USV = self.recurrent_kernel.parametrizations.weight.total_space
-            # Initialise the parts U S V
-            USV[0].torus_init_(f_)
-            USV[1].base.zero_()
-            USV[2].torus_init_(f_)
+        K = self.recurrent_kernel
+        K.weight = torus_init_(K.weight, init_=f_)
 
     def default_hidden(self, input_):
         return input_.new_zeros(input_.size(0), self.hidden_size, requires_grad=False)

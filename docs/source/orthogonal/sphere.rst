@@ -17,8 +17,6 @@ with radius :math:`r`:
 
 .. autoclass:: Sphere
 
-   .. automethod:: uniform_init_
-
 .. autoclass:: SphereEmbedded
 
-   .. automethod:: uniform_init_
+.. autofunction:: geotorch.sphere.uniform_init_sphere_
