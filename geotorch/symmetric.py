@@ -186,7 +186,7 @@ class SymF(ProductManifold):
             infty_norm_err = D.abs().max(dim=-1).values
             if (infty_norm_err > eps).any():
                 return False
-        return (L[..., : self.rank] >= 0.0).all().item()
+        return (L[..., : self.rank] >= -eps).all().item()
 
     def in_manifold_tuple(self, L, Q, eps=1e-6):
         return (

@@ -1,9 +1,8 @@
-import torch
 import geotorch.parametrize as P
 
 from .symmetric import Symmetric
 from .skew import Skew
-from .sphere import Sphere
+from .sphere import Sphere, SphereEmbedded
 from .stiefel import Stiefel
 from .grassmannian import Grassmannian
 from .almostorthogonal import AlmostOrthogonal
@@ -68,7 +67,7 @@ def skew(module, tensor_name, lower=True):
     P.register_parametrization(module, tensor_name, Skew(lower))
 
 
-def sphere(module, tensor_name, r=1.0):
+def sphere(module, tensor_name, r=1.0, embedded=False):
     r"""Adds a spherical parametrization to the vector (or tensor) ``module.tensor_name``.
 
     When accessing ``module.tensor_name``, the module will return the parametrized
@@ -93,12 +92,16 @@ def sphere(module, tensor_name, r=1.0):
             on which the parametrization will be applied
         r (float): Optional.
             Radius of the sphere. It has to be positive. Default: 1.
+        embedded (bool): Optional.
+            Chooses between the implementation of the sphere using the exponential
+            map (``embedded=False``) and that using the projection from the ambient space (``embedded=True``)
+            Default. ``True``
     """
     size = getattr(module, tensor_name).size()
-    P.register_parametrization(module, tensor_name, Sphere(size, r))
-    # The base is already initialised to a random point
-    with torch.no_grad():
-        module.parametrizations[tensor_name].original.zero_()
+    cls = SphereEmbedded if embedded else Sphere
+    M = cls(size, r)
+    P.register_parametrization(module, tensor_name, M)
+    setattr(module, tensor_name, M.sample())
 
 
 def orthogonal(module, tensor_name, triv="expm"):
@@ -132,17 +135,9 @@ def orthogonal(module, tensor_name, triv="expm"):
             ``["expm", "cayley"]`` or a custom callable.  Default: ``"expm"``
     """
     size = getattr(module, tensor_name).size()
-    if len(size) < 2:
-        raise ValueError(
-            "Cannot put orthogonal constraints on a vector. "
-            "Got a tensor of size {}".format(size)
-        )
-    n, k = size[-2:]
-    n, k = max(n, k), min(n, k)
-    P.register_parametrization(module, tensor_name, Stiefel(size, triv))
-    # The base is already initialised to a random point
-    with torch.no_grad():
-        module.parametrizations[tensor_name].original.zero_()
+    M = Stiefel(size, triv)
+    P.register_parametrization(module, tensor_name, M)
+    setattr(module, tensor_name, M.sample())
 
 
 def almost_orthogonal(module, tensor_name, lam, f="sin", triv="expm"):
@@ -184,12 +179,9 @@ def almost_orthogonal(module, tensor_name, lam, f="sin", triv="expm"):
             callable. Default: ``"expm"``
     """
     size = getattr(module, tensor_name).size()
-    P.register_parametrization(
-        module, tensor_name, AlmostOrthogonal(size, lam, f, triv)
-    )
-    # The base is already initialised to a random point
-    with torch.no_grad():
-        module.parametrizations[tensor_name].original.zero_()
+    M = AlmostOrthogonal(size, lam, f, triv)
+    P.register_parametrization(module, tensor_name, M)
+    setattr(module, tensor_name, M.sample())
 
 
 def grassmannian(module, tensor_name, triv="expm"):
@@ -234,17 +226,9 @@ def grassmannian(module, tensor_name, triv="expm"):
             ``["expm", "cayley"]`` or a custom callable.  Default: ``"expm"``
     """
     size = getattr(module, tensor_name).size()
-    if len(size) < 2:
-        raise ValueError(
-            "Cannot put grassmannian constraints on a vector. "
-            "Got a tensor of size {}".format(size)
-        )
-    n, k = size[-2:]
-    n, k = max(n, k), min(n, k)
-    P.register_parametrization(module, tensor_name, Grassmannian(size, triv))
-    # The base is already initialised to a random point
-    with torch.no_grad():
-        module.parametrizations[tensor_name].original.zero_()
+    M = Grassmannian(size, triv)
+    P.register_parametrization(module, tensor_name, M)
+    setattr(module, tensor_name, M.sample())
 
 
 def low_rank(module, tensor_name, rank, triv="expm"):
@@ -277,10 +261,9 @@ def low_rank(module, tensor_name, rank, triv="expm"):
             callable. Default: ``"expm"``
     """
     size = getattr(module, tensor_name).size()
-    P.register_parametrization(module, tensor_name, LowRank(size, rank, triv))
-    # The base is already initialised to a random point
-    with torch.no_grad():
-        module.parametrizations[tensor_name].original.zero_()
+    M = LowRank(size, rank, triv)
+    P.register_parametrization(module, tensor_name, M)
+    setattr(module, tensor_name, M.sample())
 
 
 def fixed_rank(module, tensor_name, rank, f="softplus", triv="expm"):
@@ -322,10 +305,9 @@ def fixed_rank(module, tensor_name, rank, f="softplus", triv="expm"):
             callable. Default: ``"expm"``
     """
     size = getattr(module, tensor_name).size()
-    P.register_parametrization(module, tensor_name, FixedRank(size, rank, f, triv))
-    # The base is already initialised to a random point
-    with torch.no_grad():
-        module.parametrizations[tensor_name].original.zero_()
+    M = FixedRank(size, rank, f, triv)
+    P.register_parametrization(module, tensor_name, M)
+    setattr(module, tensor_name, M.sample())
 
 
 def invertible(module, tensor_name, f="softplus", triv="expm"):
@@ -365,10 +347,9 @@ def invertible(module, tensor_name, f="softplus", triv="expm"):
             callable. Default: ``"expm"``
     """
     size = getattr(module, tensor_name).size()
-    P.register_parametrization(module, tensor_name, GLp(size, f, triv))
-    # The base is already initialised to a random point
-    with torch.no_grad():
-        module.parametrizations[tensor_name].original.zero_()
+    M = GLp(size, f, triv)
+    P.register_parametrization(module, tensor_name, M)
+    setattr(module, tensor_name, M.sample())
 
 
 def positive_definite(module, tensor_name, f="softplus", triv="expm"):
@@ -408,10 +389,9 @@ def positive_definite(module, tensor_name, f="softplus", triv="expm"):
             callable. Default: ``"expm"``
     """
     size = getattr(module, tensor_name).size()
-    P.register_parametrization(module, tensor_name, PSD(size, f, triv))
-    # The base is already initialised to a random point
-    with torch.no_grad():
-        module.parametrizations[tensor_name].original.zero_()
+    M = PSD(size, f, triv)
+    P.register_parametrization(module, tensor_name, M)
+    setattr(module, tensor_name, M.sample())
 
 
 def positive_semidefinite(module, tensor_name, triv="expm"):
@@ -444,15 +424,12 @@ def positive_semidefinite(module, tensor_name, triv="expm"):
             callable. Default: ``"expm"``
     """
     size = getattr(module, tensor_name).size()
-    P.register_parametrization(module, tensor_name, PSSD(size, triv))
-    # The base is already initialised to a random point
-    with torch.no_grad():
-        module.parametrizations[tensor_name].original.zero_()
+    M = PSSD(size, triv)
+    P.register_parametrization(module, tensor_name, M)
+    setattr(module, tensor_name, M.sample())
 
 
-def positive_semidefinite_low_rank(
-    module, tensor_name, rank, f="softplus", triv="expm"
-):
+def positive_semidefinite_low_rank(module, tensor_name, rank, triv="expm"):
     r"""Adds a positive definiteness constraint to the tensor ``module.tensor_name``.
 
     When accessing ``module.tensor_name``, the module will return the
@@ -480,15 +457,6 @@ def positive_semidefinite_low_rank(
         rank (int): Rank of the matrix.
             It has to be less than the minimum of the two dimensions of the
             matrix
-        f (str or callable or tuple of callables): Optional. Either:
-
-            - ``"softplus"``
-
-            - A callable that maps real numbers to the interval :math:`(0, \infty)`.
-
-            - A tuple of callables such that the first maps the real numbers to
-              :math:`(0, \infty)` and the second is a (right) inverse of the first
-            Default: ``"softplus"``
         triv (str or callable): Optional.
             A map that maps skew-symmetric matrices onto the orthogonal
             matrices surjectively. This is used to optimize the :math:`Q` in the eigenvalue
@@ -496,10 +464,9 @@ def positive_semidefinite_low_rank(
             callable. Default: ``"expm"``
     """
     size = getattr(module, tensor_name).size()
-    P.register_parametrization(module, tensor_name, PSSDLowRank(size, rank, triv))
-    # The base is already initialised to a random point
-    with torch.no_grad():
-        module.parametrizations[tensor_name].original.zero_()
+    M = PSSDLowRank(size, rank, triv)
+    P.register_parametrization(module, tensor_name, M)
+    setattr(module, tensor_name, M.sample())
 
 
 def positive_semidefinite_fixed_rank(
@@ -543,12 +510,11 @@ def positive_semidefinite_fixed_rank(
             Default: ``"softplus"``
         triv (str or callable): Optional.
             A map that maps skew-symmetric matrices onto the orthogonal
-            matrices surjectively. This is used to optimize the :math:`Q` in the eigenvalue
-            decomposition. It can be one of ``["expm", "cayley"]`` or a custom
-            callable. Default: ``"expm"``
+            matrices surjectively. This is used to optimize the :math:`Q` in the
+            eigenvalue decomposition. It can be one of ``["expm", "cayley"]`` or
+            a custom callable. Default: ``"expm"``
     """
     size = getattr(module, tensor_name).size()
-    P.register_parametrization(module, tensor_name, PSSDFixedRank(size, rank, f, triv))
-    # The base is already initialised to a random point
-    with torch.no_grad():
-        module.parametrizations[tensor_name].original.zero_()
+    M = PSSDFixedRank(size, rank, f, triv)
+    P.register_parametrization(module, tensor_name, M)
+    setattr(module, tensor_name, M.sample())

@@ -21,7 +21,7 @@ class AlmostOrthogonal(LowRank):
         "sin": (torch.sin, torch.asin),
     }
 
-    def __init__(self, size, lam, f="sin", inverse=None, triv="expm"):
+    def __init__(self, size, lam, f="sin", triv="expm"):
         r"""Manifold of matrices with singular values in the interval
         :math:`(1-\lambda, 1+\lambda)`.
 
@@ -30,9 +30,16 @@ class AlmostOrthogonal(LowRank):
         where :math:`\sigma` is the usual sigmoid function.
         This is dones so that the image of the scaled sigmoid is :math:`(-1, 1)`.
 
+        ..warning::
+
+            It is not recommended to pass values of :math:`\lambda` smaller than :math:`0.01`
+            as the class might get numerically unstable. In the limit as :math:`\lambda` goes
+            to zero, this class is equivalent to :class:`geotorch.SO`, so :class:`geotorch.SO`
+            should be prefered in that scenario.
+
         Args:
             size (torch.size): Size of the tensor to be parametrized
-            lam (float): Radius. A float in the interval :math:`[0, 1]`
+            lam (float): Radius. A float in the interval :math:`(0, 1]`
             f (str or callable or tuple of callables): Optional. Either:
 
                 - One of ``["scaled_sigmoid", "tanh", "sin"]``
@@ -85,12 +92,13 @@ class AlmostOrthogonal(LowRank):
         return super().submersion(U, S, V)
 
     def submersion_inv(self, X, check_in_manifold=True):
+        if self.inv is None:
+            raise InverseError(self)
         U, S, V = super().submersion_inv(X)
         if check_in_manifold and not self.in_manifold_singular_values(S):
             raise InManifoldError(X, self)
-        if self.inv is None:
-            raise InverseError(self)
-        if self.lam == 0.0:
+        # Harcoded epsilon... not a good practice
+        if self.lam < 1e-6:
             S = S - 1.0
         else:
             S = self.inv((S - 1.0) / self.lam)

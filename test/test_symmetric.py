@@ -10,10 +10,6 @@ from geotorch.symmetric import Symmetric, SymF
 
 
 class TestSymmetric(TestCase):
-    def assertIsSymmetric(self, X):
-        self.assertAlmostEqual(
-            torch.norm(X - X.transpose(-2, -1), p=float("inf")).item(), 0.0, places=6
-        )
 
     def test_backprop(self):
         r"""Test that we may instantiate the parametrizations and
@@ -31,9 +27,8 @@ class TestSymmetric(TestCase):
 
             # Assert that is stays in Sym(n) after some optimiser steps
             for i in range(2):
-                print(i)
                 with P.cached():
-                    self.assertIsSymmetric(layer.weight)
+                    self.assertTrue(Symmetric.in_manifold(layer.weight))
                     loss = layer(input_).sum()
                 optim.zero_grad()
                 loss.backward()
