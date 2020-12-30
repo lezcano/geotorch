@@ -145,15 +145,19 @@ class AlmostOrthogonal(LowRank):
         with torch.no_grad():
             device = self[0].base.device
             dtype = self[0].base.dtype
-            # We sample U and set V to be the identity and eigenvalues == 1
-            X = self[0].sample(distribution=distribution, init_=init_)
-            # This seems stupid, but it helps avoiding some svd convergence problems at times...
-            U, S, V = X.svd()
+            # Sample U and set S = 1, V = Id
+            U = self[0].sample(distribution=distribution, init_=init_)
+            S = torch.ones(*(self.tensorial_size + (self.n,)), device=device, dtype=dtype)
+            V = torch.eye(self.n, device=device, dtype=dtype)
+            if len(self.tensorial_size) > 0:
+                V = V.repeat(*(self.tensorial_size + (1, 1)))
 
             if factorized:
                 return U, S, V
             else:
-                return X
+                Vt = V.transpose(-2, -1)
+                # Multiply the three of them, S as a diagonal matrix
+                return U @ (S.unsqueeze(-1).expand_as(Vt) * Vt)
 
     def extra_repr(self):
         return _extra_repr(
