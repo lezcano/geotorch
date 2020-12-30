@@ -1,4 +1,4 @@
-# Tests for the interface of all the manifolds to be homogeneous
+# Integration tests for all the manifold
 from unittest import TestCase
 import itertools
 
@@ -29,6 +29,9 @@ class TestHomogeneous(TestCase):
             (i, j) for i, j in itertools.product(range(1, 5), range(1, 5)) if i != j
         ]
         sizes_non_sq += [(1, 7), (2, 7), (1, 8), (2, 8), (7, 1), (7, 2), (8, 1), (8, 2)]
+        if torch.cuda.is_available():
+            sizes_sq += [(256, 256), (512, 512)]
+            sizes_non_sq += [(256, 128), (128, 512), (1024, 512)]
         if square:
             return sizes_sq
         else:
@@ -40,58 +43,69 @@ class TestHomogeneous(TestCase):
     def lambdas(self):
         return [{"lam": lam} for lam in [0.0, 0.5, 1.0]]
 
+    def devices(self):
+        ret = [torch.device("cpu")]
+        if torch.cuda.is_available():
+            ret.append(torch.device("cuda"))
+        return ret
+
     def test_so(self):
-        self._test_matrix_manifold(
+        self._test_manifold(
             itertools.product(
                 [SO],
                 [{"distribution": "uniform"}, {"distribution": "torus"}],
                 [{}],
+                self.devices(),
                 self.sizes(square=True),
             )
         )
 
     def test_orthogonal(self):
-        self._test_matrix_manifold(
+        self._test_manifold(
             itertools.product(
                 [Stiefel, Grassmannian],
                 [{"distribution": "uniform"}, {"distribution": "torus"}],
                 [{}],
+                self.devices(),
                 self.sizes(square=False),
             )
         )
 
     def test_rank(self):
-        self._test_matrix_manifold(
+        self._test_manifold(
             itertools.product(
                 [LowRank, FixedRank],
                 [{"factorized": True}, {"factorized": False}],
                 self.ranks(),
+                self.devices(),
                 self.sizes(square=False),
             )
         )
 
     def test_psd_and_glp(self):
-        self._test_matrix_manifold(
+        self._test_manifold(
             itertools.product(
                 [PSD, PSSD, GLp],
                 [{"factorized": True}, {"factorized": False}],
                 [{}],
+                self.devices(),
                 self.sizes(square=True),
             )
         )
 
     def test_pssd_rank(self):
-        self._test_matrix_manifold(
+        self._test_manifold(
             itertools.product(
                 [PSSDLowRank, PSSDFixedRank],
                 [{"factorized": True}, {"factorized": False}],
                 self.ranks(),
+                self.devices(),
                 self.sizes(square=True),
             )
         )
 
     def test_almost_orthogonal(self):
-        self._test_matrix_manifold(
+        self._test_manifold(
             itertools.product(
                 [AlmostOrthogonal],
                 [
@@ -101,39 +115,47 @@ class TestHomogeneous(TestCase):
                     {"factorized": False, "distribution": "torus"},
                 ],
                 self.lambdas(),
+                self.devices(),
                 self.sizes(square=True),
             )
         )
 
-    def _test_matrix_manifold(self, man):
-        # man7 = itertools.product(
-        #    sizes_sq,
-        #    [Sphere, SphereEmbedded],
-        #    [{}],
-        #    [{}]
-        # )
+    def test_sphere(self):
+        self._test_manifold(
+            itertools.product(
+                [Sphere, SphereEmbedded],
+                [{}],
+                [{}],
+                self.devices(),
+                self.sizes(square=False),
+            )
+        )
+
+    def _test_manifold(self, manifolds):
         with torch.random.fork_rng(devices=range(torch.cuda.device_count())):
             torch.random.manual_seed(8888)
-            for M, args, args_constr, size in man:
+            for M, args, args_constr, device, size in manifolds:
                 if "rank" in args_constr and args_constr["rank"] > min(size):
                     continue
                 # Test Linear
                 layer = nn.Linear(*size)
-                input_ = torch.rand(3, size[0])
+                input_ = torch.rand(3, size[0]).to(device)
                 old_size = layer.weight.size()
                 P.register_parametrization(
                     layer, "weight", M(size=layer.weight.size(), **args_constr)
                 )
+                layer = layer.to(device)
                 self.assertEqual(old_size, layer.weight.size(), msg=f"{layer}")
                 self._test_interface(layer, args, input_)
 
                 # Test Convolutionar (tensorial)
                 layer = nn.Conv2d(5, 4, size)
-                input_ = torch.rand(6, 5, 2 * size[0] + 1, size[1] + 3)
+                input_ = torch.rand(6, 5, 2 * size[0] + 1, size[1] + 3).to(device)
                 old_size = layer.weight.size()
                 P.register_parametrization(
                     layer, "weight", M(size=layer.weight.size(), **args_constr)
                 )
+                layer = layer.to(device)
                 self.assertEqual(old_size, layer.weight.size(), msg=f"{layer}")
                 self._test_interface(layer, args, input_)
 

@@ -47,8 +47,8 @@ def _extra_repr(**kwargs):  # noqa: C901
         ret += ", k={}".format(kwargs["k"])
     if "rank" in kwargs:
         ret += ", rank={}".format(kwargs["rank"])
-    if "r" in kwargs:
-        ret += ", radius={}".format(kwargs["r"])
+    if "radius" in kwargs:
+        ret += ", radius={}".format(kwargs["radius"])
     if "lam" in kwargs:
         ret += ", lambda={}".format(kwargs["lam"])
     if "f" in kwargs:
