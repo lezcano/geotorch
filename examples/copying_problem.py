@@ -38,7 +38,9 @@ device = torch.device("cuda")
 # RGD does not perform very well in these problems though.
 RGD = False
 if RGD:
-    print("Optimizing using RGD. The perfomance will be _much_ worse than with Adam or RMSprop.")
+    print(
+        "Optimizing using RGD. The perfomance will be _much_ worse than with Adam or RMSprop."
+    )
 
 
 class modrelu(nn.Module):
