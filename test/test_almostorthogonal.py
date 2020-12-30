@@ -136,8 +136,12 @@ class TestLowRank(TestCase):
                     M = AlmostOrthogonal(size=layer.weight.size(), lam=lam, f=f)
                     P.register_parametrization(layer, "weight", M)
                     print(layer)
-                    U = geotorch.so.uniform_init_(torch.empty(*(M.tensorial_size + (M.n, M.k))))
-                    V = geotorch.so.uniform_init_(torch.empty(*(M.tensorial_size + (M.k, M.k))))
+                    U = geotorch.so.uniform_init_(
+                        torch.empty(*(M.tensorial_size + (M.n, M.k)))
+                    )
+                    V = geotorch.so.uniform_init_(
+                        torch.empty(*(M.tensorial_size + (M.k, M.k)))
+                    )
                     self.assertIsOrthogonal(U)
                     self.assertIsOrthogonal(V)
                     # L is in [0,1)
@@ -159,8 +163,6 @@ class TestLowRank(TestCase):
                         0.0,
                         places=3,
                     )
-
-
 
     def test_almostorthogonal_errors(self):
         with self.assertRaises(ValueError):

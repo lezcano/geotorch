@@ -1,6 +1,7 @@
 import torch
+from .so import SO
 from .lowrank import LowRank
-from .exceptions import VectorError, InManifoldError
+from .exceptions import VectorError, InManifoldError, InverseError
 from .utils import _extra_repr
 
 
@@ -83,23 +84,70 @@ class AlmostOrthogonal(LowRank):
         S = 1.0 + self.lam * self.f(S)
         return super().submersion(U, S, V)
 
-    def submersion_inv(self, X):
+    def submersion_inv(self, X, check_in_manifold=True):
         U, S, V = super().submersion_inv(X)
-        with torch.no_grad():
+        if check_in_manifold and not self.in_manifold_singular_values(S):
+            raise InManifoldError(X, self)
+        if self.inv is None:
+            raise InverseError(self)
+        if self.lam == 0.0:
             S = S - 1.0
-            if self.lam != 0.0:
-                S = S / self.lam
-                if (S.abs() > 1.0).any():
-                    raise InManifoldError(X, self)
+        else:
+            S = self.inv((S - 1.0) / self.lam)
+        return U, S, V
+
+    def in_manifold_singular_values(self, S, eps=1e-5):
+        lam = self.lam
+        if self.lam <= eps:
+            lam = eps
+        return (
+            super().in_manifold_singular_values(S, eps)
+            and ((S - 1.0).abs() <= lam).all().item()
+        )
+
+    def sample(self, distribution="uniform", init_=None, factorized=True):
+        r"""
+        Returns a randomly sampled orthogonal matrix according to the specified ``distribution``.
+        The options are:
+
+        - ``"uniform"``: Samples a tensor distributed according to the Haar measure
+            on :math:`\operatorname{SO}(n)`
+
+        - ``"torus"``: Samples a block-diagonal skew-symmetric matrix.
+            The blocks are of the form
+            :math:`\begin{pmatrix} 0 & b \\ -b & 0\end{pmatrix}` where :math:`b` is
+            distributed according to ``init_``. This matrix will be then projected onto
+            :math:`\operatorname{SO}(n)` using ``self.triv``.
+
+        .. note
+
+            The ``"torus"`` initialization is particularly useful in recurrent kernels in RNNs
+
+        Args:
+            distribution (string): Optional. One of ``["uniform", "torus"]``.
+            init\_ (callable): Optional. To be used with the ``"torus"`` option.
+                    A function that takes a tensor and fills it in place according
+                    to some distribution. See
+                    `torch.init <https://pytorch.org/docs/stable/nn.init.html>`_.
+                    Default: :math:`\operatorname{Uniform}(-\pi, \pi)`
+            factorized (bool): Optional. Return the tuple with the SVD decomposition of
+                    the sampled matrix. This can also be used to initialize the layer.
+                    Default: ``True``
+        """
+        with torch.no_grad():
+            X = SO(self.tensorial_size + (self.n, self.n), triv=self[0].triv).sample(
+                distribution=distribution, init_=init_
+            )
+            if factorized:
+                U, S, V = X.svd()
+                S = torch.ones_like(S)
+                return U, S, V
             else:
-                if (S.abs() > 1e-4).any():
-                    raise InManifoldError(X, self)
-        return U, self.inv(S), V
+                return X
 
     def extra_repr(self):
         return _extra_repr(
             n=self.n,
-            k=self.k,
             lam=self.lam,
             tensorial_size=self.tensorial_size,
             f=self.f,

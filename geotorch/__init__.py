@@ -19,8 +19,8 @@ from .skew import Skew
 from .symmetric import Symmetric
 from .so import SO
 from .sphere import Sphere, SphereEmbedded
-from .stiefel import Stiefel, StiefelTall
-from .grassmannian import Grassmannian, GrassmannianTall
+from .stiefel import Stiefel
+from .grassmannian import Grassmannian
 from .almostorthogonal import AlmostOrthogonal
 from .lowrank import LowRank
 from .fixedrank import FixedRank
@@ -38,7 +38,6 @@ __version__ = "0.2.0"
 __all__ = [
     "ProductManifold",
     "Grassmannian",
-    "GrassmannianTall",
     "LowRank",
     "Rn",
     "Skew",
@@ -47,7 +46,6 @@ __all__ = [
     "Sphere",
     "SphereEmbedded",
     "Stiefel",
-    "StiefelTall",
     "AlmostOrthogonal",
     "GLp",
     "FixedRank",

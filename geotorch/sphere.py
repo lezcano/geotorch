@@ -2,7 +2,7 @@ import torch
 from torch import nn
 
 from .exceptions import InManifoldError
-from .utils import base, _extra_repr
+from .utils import _extra_repr
 
 
 def project(x):
@@ -106,7 +106,6 @@ class Sphere(nn.Module):
         v = v - projection * x
         return v
 
-    @base
     def forward(self, v):
         x = self.base
         # Project v onto {<x,v> = 0}

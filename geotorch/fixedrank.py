@@ -1,5 +1,6 @@
 import torch
 from .lowrank import LowRank
+from .exceptions import InverseError
 
 
 def softplus_epsilon(x, epsilon=1e-6):
@@ -29,14 +30,14 @@ class FixedRank(LowRank):
 
                 - A callable that maps real numbers to the interval :math:`(0, \infty)`.
 
-                - A tuple of callables such that the first maps the real numbers to
+                - A tuple of callables such that the first maps the real numbers onto
                   :math:`(0, \infty)` and the second is a (right) inverse of the first
                 Default: ``"softplus"``
             triv (str or callable): Optional.
                 A map that maps skew-symmetric matrices onto the orthogonal matrices
-                surjectively. This is used to optimize the :math:`U` and :math:`V` in the
-                SVD. It can be one of ``["expm", "cayley"]`` or a custom
-                callable. Default: ``"expm"``
+                surjectively. This is used to optimize the :math:`U` and :math:`V` in
+                the SVD. It can be one of ``["expm", "cayley"]`` or a custom callable.
+                Default: ``"expm"``
         """
         super().__init__(size, rank, triv=triv)
         f, inv = FixedRank.parse_f(f)
@@ -54,10 +55,89 @@ class FixedRank(LowRank):
         else:
             raise ValueError(
                 "Argument f was not recognized and is "
-                "not callable. Should be one of {}. Found {}".format(
+                "not callable. Should be one of {}, or a callable or a pair of callables. Found {}".format(
                     list(FixedRank.fs.keys()), f
                 )
             )
 
     def submersion(self, U, S, V):
         return super().submersion(U, self.f(S), V)
+
+    def submersion_inv(self, X, check_in_manifold=True):
+        U, S, V = super().submersion_inv(X, check_in_manifold)
+        if self.inv is None:
+            raise InverseError(self)
+        return U, self.inv(S), V
+
+    def in_manifold_singular_values(self, S, eps=1e-6):
+        r"""
+        Checks that a vector of singular values is in the manifold.
+
+        For tensors with more than 1 dimension the first dimensions are
+        treated as batch dimensions.
+
+        Args:
+            S (torch.Tensor): Vector of singular values
+            eps (float): Optional. Threshold at which the singular values are
+                considered to be zero
+                Default: ``1e-6``
+        """
+        if not super().in_manifold_singular_values(S, eps):
+            return False
+        # We compute the \infty-norm of the eigenvalues
+        D = S[..., : self.rank]
+        infty_norm = D.abs().max(dim=-1).values
+        return (infty_norm > eps).all().item()
+
+    def project(self, X, factorized=True, eps=1e-6):
+        r"""
+        Project a matrix onto the manifold.
+
+        If ``factorized==True``, it returns a tuple containing the SVD decomposition of
+        the matrix.
+
+        If the matrix has more than `self.rank` small singular values, the
+        smallest ones are clamped to be at least ``eps`` in absolute value.
+
+        Args:
+            X (torch.Tensor): Matrix to be projected onto the manifold
+            factorized (bool): Optional. Return the tuple with the SVD decomposition of
+                    the sampled matrix. This can also be used to initialize the layer.
+                    Default: ``True``
+            eps (float): Optional. Minimum singular value of the sampled matrix.
+                    Default: ``1e-6``
+        """
+        U, S, V = super().project(X, factorized=True)
+        with torch.no_grad():
+            S[S < eps] = eps
+        if factorized:
+            return U, S, V
+        else:
+            X = self.submersion(U, S, V)
+            if self.transposed:
+                X = X.transpose(-2, -1)
+            return X
+
+    def sample(self, factorized=True, init_=torch.nn.init.xavier_normal_, eps=1e-6):
+        r"""
+        Returns a randomly sampled matrix on the manifold by sampling a matrix according
+        to ``init_`` and projecting it onto the manifold.
+
+        If the sampled matrix has more than `self.rank` small singular values, the
+        smallest ones are clamped to be at least ``eps`` in absolute value.
+
+        Args:
+            factorized (bool): Optional. Return the tuple with the SVD decomposition of
+                    the sampled matrix. This can also be used to initialize the layer.
+                    Default: ``True``
+            init\_ (callable): Optional. A function that takes a tensor and fills it
+                    in place according to some distribution. See
+                    `torch.init <https://pytorch.org/docs/stable/nn.init.html>`_.
+                    Default: ``torch.nn.init.xavier_normal_``
+            eps (float): Optional. Minimum singular value of the sampled matrix.
+                    Default: ``1e-6``
+        """
+        with torch.no_grad():
+            X = torch.empty(*(self.tensorial_size + (self.n, self.k)))
+            init_(X)
+            return self.project(X, factorized=factorized, eps=eps)

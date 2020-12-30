@@ -8,47 +8,45 @@ import torch.nn as nn
 import geotorch.parametrize as P
 
 from geotorch.so import SO, torus_init_, uniform_init_
-from geotorch.stiefel import Stiefel, StiefelTall
-from geotorch.grassmannian import Grassmannian, GrassmannianTall
+from geotorch.stiefel import Stiefel
+from geotorch.grassmannian import Grassmannian
 from geotorch.utils import update_base
 
 
 class TestOrthogonal(TestCase):
     def test_orthogonality_stiefel(self):
-        self._test_orthogonality(Stiefel, StiefelTall)
+        self._test_orthogonality(Stiefel)
 
     def test_initialization_stiefel(self):
-        self._test_initializations(Stiefel, StiefelTall)
+        self._test_initializations(Stiefel)
 
     def test_constructor_stiefel(self):
-        self._test_constructor(Stiefel, StiefelTall)
+        self._test_constructor(Stiefel)
 
     def test_custom_trivialization_stiefel(self):
         self._test_custom_trivialization(Stiefel)
 
     def test_orthogonality_grassmannian(self):
-        self._test_orthogonality(Grassmannian, GrassmannianTall)
+        self._test_orthogonality(Grassmannian)
 
     def test_initializations_grassmannian(self):
-        self._test_initializations(Grassmannian, GrassmannianTall)
+        self._test_initializations(Grassmannian)
 
     def test_constructors_grassmannian(self):
-        self._test_constructor(Grassmannian, GrassmannianTall)
+        self._test_constructor(Grassmannian)
 
     def test_custom_trivialization_grassmannian(self):
         self._test_custom_trivialization(Grassmannian)
 
-    def _test_orthogonality(self, cls, cls_tall):
+    def _test_orthogonality(self, cls):
         r"""Test that we may instantiate the parametrizations and
         register them in modules of several sizes. Check that the
         results are orthogonal and equal in the two/three cases.
         """
-        if torch.__version__ >= "1.7.0":
-            cls_tall = cls
 
         with torch.random.fork_rng(devices=range(torch.cuda.device_count())):
             torch.random.manual_seed(8888)
-            for layers in self._test_layers(cls, cls_tall):
+            for layers in self._test_layers(cls):
                 if isinstance(layers[0], nn.Linear):
                     input_ = torch.rand(5, layers[0].in_features)
                 elif isinstance(layers[0], nn.Conv2d):
@@ -104,15 +102,9 @@ class TestOrthogonal(TestCase):
             loss.backward()
             optim.step()
 
-    def _test_constructor(self, cls, cls_tall):
-        if torch.__version__ >= "1.7.0":
-            cls_tall = cls
-
+    def _test_constructor(self, cls):
         with self.assertRaises(ValueError):
             cls(size=(3, 3), triv="wrong")
-
-        with self.assertRaises(ValueError):
-            cls_tall(size=(3, 3), triv="wrong")
 
         with self.assertRaises(ValueError):
             SO(size=(3, 3), triv="wrong")
@@ -122,26 +114,15 @@ class TestOrthogonal(TestCase):
         except ValueError:
             self.fail("{} raised ValueError unexpectedly!".format(cls))
 
-        try:
-            cls_tall(size=(3, 3), triv=lambda: 3)
-        except ValueError:
-            self.fail("{} raised ValueError unexpectedly!".format(cls_tall))
-
         # Try to instantiate it in a vector rather than a matrix
         with self.assertRaises(ValueError):
             cls(size=(7,))
 
         with self.assertRaises(ValueError):
-            cls_tall(size=(7,))
-
-        with self.assertRaises(ValueError):
             SO(size=(7,))
 
-    def _test_initializations(self, cls, cls_tall):
-        if torch.__version__ >= "1.7.0":
-            cls_tall = cls
-
-        for layers in self._test_layers(cls, cls_tall):
+    def _test_initializations(self, cls):
+        for layers in self._test_layers(cls):
             for layer in layers:
                 layer.weight = uniform_init_(layer.weight)
                 W = layer.weight
@@ -174,7 +155,7 @@ class TestOrthogonal(TestCase):
         with self.assertRaises(ValueError):
             uniform_init_(t)
 
-    def _test_layers(self, cls, cls_tall):
+    def _test_layers(self, cls):
         sizes = [
             (8, 1),
             (8, 3),
@@ -193,31 +174,23 @@ class TestOrthogonal(TestCase):
 
         for (n, k), triv in itertools.product(sizes, trivs):
             for layer in [nn.Linear(n, k), nn.Conv2d(n, 4, k)]:
-                layers = [layer, deepcopy(layer)]
+                layers = [layer]
                 if cls == Stiefel and n == k:
                     layers.append(deepcopy(layer))
                 P.register_parametrization(
                     layers[0], "weight", cls(size=layers[0].weight.size(), triv=triv)
                 )
-                P.register_parametrization(
-                    layers[1],
-                    "weight",
-                    cls_tall(size=layers[1].weight.size(), triv=triv),
-                )
                 layer.weight = uniform_init_(layer.weight)
-                # Same init
-                layers[1].weight = layers[0].weight
                 if cls == Stiefel and n == k:
                     layers.append(deepcopy(layer))
                     P.register_parametrization(
-                        layers[2], "weight", SO(size=layers[2].weight.size(), triv=triv)
+                        layers[1], "weight", SO(size=layers[1].weight.size(), triv=triv)
                     )
-                    layers[2].weight = layers[0].weight
+                    layers[1].weight = layers[0].weight
                 elif n != k:
                     # If it's not square it should throw
                     with self.assertRaises(ValueError):
-                        size = layer.weight.size()[:-2] + (n, k)
-                        SO(size=size, triv=triv)
+                        SO(size=layer.weight.size(), triv=triv)
                 for layer in layers[1:]:
                     with torch.no_grad():
                         self.assertAlmostEqual(

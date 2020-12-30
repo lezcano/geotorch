@@ -18,4 +18,3 @@ If :math:`n < k`, then we consider the space of matrices with orthonormal rows, 
 
 
 .. autoclass:: Stiefel
-.. autoclass:: StiefelTall

@@ -1,17 +1,18 @@
 from torch import nn
 from .exceptions import VectorError, NonSquareError
+from .utils import normalized_matrix_one_norm
 
 
 class Skew(nn.Module):
     def __init__(self, lower=True):
         r"""
-        Vector space of skew-symmetric matrices, parametrized in terms of the upper or lower triangular
-        part of a matrix.
+        Vector space of skew-symmetric matrices, parametrized in terms of
+        the upper or lower triangular part of a matrix.
 
         Args:
             size (torch.size): Size of the tensor to be parametrized
-            lower (bool): Optional. Uses the lower triangular part of the matrix to parametrize
-                the matrix. Default: ``True``
+            lower (bool): Optional. Uses the lower triangular part of the matrix
+                to parametrize the matrix. Default: ``True``
         """
         super().__init__()
         self.lower = lower
@@ -30,3 +31,11 @@ class Skew(nn.Module):
         if X.size(-2) != X.size(-1):
             raise NonSquareError(type(self).__name__, X.size())
         return self.frame(X, self.lower)
+
+    @staticmethod
+    def in_manifold(X, eps=1e-4):
+        if X.dim() < 2 or X.size(-2) != X.size(-1):
+            return False
+        D = 0.5 * (X + X.transpose(-2, -1))
+        error = normalized_matrix_one_norm(D)
+        return (error < eps).all().item()

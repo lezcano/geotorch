@@ -2,7 +2,7 @@ import math
 import torch
 from torch import nn
 
-from .utils import base, _extra_repr
+from .utils import _extra_repr, normalized_matrix_one_norm
 from .skew import Skew
 
 try:
@@ -10,6 +10,16 @@ try:
 except ImportError:
     from .linalg.expm import expm
 from .exceptions import NonSquareError, VectorError, InManifoldError
+
+
+def _has_orthonormal_columns(X, eps):
+    n, k = X.size()[-2:]
+    Id = torch.eye(k, dtype=X.dtype, device=X.device)
+    if X.dim() > 2:
+        Id = Id.repeat(*(X.size()[:-2] + (1, 1)))
+    D = X.transpose(-2, -1) @ X - Id
+    error = normalized_matrix_one_norm(D)
+    return (error < eps).all().item()
 
 
 def cayley_map(X):
@@ -43,7 +53,10 @@ class SO(nn.Module):
         self.tensorial_size = tensorial_size
         self.lower = lower
         self.triv = SO.parse_triv(triv)
-        self.register_buffer("base", uniform_init_(torch.empty(*size)))
+        self.register_buffer(
+            "base", torch.empty(*(self.tensorial_size + (self.n, self.n)))
+        )
+        uniform_init_(self.base)
 
     @classmethod
     def parse_size(cls, size):
@@ -70,33 +83,77 @@ class SO(nn.Module):
                 )
             )
 
-    @base
     def forward(self, X):
         X = Skew.frame(X, self.lower)
         return self.base @ self.triv(X)
 
-    def initialize_(self, X):
-        if not SO.in_manifold(X, self.base.size()):
+    def initialize_(self, X, check_in_manifold=True):
+        if check_in_manifold and not self.in_manifold(X):
             raise InManifoldError(X, self)
         with torch.no_grad():
             self.base.data = X.data
         return torch.zeros_like(X)
 
-    @staticmethod
-    def in_manifold(X, size, eps=1e-4):
-        if X.size() != size:
+    def in_manifold(self, X, in_so=False, eps=1e-4):
+        r"""
+        Checks that a matrix is in the manifold.
+
+        For tensors with more than 2 dimensions the first dimensions are
+        treated as batch dimensions.
+
+        Args:
+            X (torch.Tensor): The matrix to be checked
+            in_so (bool): Optional. Checks that the matrix is orthogonal and
+                has positive determinant. Otherwise just orthogonality is checked.
+                Default: ``False``
+            eps (float): Optional. Tolerance to numerical errors.
+                Default: ``1e-4``
+        """
+
+        if X.size() != self.base.size():
             return False
-        k = X.size(-1)
-        Id = torch.eye(k, dtype=X.dtype, device=X.device)
-        if X.dim() > 2:
-            Id = Id.repeat(*(X.size()[:-2] + (1, 1)))
-        D = X.transpose(-2, -1) @ X - Id
-        # Older torch versions do not implement matrix norm 1
-        if torch.__version__ >= "1.7.0":
-            error = torch.linalg.norm(D, dim=(-2, -1), ord=1) / k
+        is_orth = _has_orthonormal_columns(X, eps)
+        X_in_correct_coset = not in_so or (X.det() > 0.0).all().item()
+        return is_orth and X_in_correct_coset
+
+    def sample(self, distribution="uniform", init_=None):
+        r"""
+        Returns a randomly sampled matrix on the manifold according to the
+        specified ``distribution``. The options are:
+
+        - ``"uniform"``: Samples a tensor distributed according to the Haar measure
+            on :math:`\operatorname{SO}(n)`
+
+        - ``"torus"``: Samples a block-diagonal skew-symmetric matrix.
+            The blocks are of the form
+            :math:`\begin{pmatrix} 0 & b \\ -b & 0\end{pmatrix}` where :math:`b` is
+            distributed according to ``init_``. This matrix will be then projected onto
+            :math:`\operatorname{SO}(n)` using ``self.triv``.
+
+        .. note
+
+            The ``"torus"`` initialization is particularly useful in recurrent kernels in RNNs
+
+
+        Args:
+            distribution (string): Optional. One of ``["uniform", "torus"]``.
+            init\_ (callable): Optional. To be used with the ``"torus"`` option.
+                    A function that takes a tensor and fills it in place according
+                    to some distribution. See
+                    `torch.init <https://pytorch.org/docs/stable/nn.init.html>`_.
+                    Default: :math:`\operatorname{Uniform}(-\pi, \pi)`
+        """
+        ret = torch.empty(*(self.tensorial_size + (self.n, self.n)))
+        if distribution == "uniform":
+            uniform_init_(ret)
+        elif distribution == "torus":
+            torus_init_(ret, init_, self.triv)
         else:
-            error = D.abs().sum(dim=-2).max(dim=-1).values / k
-        return (error < eps).all()
+            raise ValueError(
+                'The ditribution has to be one of ["uniform", "torus"]. '
+                "Got {}".format(distribution)
+            )
+        return ret
 
     def extra_repr(self):
         return _extra_repr(n=self.n, tensorial_size=self.tensorial_size, triv=self.triv)
@@ -150,7 +207,7 @@ def torus_init_(tensor, init_=None, triv=expm):
     The blocks are of the form
     :math:`\begin{pmatrix} 0 & b \\ -b & 0\end{pmatrix}` where :math:`b` is
     distributed according to ``init_``.
-    This matrix is then projected to the manifold using ``triv``.
+    This matrix is then projected onto the manifold using ``triv``.
 
     The input tensor must have at least 2 dimension. For tensors with more than 2 dimensions
     the first dimensions are treated as batch dimensions.
@@ -159,7 +216,7 @@ def torus_init_(tensor, init_=None, triv=expm):
         tensor (torch.Tensor): a 2-dimensional tensor
         init\_ (callable): Optional. A function that takes a tensor and fills
                 it in place according to some distribution. See
-                `torch.init <https://pytorch.org/docs/stable/nn.init.html?highlight=init>`_.
+                `torch.init <https://pytorch.org/docs/stable/nn.init.html>`_.
                 Default: :math:`\operatorname{Uniform}(-\pi, \pi)`
         triv (callable): Optional. A function that maps skew-symmetric matrices
                 to orthogonal matrices.
@@ -174,15 +231,13 @@ def torus_init_(tensor, init_=None, triv=expm):
     n, k = tensor.size()[-2:]
     tensorial_size = tensor.size()[:-2]
 
-    if init_ is None:
-
-        def init_(t):
-            return torch.nn.init.uniform_(t, -math.pi, math.pi)
-
     # Non-zero elements that we are going to set on the diagonal
     n_diag = n // 2
     diag = tensor.new(tensorial_size + (n_diag,))
-    init_(diag)
+    if init_ is None:
+        torch.nn.init.uniform_(diag, -math.pi, math.pi)
+    else:
+        init_(diag)
 
     with torch.no_grad():
         # First non-central diagonal

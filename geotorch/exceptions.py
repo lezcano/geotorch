@@ -6,6 +6,14 @@ class VectorError(ValueError):
         )
 
 
+class InverseError(ValueError):
+    def __init__(self, M):
+        super().__init__(
+            "Cannot initialize the parametrization {} as no inverse for the function "
+            "{} was specified in the constructor".format(M, M.f.__name__)
+        )
+
+
 class NonSquareError(ValueError):
     def __init__(self, name, size):
         super().__init__(

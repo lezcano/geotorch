@@ -8,5 +8,3 @@ Grassmannian Manifold
 
 
 .. autoclass:: Grassmannian
-
-.. autoclass:: GrassmannianTall

@@ -4,9 +4,8 @@ import geotorch.parametrize as P
 from .symmetric import Symmetric
 from .skew import Skew
 from .sphere import Sphere
-from .so import SO
-from .stiefel import Stiefel, StiefelTall
-from .grassmannian import Grassmannian, GrassmannianTall
+from .stiefel import Stiefel
+from .grassmannian import Grassmannian
 from .almostorthogonal import AlmostOrthogonal
 from .lowrank import LowRank
 from .fixedrank import FixedRank
@@ -140,15 +139,7 @@ def orthogonal(module, tensor_name, triv="expm"):
         )
     n, k = size[-2:]
     n, k = max(n, k), min(n, k)
-    if n == k:
-        cls = SO
-    elif torch.__version__ >= "1.7.0":
-        cls = Stiefel
-    elif n > 4 * k:
-        cls = StiefelTall
-    else:
-        cls = Stiefel
-    P.register_parametrization(module, tensor_name, cls(size, triv))
+    P.register_parametrization(module, tensor_name, Stiefel(size, triv))
     # The base is already initialised to a random point
     with torch.no_grad():
         module.parametrizations[tensor_name].original.zero_()
@@ -250,8 +241,7 @@ def grassmannian(module, tensor_name, triv="expm"):
         )
     n, k = size[-2:]
     n, k = max(n, k), min(n, k)
-    cls = GrassmannianTall if n > 4 * k else Grassmannian
-    P.register_parametrization(module, tensor_name, cls(size, triv))
+    P.register_parametrization(module, tensor_name, Grassmannian(size, triv))
     # The base is already initialised to a random point
     with torch.no_grad():
         module.parametrizations[tensor_name].original.zero_()
