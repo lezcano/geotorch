@@ -185,7 +185,7 @@ class SymF(ProductManifold):
             # We compute the \infty-norm of the remaining dimension
             D = L[..., self.rank :]
             infty_norm_err = D.abs().max(dim=-1).values
-            if (infty_norm_err > 5.0*eps).any():
+            if (infty_norm_err > 5.0 * eps).any():
                 return False
         return (L[..., : self.rank] >= -eps).all().item()
 
@@ -249,7 +249,9 @@ class SymF(ProductManifold):
         with torch.no_grad():
             device = self[0].base.device
             dtype = self[0].base.dtype
-            X = torch.empty(*(self.tensorial_size + (self.n, self.n)), device=device, dtype=dtype)
+            X = torch.empty(
+                *(self.tensorial_size + (self.n, self.n)), device=device, dtype=dtype
+            )
             init_(X)
             X = X @ X.transpose(-2, -1)
             L, Q = _decreasing_symeig(X, eigenvectors=True)

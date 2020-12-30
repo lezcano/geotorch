@@ -1,5 +1,4 @@
 import torch
-from .so import SO
 from .lowrank import LowRank
 from .exceptions import VectorError, InManifoldError, InverseError
 from .utils import _extra_repr
@@ -147,7 +146,9 @@ class AlmostOrthogonal(LowRank):
             dtype = self[0].base.dtype
             # Sample U and set S = 1, V = Id
             U = self[0].sample(distribution=distribution, init_=init_)
-            S = torch.ones(*(self.tensorial_size + (self.n,)), device=device, dtype=dtype)
+            S = torch.ones(
+                *(self.tensorial_size + (self.n,)), device=device, dtype=dtype
+            )
             V = torch.eye(self.n, device=device, dtype=dtype)
             if len(self.tensorial_size) > 0:
                 V = V.repeat(*(self.tensorial_size + (1, 1)))

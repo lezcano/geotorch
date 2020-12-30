@@ -108,7 +108,7 @@ class FixedRank(LowRank):
             eps (float): Optional. Minimum singular value of the sampled matrix.
                     Default: ``5e-6``
         """
-        U, S, V= super().sample(factorized=True, init_=init_)
+        U, S, V = super().sample(factorized=True, init_=init_)
         with torch.no_grad():
             # S >= 0, as given by torch.symeig()
             S[S < eps] = eps

@@ -10,7 +10,6 @@ from geotorch.symmetric import Symmetric, SymF
 
 
 class TestSymmetric(TestCase):
-
     def test_backprop(self):
         r"""Test that we may instantiate the parametrizations and
         register them in modules of several sizes. Check that the

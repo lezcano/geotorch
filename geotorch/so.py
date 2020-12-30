@@ -145,7 +145,9 @@ class SO(nn.Module):
         """
         device = self.base.device
         dtype = self.base.dtype
-        ret = torch.empty(*(self.tensorial_size + (self.n, self.n)), device=device, dtype=dtype)
+        ret = torch.empty(
+            *(self.tensorial_size + (self.n, self.n)), device=device, dtype=dtype
+        )
         if distribution == "uniform":
             uniform_init_(ret)
         elif distribution == "torus":

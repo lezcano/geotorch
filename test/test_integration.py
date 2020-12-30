@@ -98,7 +98,14 @@ class TestHomogeneous(TestCase):
 
     def test_psd_and_glp(self):
         self._test_manifolds(
-            [PSD, PSSD, GLp, geotorch.positive_definite, geotorch.positive_semidefinite, geotorch.invertible],
+            [
+                PSD,
+                PSSD,
+                GLp,
+                geotorch.positive_definite,
+                geotorch.positive_semidefinite,
+                geotorch.invertible,
+            ],
             dicts_product(factorized=[True, False]),
             [{}],
             self.devices(),
@@ -107,7 +114,12 @@ class TestHomogeneous(TestCase):
 
     def test_pssd_rank(self):
         self._test_manifolds(
-            [PSSDLowRank, PSSDFixedRank, geotorch.positive_semidefinite_low_rank, geotorch.positive_semidefinite_fixed_rank],
+            [
+                PSSDLowRank,
+                PSSDFixedRank,
+                geotorch.positive_semidefinite_low_rank,
+                geotorch.positive_semidefinite_fixed_rank,
+            ],
             dicts_product(factorized=[True, False]),
             dicts_product(rank=self.ranks()),
             self.devices(),

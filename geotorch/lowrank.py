@@ -3,8 +3,7 @@ from .product import ProductManifold
 from .stiefel import Stiefel
 from .reals import Rn
 from .exceptions import VectorError, RankError, InManifoldError
-from .utils import transpose, _extra_repr, normalized_matrix_one_norm
-
+from .utils import transpose, _extra_repr
 
 
 class LowRank(ProductManifold):
@@ -195,7 +194,9 @@ class LowRank(ProductManifold):
         with torch.no_grad():
             device = self[0].base.device
             dtype = self[0].base.dtype
-            X = torch.empty(*(self.tensorial_size + (self.n, self.k)), device=device, dtype=dtype)
+            X = torch.empty(
+                *(self.tensorial_size + (self.n, self.k)), device=device, dtype=dtype
+            )
             init_(X)
             U, S, V = X.svd()
             U, S, V = U[..., : self.rank], S[..., : self.rank], V[..., : self.rank]
