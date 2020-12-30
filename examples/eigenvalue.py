@@ -6,7 +6,6 @@ problem to the Sphere
 import torch
 from torch import nn
 import geotorch
-from geotorch.sphere import uniform_init_sphere_
 
 N = 1000  # matrix size
 LR = 1.0 / N  # step-size.
