@@ -27,7 +27,8 @@ def cayley_map(X):
     Id = torch.eye(n, dtype=X.dtype, device=X.device)
     if X.ndimension() > 2:
         Id = Id.expand_as(X)
-    return torch.solve(Id - X, Id + X)[0]
+    halfX = 0.5 * X  # To make it into a retraction so that (d\phi)_0 = Id
+    return torch.solve(Id + halfX, Id - halfX).solution
 
 
 class SO(nn.Module):
