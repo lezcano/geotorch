@@ -14,10 +14,11 @@ class PSD(PSSDFixedRank):
 
                 - ``"softplus"``
 
-                - A callable that maps real numbers to the interval :math:`(0, \infty)`.
+                - A callable that maps real numbers to the interval :math:`(0, \infty)`
 
                 - A tuple of callables such that the first maps the real numbers to
                   :math:`(0, \infty)` and the second is a (right) inverse of the first
+
                 Default: ``"softplus"``
             triv (str or callable): Optional.
                 A map that maps skew-symmetric matrices onto the orthogonal matrices

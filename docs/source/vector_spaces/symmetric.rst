@@ -10,3 +10,5 @@ Symmetric Matrices
     \operatorname{Sym}(n) = \{X \in \mathbb{R}^{n \times n}\:\mid\: X^\intercal = X \}
 
 .. autoclass:: Symmetric
+
+    .. automethod:: in_manifold

@@ -17,6 +17,12 @@ with radius :math:`r`:
 
 .. autoclass:: Sphere
 
+    .. automethod:: sample
+    .. automethod:: in_manifold
+
 .. autoclass:: SphereEmbedded
+
+    .. automethod:: sample
+    .. automethod:: in_manifold
 
 .. autofunction:: geotorch.sphere.uniform_init_sphere_

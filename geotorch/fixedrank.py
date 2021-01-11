@@ -28,10 +28,11 @@ class FixedRank(LowRank):
 
                 - ``"softplus"``
 
-                - A callable that maps real numbers to the interval :math:`(0, \infty)`.
+                - A callable that maps real numbers to the interval :math:`(0, \infty)`
 
                 - A tuple of callables such that the first maps the real numbers onto
                   :math:`(0, \infty)` and the second is a (right) inverse of the first
+
                 Default: ``"softplus"``
             triv (str or callable): Optional.
                 A map that maps skew-symmetric matrices onto the orthogonal matrices
@@ -89,7 +90,7 @@ class FixedRank(LowRank):
         infty_norm = D.abs().max(dim=-1).values
         return (infty_norm > eps).all().item()
 
-    def sample(self, factorized=True, init_=torch.nn.init.xavier_normal_, eps=5e-6):
+    def sample(self, init_=torch.nn.init.xavier_normal_, factorized=True, eps=5e-6):
         r"""
         Returns a randomly sampled matrix on the manifold by sampling a matrix according
         to ``init_`` and projecting it onto the manifold.
@@ -97,14 +98,24 @@ class FixedRank(LowRank):
         If the sampled matrix has more than `self.rank` small singular values, the
         smallest ones are clamped to be at least ``eps`` in absolute value.
 
+        The output of this method can be used to initialize a parametrized tensor
+        that has been parametrized with this or any other manifold as::
+
+            >>> layer = nn.Linear(20, 20)
+            >>> M = FixedRank(layer.weight.size(), rank=6)
+            >>> geotorch.register_parametrization(layer, "weight", M)
+            >>> layer.weight = M.sample()
+
         Args:
-            factorized (bool): Optional. Return the tuple with the SVD decomposition of
-                    the sampled matrix. This can also be used to initialize the layer.
-                    Default: ``True``
             init\_ (callable): Optional. A function that takes a tensor and fills it
                     in place according to some distribution. See
                     `torch.init <https://pytorch.org/docs/stable/nn.init.html>`_.
                     Default: ``torch.nn.init.xavier_normal_``
+            factorized (bool): Optional. Return an SVD decomposition of the
+                    sampled matrix as a tuple :math:`(U, \Sigma, V)`.
+                    Using ``factorized=True`` is more efficient when the result is
+                    used to initialize a parametrized tensor.
+                    Default: ``True``
             eps (float): Optional. Minimum singular value of the sampled matrix.
                     Default: ``5e-6``
         """

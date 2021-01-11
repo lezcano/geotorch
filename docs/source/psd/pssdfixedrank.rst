@@ -10,7 +10,7 @@ to :math:`r`, for a given :math:`r \leq n`:
 
     \operatorname{PSSDFixedRank}(n,r) = \{X \in \mathbb{R}^{n\times n}\:\mid\:X \succeq 0,\,\operatorname{rank}(X) = r\}
 
-It is realized via an eigen-like factorization. In particular, it is implemented via the projection
+It is realized via an eigenvalue-like factorization:
 
 .. math::
 
@@ -20,7 +20,7 @@ It is realized via an eigen-like factorization. In particular, it is implemented
             (Q, \Lambda) &\mapsto Qf(\Lambda)Q^\intercal
     \end{align*}
 
-where we have identified :math:`\mathbb{R}^r` with a diagonal matrix in :math:`\mathbb{R}^{r \times r}`. The function :math:`f\colon \mathbb{R} \to (0, \infty)` is applied element-wise to the diagonal. By default, the `softmax` function is used
+where we have identified the vector :math:`\Lambda` with a diagonal matrix in :math:`\mathbb{R}^{r \times r}`. The function :math:`f\colon \mathbb{R} \to (0, \infty)` is applied element-wise to the diagonal. By default, the `softmax` function is used
 
 .. math::
 
@@ -29,7 +29,7 @@ where we have identified :math:`\mathbb{R}^r` with a diagonal matrix in :math:`\
             x &\mapsto \log(1+\exp(x)) + \varepsilon
     \end{align*}
 
-for a small :math:`\varepsilon > 0`.
+where we use a small :math:`\varepsilon > 0` for numerical stability.
 
 .. note::
 

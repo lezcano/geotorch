@@ -9,7 +9,7 @@ General Linear Group
 
     \operatorname{GL^+}(n) = \{X \in \mathbb{R}^{n\times n}\:\mid\:\det(X) > 0\}
 
-It is realized via an SVD-like factorization. In particular, it is implemented via the projection
+It is realized via an SVD-like factorization:
 
 .. math::
 
@@ -19,7 +19,7 @@ It is realized via an SVD-like factorization. In particular, it is implemented v
             (U, \Sigma, V) &\mapsto Uf(\Sigma)V^\intercal
     \end{align*}
 
-where we have identified :math:`\mathbb{R}^r` with a diagonal matrix in :math:`\mathbb{R}^{r \times r}`. The function :math:`f\colon \mathbb{R} \to (0, \infty)` is applied element-wise to the diagonal. By default, the `softmax` function is used
+where we have identified the vector :math:`\Sigma` with a diagonal matrix in :math:`\mathbb{R}^{n \times n}`. The function :math:`f\colon \mathbb{R} \to (0, \infty)` is applied element-wise to the diagonal. By default, the `softmax` function is used
 
 .. math::
 
@@ -28,6 +28,9 @@ where we have identified :math:`\mathbb{R}^r` with a diagonal matrix in :math:`\
             x &\mapsto \log(1+\exp(x)) + \varepsilon
     \end{align*}
 
-for a small :math:`\varepsilon > 0`.
+where we use a small :math:`\varepsilon > 0` for numerical stability.
 
 .. autoclass:: GLp
+
+    .. automethod:: sample
+    .. automethod:: in_manifold

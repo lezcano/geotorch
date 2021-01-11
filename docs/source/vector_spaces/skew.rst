@@ -10,3 +10,5 @@ Skew-symmetric Matrices
     \operatorname{Skew}(n) = \{X \in \mathbb{R}^{n \times n}\:\mid\: X^\intercal = -X \}
 
 .. autoclass:: Skew
+
+    .. automethod:: in_manifold

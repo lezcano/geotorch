@@ -8,3 +8,6 @@ Grassmannian Manifold
 
 
 .. autoclass:: Grassmannian
+
+    .. automethod:: sample
+    .. automethod:: in_manifold

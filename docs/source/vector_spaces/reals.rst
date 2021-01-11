@@ -8,3 +8,5 @@ This class is useful when composed with other manifolds to
 form more interesting spaces using the classes from :ref:`Product Manifold`.
 
 .. autoclass:: Rn
+
+    .. automethod:: in_manifold

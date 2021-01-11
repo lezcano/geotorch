@@ -119,25 +119,26 @@ class SO(nn.Module):
 
     def sample(self, distribution="uniform", init_=None):
         r"""
-        Returns a randomly sampled matrix on the manifold according to the
-        specified ``distribution``. The options are:
+        Returns a randomly sampled orthogonal matrix according to the specified
+        ``distribution``. The options are:
 
-        - ``"uniform"``: Samples a tensor distributed according to the Haar measure
-            on :math:`\operatorname{SO}(n)`
+            - ``"uniform"``: Samples a tensor distributed according to the Haar measure
+              on :math:`\operatorname{SO}(n)`
 
-        - ``"torus"``: Samples a block-diagonal skew-symmetric matrix.
-            The blocks are of the form
-            :math:`\begin{pmatrix} 0 & b \\ -b & 0\end{pmatrix}` where :math:`b` is
-            distributed according to ``init_``. This matrix will be then projected onto
-            :math:`\operatorname{SO}(n)` using ``self.triv``.
+            - ``"torus"``: Samples a block-diagonal skew-symmetric matrix.
+              The blocks are of the form
+              :math:`\begin{pmatrix} 0 & b \\ -b & 0\end{pmatrix}` where :math:`b` is
+              distributed according to ``init_``. This matrix will be then projected
+              onto :math:`\operatorname{SO}(n)` using ``self.triv``
 
         .. note
 
-            The ``"torus"`` initialization is particularly useful in recurrent kernels in RNNs
-
+            The ``"torus"`` initialization is particularly useful in recurrent kernels
+            of RNNs
 
         Args:
             distribution (string): Optional. One of ``["uniform", "torus"]``.
+                    Default: ``"uniform"``
             init\_ (callable): Optional. To be used with the ``"torus"`` option.
                     A function that takes a tensor and fills it in place according
                     to some distribution. See

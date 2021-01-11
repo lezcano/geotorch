@@ -148,7 +148,7 @@ class SymF(ProductManifold):
             if check_in_manifold and not self.in_manifold_eigen(L):
                 raise InManifoldError(X, self)
         else:
-            # We assume that we got the L, Q factorised in a tuple / list
+            # We assume that we got the L, Q factorized in a tuple / list
             L, Q = X
             if check_in_manifold and not self.in_manifold_tuple(L, Q):
                 raise InManifoldError(X, self)
@@ -198,15 +198,16 @@ class SymF(ProductManifold):
 
     def in_manifold(self, X, eps=1e-6):
         r"""
-        Checks that a matrix is in the manifold. The matrix may given factorised
-        in a pair with its eigenvalues :math:`\Lambda` and its eigenvectors :math:`Q`.
+        Checks that a matrix is in the manifold. The matrix may be given factorized
+        as a pair :math:`(\Lambda, Q)` with :math:`\Lambda` a vector of eigenvalues
+        and :math:`Q` a matrix of eigenvectors.
 
         For tensors with more than 2 dimensions the first dimensions are
         treated as batch dimensions.
 
         Args:
             X (torch.Tensor or tuple): The matrix to be checked or a tuple
-                ``(eigenvalues, eigenvectors)`` as returned by ``torch.symeig``
+                ``(eigenvectors, eigenvalues)`` as returned by ``torch.symeig``
                 or ``self.sample(factorized=True)``.
             eps (float): Optional. Threshold at which the singular values are
                     considered to be zero
@@ -224,27 +225,36 @@ class SymF(ProductManifold):
         L = _decreasing_symeig(X, eigenvectors=False)
         return self.in_manifold_eigen(L, eps)
 
-    def sample(self, factorized=True, init_=torch.nn.init.xavier_normal_):
+    def sample(self, init_=torch.nn.init.xavier_normal_, factorized=True):
         r"""
         Returns a randomly sampled matrix on the manifold as
 
-        ..math::
+        .. math::
 
             WW^\intercal \qquad W_{i,j} \sim \texttt{init\_}
 
         By default ``init\_`` is a (xavier) normal distribution, so that the
         returned matrix follows a Wishart distribution.
 
+        The output of this method can be used to initialize a parametrized tensor
+        that has been parametrized with this or any other manifold as::
+
+            >>> layer = nn.Linear(20, 20)
+            >>> M = PSSD(layer.weight.size())
+            >>> geotorch.register_parametrization(layer, "weight", M)
+            >>> layer.weight = M.sample()
+
         Args:
-            factorized (bool): Optional. Return the tuple :math:`(\Lambda, Q)` with an
-                    eigen-decomposition of the sampled matrix. This can also be used
-                    to initialize the layer.
-                    Default: ``True``
             init\_ (callable): Optional.
                     A function that takes a tensor and fills it in place according
                     to some distribution. See
                     `torch.init <https://pytorch.org/docs/stable/nn.init.html>`_.
                     Default: ``torch.nn.init.xavier_normal_``
+            factorized (bool): Optional. Return an eigenvalue decomposition of the
+                    sampled matrix as a tuple :math:`(\Lambda, Q)`.
+                    Using ``factorized=True`` is more efficient when the result is
+                    used to initialize a parametrized tensor.
+                    Default: ``True``
         """
         with torch.no_grad():
             device = self[0].base.device

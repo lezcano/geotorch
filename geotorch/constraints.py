@@ -167,10 +167,11 @@ def almost_orthogonal(module, tensor_name, lam, f="sin", triv="expm"):
 
             - One of ``["scaled_sigmoid", "tanh", "sin"]``
 
-            - A callable that maps real numbers to the interval :math:`[-1, 1]`.
+            - A callable that maps real numbers to the interval :math:`[-1, 1]`
 
             - A tuple of callables such that the first maps the real numbers to
               :math:`[-1, 1]` and the second is a (right) inverse of the first
+
             Default: ``"sin"``
         triv (str or callable): Optional.
             A map that maps skew-symmetric matrices onto the orthogonal matrices
@@ -293,10 +294,11 @@ def fixed_rank(module, tensor_name, rank, f="softplus", triv="expm"):
 
             - ``"softplus"``
 
-            - A callable that maps real numbers to the interval :math:`(0, \infty)`.
+            - A callable that maps real numbers to the interval :math:`(0, \infty)`
 
             - A tuple of callables such that the first maps the real numbers to
               :math:`(0, \infty)` and the second is a (right) inverse of the first
+
             Default: ``"softplus"``
         triv (str or callable): Optional.
             A map that maps skew-symmetric matrices onto the orthogonal matrices
@@ -335,10 +337,11 @@ def invertible(module, tensor_name, f="softplus", triv="expm"):
 
             - ``"softplus"``
 
-            - A callable that maps real numbers to the interval :math:`(0, \infty)`.
+            - A callable that maps real numbers to the interval :math:`(0, \infty)`
 
             - A tuple of callables such that the first maps the real numbers to
               :math:`(0, \infty)` and the second is a (right) inverse of the first
+
             Default: ``"softplus"``
         triv (str or callable): Optional.
             A map that maps skew-symmetric matrices onto the orthogonal matrices
@@ -377,10 +380,11 @@ def positive_definite(module, tensor_name, f="softplus", triv="expm"):
 
             - ``"softplus"``
 
-            - A callable that maps real numbers to the interval :math:`(0, \infty)`.
+            - A callable that maps real numbers to the interval :math:`(0, \infty)`
 
             - A tuple of callables such that the first maps the real numbers to
               :math:`(0, \infty)` and the second is a (right) inverse of the first
+
             Default: ``"softplus"``
         triv (str or callable): Optional.
             A map that maps skew-symmetric matrices onto the orthogonal
@@ -503,10 +507,11 @@ def positive_semidefinite_fixed_rank(
 
             - ``"softplus"``
 
-            - A callable that maps real numbers to the interval :math:`(0, \infty)`.
+            - A callable that maps real numbers to the interval :math:`(0, \infty)`
 
             - A tuple of callables such that the first maps the real numbers to
               :math:`(0, \infty)` and the second is a (right) inverse of the first
+
             Default: ``"softplus"``
         triv (str or callable): Optional.
             A map that maps skew-symmetric matrices onto the orthogonal

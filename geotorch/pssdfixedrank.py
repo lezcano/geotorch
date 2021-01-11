@@ -17,12 +17,14 @@ class PSSDFixedRank(SymF):
                 It has to be less or equal to
                 :math:`\min(\texttt{size}[-1], \texttt{size}[-2])`
             f (str or callable or tuple of callables): Optional. Either:
+
                 - ``"softplus"``
 
-                - A callable that maps real numbers to the interval :math:`(0, \infty)`.
+                - A callable that maps real numbers to the interval :math:`(0, \infty)`
 
                 - A tuple of callables such that the first maps the real numbers to
                   :math:`(0, \infty)` and the second is a (right) inverse of the first
+
                 Default: ``"softplus"``
             triv (str or callable): Optional.
                 A map that maps skew-symmetric matrices onto the orthogonal matrices
@@ -65,29 +67,35 @@ class PSSDFixedRank(SymF):
             and (L[..., : self.rank] >= eps).all().item()
         )
 
-    def sample(self, factorized=True, init_=torch.nn.init.xavier_normal_, eps=5e-6):
+    def sample(self, init_=torch.nn.init.xavier_normal_, factorized=True, eps=5e-6):
         r"""
         Returns a randomly sampled matrix on the manifold as
 
-        ..math::
+        .. math::
 
             WW^\intercal \qquad W_{i,j} \sim \texttt{init\_}
-
-        and then projected onto the manifold.
 
         If the sampled matrix has more than `self.rank` small singular values, the
         smallest ones are clamped to be at least ``eps`` in absolute value.
 
+
+        The output of this method can be used to initialize a parametrized tensor as::
+
+            >>> layer = nn.Linear(20, 20)
+            >>> M = PSSD(layer.weight.size())
+            >>> geotorch.register_parametrization(layer, "weight", M)
+            >>> layer.weight = M.sample()
+
         Args:
-            factorized (bool): Optional. Return the tuple :math:`(\Lambda, Q)` with an
-                    eigen-decomposition of the sampled matrix. This can also be used
-                    to initialize the layer.
-                    Default: ``True``
             init\_ (callable): Optional.
                     A function that takes a tensor and fills it in place according
                     to some distribution. See
                     `torch.init <https://pytorch.org/docs/stable/nn.init.html>`_.
                     Default: ``torch.nn.init.xavier_normal_``
+            factorized (bool): Optional. Return the tuple :math:`(\Lambda, Q)` with an
+                    eigenvalue decomposition of the sampled matrix. This can also be used
+                    to initialize the layer.
+                    Default: ``True``
             eps (float): Optional. Minimum eigenvalue of the sampled matrix.
                     Default: ``5e-6``
         """

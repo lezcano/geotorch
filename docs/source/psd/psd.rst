@@ -7,9 +7,9 @@ Positive Definite Matrices
 
 .. math::
 
-    \operatorname{PSD}(n) = \{X \in \mathbb{R}^{n\times n}\:\mid\:X \succ 0\}
+    \operatorname{PSD}(n) = \{X \in \mathbb{R}^{n\times n}\:\mid\:X \succ 0\}.
 
-It is realized via an eigen-like factorization. In particular, it is implemented via the projection
+It is realized via an eigenvalue-like factorization:
 
 .. math::
 
@@ -19,7 +19,7 @@ It is realized via an eigen-like factorization. In particular, it is implemented
             (Q, \Lambda) &\mapsto Qf(\Lambda)Q^\intercal
     \end{align*}
 
-where we have identified :math:`\mathbb{R}^r` with a diagonal matrix in :math:`\mathbb{R}^{r \times r}`. The function :math:`f\colon \mathbb{R} \to (0, \infty)` is applied element-wise to the diagonal. By default, the `softmax` function is used
+where we have identified the vector :math:`\Lambda` with a diagonal matrix in :math:`\mathbb{R}^{n \times n}`. The function :math:`f\colon \mathbb{R} \to (0, \infty)` is applied element-wise to the diagonal. By default, the `softmax` function is used
 
 .. math::
 
@@ -28,10 +28,13 @@ where we have identified :math:`\mathbb{R}^r` with a diagonal matrix in :math:`\
             x &\mapsto \log(1+\exp(x)) + \varepsilon
     \end{align*}
 
-for a small :math:`\varepsilon > 0`.
+where we use a small :math:`\varepsilon > 0` for numerical stability.
 
 .. note::
 
     For practical applications, it is more convenient to use the class :class:`geotorch.PSSD`, unless the positive definiteness condition is essential. This is because :class:`geotorch.PSSD` is less restrictive, and most of the times it will converge to a max-rank solution anyway, although in the optimization process there might be times when the matrix might become almost singular.
 
 .. autoclass:: PSD
+
+    .. automethod:: sample
+    .. automethod:: in_manifold

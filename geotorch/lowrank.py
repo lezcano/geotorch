@@ -17,10 +17,10 @@ class LowRank(ProductManifold):
                 It has to be less or equal to
                 :math:`\min(\texttt{size}[-1], \texttt{size}[-2])`
             triv (str or callable): Optional.
-                A map that maps skew-symmetric matrices onto the orthogonal
-                matrices surjectively. This is used to optimize the U and V in the
-                SVD. It can be one of ``["expm", "cayley"]`` or a custom
-                callable. Default: ``"expm"``
+                A map that maps skew-symmetric matrices onto the orthogonal matrices
+                surjectively. This is used to optimize the :math:`U` and :math:`V` in
+                the SVD. It can be one of ``["expm", "cayley"]`` or a custom callable.
+                Default: ``"expm"``
         """
         n, k, tensorial_size, transposed = LowRank.parse_size(size)
         if rank > min(n, k) or rank < 1:
@@ -126,8 +126,9 @@ class LowRank(ProductManifold):
 
     def in_manifold(self, X, eps=1e-5):
         r"""
-        Checks that a matrix is in the manifold. The matrix may given factorised
-        in a `3`-tuple :math:`(U, \Sigma, V)`.
+        Checks that a matrix is in the manifold. The matrix may be given
+        factorised in a `3`-tuple :math:`(U, \Sigma, V)` of a matrix, vector,
+        and matrix representing an SVD of the matrix.
 
 
         For tensors with more than 2 dimensions the first dimensions are
@@ -163,8 +164,10 @@ class LowRank(ProductManifold):
 
         Args:
             X (torch.Tensor): Matrix to be projected onto the manifold
-            factorized (bool): Optional. Return the tuple with the SVD decomposition of
-                    the sampled matrix. This can also be used to initialize the layer.
+            factorized (bool): Optional. Return an SVD decomposition of the
+                    sampled matrix as a tuple :math:`(U, \Sigma, V)`.
+                    Using ``factorized=True`` is more efficient when the result is
+                    used to initialize a parametrized tensor.
                     Default: ``True``
         """
         U, S, V = X.svd()
@@ -177,19 +180,29 @@ class LowRank(ProductManifold):
                 X = X.transpose(-2, -1)
             return X
 
-    def sample(self, factorized=True, init_=torch.nn.init.xavier_normal_):
+    def sample(self, init_=torch.nn.init.xavier_normal_, factorized=True):
         r"""
         Returns a randomly sampled matrix on the manifold by sampling a matrix according
         to ``init_`` and projecting it onto the manifold.
 
+        The output of this method can be used to initialize a parametrized tensor
+        that has been parametrized with this or any other manifold as::
+
+            >>> layer = nn.Linear(20, 20)
+            >>> M = LowRank(layer.weight.size(), rank=6)
+            >>> geotorch.register_parametrization(layer, "weight", M)
+            >>> layer.weight = M.sample()
+
         Args:
-            factorized (bool): Optional. Return the tuple with the SVD decomposition of
-                    the sampled matrix. This can also be used to initialize the layer.
-                    Default: ``True``
             init\_ (callable): Optional. A function that takes a tensor and fills it
                     in place according to some distribution. See
                     `torch.init <https://pytorch.org/docs/stable/nn.init.html>`_.
                     Default: ``torch.nn.init.xavier_normal_``
+            factorized (bool): Optional. Return an SVD decomposition of the
+                    sampled matrix as a tuple :math:`(U, \Sigma, V)`.
+                    Using ``factorized=True`` is more efficient when the result is
+                    used to initialize a parametrized tensor.
+                    Default: ``True``
         """
         with torch.no_grad():
             device = self[0].base.device

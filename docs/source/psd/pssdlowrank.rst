@@ -10,7 +10,7 @@ of rank less or equal to :math:`r`, for a given :math:`r \leq n`:
 
     \operatorname{PSSDLowRank}(n,r) = \{X \in \mathbb{R}^{n\times n}\:\mid\:X \succeq 0,\,\operatorname{rank}(X) \leq r\}
 
-It is realized via an eigen-like factorization. In particular, it is implemented via the projection
+It is realized via an eigenvalue-like factorization:
 
 .. math::
 
@@ -20,6 +20,6 @@ It is realized via an eigen-like factorization. In particular, it is implemented
             (Q, \Lambda) &\mapsto Q\left|\Lambda\right| Q^\intercal
     \end{align*}
 
-where we have identified :math:`\mathbb{R}^r` with a diagonal matrix in :math:`\mathbb{R}^{r \times r}` and :math:`\left|\Lambda\right|` denotes the absolute value of the diagonal entries.
+where we have identified the vector :math:`\Lambda` with a diagonal matrix in :math:`\mathbb{R}^{r \times r}` and :math:`\left|\Lambda\right|` denotes the absolute value of the diagonal entries.
 
 .. autoclass:: PSSDLowRank

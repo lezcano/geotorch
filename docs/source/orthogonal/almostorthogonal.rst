@@ -3,13 +3,13 @@ Almost Orthogonal Matrices
 
 .. currentmodule:: geotorch
 
-:math:`\operatorname{AlmostOrthogonal}(n,k,\lambda)` is the manifold matrices with singular values in the interval :math:`[1-\lambda, 1+\lambda]` for a :math:`\lambda \in [0,1]`.
+:math:`\operatorname{AlmostOrthogonal}(n,k,\lambda)` is the manifold matrices with singular values in the interval :math:`(1-\lambda, 1+\lambda)` for a :math:`\lambda \in [0,1]`.
 
 .. math::
 
-    \operatorname{AlmostOrthogonal}(n,k,\lambda) = \{X \in \mathbb{R}^{n\times k}\:\mid\:\left|1-\sigma_i(X)\right| \leq \lambda,\  i=1, \dots, k\}
+    \operatorname{AlmostOrthogonal}(n,k,\lambda) = \{X \in \mathbb{R}^{n\times k}\:\mid\:\left|1-\sigma_i(X)\right| < \lambda,\  i=1, \dots, k\}
 
-It is realized via an SVD-like factorization. In particular, it is implemented via the projection
+It is realized via an SVD-like factorization:
 
 .. math::
 
@@ -19,7 +19,8 @@ It is realized via an SVD-like factorization. In particular, it is implemented v
             (U, \Sigma, V) &\mapsto Uf_\lambda(\Sigma) V^\intercal
     \end{align*}
 
-where we have identified :math:`\mathbb{R}^k` with a diagonal matrix in :math:`\mathbb{R}^{k \times k}`. The function :math:`f_\lambda\colon \mathbb{R} \to (1-\lambda, 1+\lambda)` takes a function :math:`f\colon \mathbb{R} \to (-1, +1)` and rescales it to be a function on :math:`(1-\lambda, 1+\lambda)` as
+where we have identified the vector :math:`\Sigma` with a diagonal matrix in :math:`\mathbb{R}^{k \times k}`.
+The function :math:`f_\lambda\colon \mathbb{R} \to (1-\lambda, 1+\lambda)` takes a function :math:`f\colon \mathbb{R} \to (-1, +1)` and rescales it to be a function on :math:`(1-\lambda, 1+\lambda)` as
 
 .. math::
 
@@ -29,7 +30,9 @@ The function :math:`f_\lambda` is then applied element-wise to the diagonal of :
 
 If :math:`\lambda = 1` is chosen, the resulting space is not a manifold, although this should not hurt optimization in practice.
 
-If :math:`\lambda = 0` is chosen, then the resulting manifold is exactly the :ref:`Special Orthogonal group <RST SO>`. Furthermore, for small values of :math:`\lambda` the algorithm in this class becomes numerically unstable, so we would recommend to choose :class:`geotorch.SO` over this one in that scenario.
+.. warning::
+
+    In the limit :math:`\lambda = 0`, the resulting manifold is exactly :ref:`sec-so`. For this reason, we discourage the use of small values of :math:`\lambda` as the algorithm in this class becomes numerically unstable for very small :math:`\lambda`. We recommend to use :class:`geotorch.SO` rather than this one in this scenario.
 
 .. note::
 
@@ -37,3 +40,6 @@ If :math:`\lambda = 0` is chosen, then the resulting manifold is exactly the :re
 
 
 .. autoclass:: AlmostOrthogonal
+
+    .. automethod:: sample
+    .. automethod:: in_manifold

@@ -10,7 +10,7 @@ to :math:`r`, for a given :math:`r \leq \min\{n, k\}`:
 
     \operatorname{LowRank}(n,k,r) = \{X \in \mathbb{R}^{n\times k}\:\mid\:\operatorname{rank}(X) \leq r\}
 
-It is realized via an SVD-like factorization. In particular, it is implemented via the projection
+It is realized via an SVD-like factorization:
 
 .. math::
 
@@ -20,6 +20,9 @@ It is realized via an SVD-like factorization. In particular, it is implemented v
             (U, \Sigma, V) &\mapsto U\Sigma V^\intercal
     \end{align*}
 
-where we have identified :math:`\mathbb{R}^r` with a diagonal matrix in :math:`\mathbb{R}^{r \times r}`.
+where we have identified the vector :math:`\Sigma` with a diagonal matrix in :math:`\mathbb{R}^{r \times r}`.
 
 .. autoclass:: LowRank
+
+    .. automethod:: sample
+    .. automethod:: in_manifold

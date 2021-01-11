@@ -1,3 +1,5 @@
+.. _sec-so:
+
 Special Orthogonal Group
 ========================
 
@@ -12,5 +14,9 @@ orthonormal columns and positive determinant:
 
 
 .. autoclass:: SO
+
+    .. automethod:: sample
+    .. automethod:: in_manifold
+
 .. autofunction:: geotorch.so.uniform_init_
 .. autofunction:: geotorch.so.torus_init_

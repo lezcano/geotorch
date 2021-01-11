@@ -50,12 +50,13 @@ class SphereEmbedded(nn.Module):
     def __init__(self, size, radius=1.0):
         r"""
         Sphere as the orthogonal projection from
-        :math:`\mathbb{R}^n` to :math:`\mathbb{S}^{n-1}`.
+        :math:`\mathbb{R}^n` to :math:`\mathbb{S}^{n-1}`, that is,
+        :math:`x \mapsto \frac{x}{\lVert x \rVert}`.
 
         Args:
             size (torch.size): Size of the tensor to be parametrized
             radius (float): Optional.
-                Radius of the sphere. It has to be positive. Default: ``1.``
+                Radius of the sphere. A positive number. Default: ``1.``
         """
         super().__init__()
         self.n = size[-1]
@@ -78,7 +79,19 @@ class SphereEmbedded(nn.Module):
             raise InManifoldError(x, self)
         return x / self.radius
 
-    def in_manifold(self, x, eps=1e-4):
+    def in_manifold(self, x, eps=1e-5):
+        r"""
+        Checks that a vector is on the sphere.
+
+        For tensors with more than 2 dimensions the first dimensions are
+        treated as batch dimensions.
+
+        Args:
+            X (torch.Tensor): The vector to be checked.
+            eps (float): Optional. Threshold at which the norm is considered
+                    to be equal to `1`.
+                    Default: ``1e-5``
+        """
         return _in_sphere(x, self.radius, eps)
 
     def sample(self):
@@ -103,7 +116,7 @@ class Sphere(nn.Module):
         Args:
             size (torch.size): Size of the tensor to be parametrized
             radius (float): Optional.
-                Radius of the sphere. It has to be positive. Default: ``1.``
+                Radius of the sphere. A positive number. Default: ``1.``
         """
         super().__init__()
         self.n = size[-1]
@@ -139,7 +152,19 @@ class Sphere(nn.Module):
             self.base.copy_(x)
         return torch.zeros_like(x)
 
-    def in_manifold(self, x, eps=1e-4):
+    def in_manifold(self, x, eps=1e-5):
+        r"""
+        Checks that a vector is on the sphere.
+
+        For tensors with more than 2 dimensions the first dimensions are
+        treated as batch dimensions.
+
+        Args:
+            X (torch.Tensor): The vector to be checked.
+            eps (float): Optional. Threshold at which the norm is considered
+                    to be equal to `1`.
+                    Default: ``1e-5``
+        """
         return _in_sphere(x, self.radius, eps)
 
     def sample(self):
