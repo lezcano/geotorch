@@ -231,7 +231,7 @@ class SymF(ProductManifold):
 
         .. math::
 
-            WW^\intercal \qquad W_{i,j} \sim \texttt{init\_}
+            WW^\intercal \qquad W_{i,j} \sim \texttt{init_}
 
         By default ``init\_`` is a (xavier) normal distribution, so that the
         returned matrix follows a Wishart distribution.

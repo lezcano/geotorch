@@ -73,7 +73,7 @@ class PSSDFixedRank(SymF):
 
         .. math::
 
-            WW^\intercal \qquad W_{i,j} \sim \texttt{init\_}
+            WW^\intercal \qquad W_{i,j} \sim \texttt{init_}
 
         If the sampled matrix has more than `self.rank` small singular values, the
         smallest ones are clamped to be at least ``eps`` in absolute value.
