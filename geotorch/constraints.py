@@ -163,13 +163,13 @@ def almost_orthogonal(module, tensor_name, lam, f="sin", triv="expm"):
         tensor_name (string): name of the parameter, buffer, or parametrization
             on which the parametrization will be applied
         lam (float): Radius of the interval for the singular values. A float in the interval :math:`[0, 1]`
-        f (str or callable or tuple of callables): Optional. Either:
+        f (str or callable or pair of callables): Optional. Either:
 
             - One of ``["scaled_sigmoid", "tanh", "sin"]``
 
             - A callable that maps real numbers to the interval :math:`[-1, 1]`
 
-            - A tuple of callables such that the first maps the real numbers to
+            - A pair of callables such that the first maps the real numbers to
               :math:`[-1, 1]` and the second is a (right) inverse of the first
 
             Default: ``"sin"``
@@ -290,13 +290,13 @@ def fixed_rank(module, tensor_name, rank, f="softplus", triv="expm"):
         rank (int): Rank of the matrix.
             It has to be less than the minimum of the two dimensions of the
             matrix
-        f (str or callable or tuple of callables): Optional. Either:
+        f (str or callable or pair of callables): Optional. Either:
 
             - ``"softplus"``
 
             - A callable that maps real numbers to the interval :math:`(0, \infty)`
 
-            - A tuple of callables such that the first maps the real numbers to
+            - A pair of callables such that the first maps the real numbers to
               :math:`(0, \infty)` and the second is a (right) inverse of the first
 
             Default: ``"softplus"``
@@ -333,13 +333,13 @@ def invertible(module, tensor_name, f="softplus", triv="expm"):
         module (nn.Module): module on which to register the parametrization
         tensor_name (string): name of the parameter, buffer, or parametrization
             on which the parametrization will be applied
-        f (str or callable or tuple of callables): Optional. Either:
+        f (str or callable or pair of callables): Optional. Either:
 
             - ``"softplus"``
 
             - A callable that maps real numbers to the interval :math:`(0, \infty)`
 
-            - A tuple of callables such that the first maps the real numbers to
+            - A pair of callables such that the first maps the real numbers to
               :math:`(0, \infty)` and the second is a (right) inverse of the first
 
             Default: ``"softplus"``
@@ -376,13 +376,13 @@ def positive_definite(module, tensor_name, f="softplus", triv="expm"):
         module (nn.Module): module on which to register the parametrization
         tensor_name (string): name of the parameter, buffer, or parametrization
             on which the parametrization will be applied
-        f (str or callable or tuple of callables): Optional. Either:
+        f (str or callable or pair of callables): Optional. Either:
 
             - ``"softplus"``
 
             - A callable that maps real numbers to the interval :math:`(0, \infty)`
 
-            - A tuple of callables such that the first maps the real numbers to
+            - A pair of callables such that the first maps the real numbers to
               :math:`(0, \infty)` and the second is a (right) inverse of the first
 
             Default: ``"softplus"``
@@ -503,13 +503,13 @@ def positive_semidefinite_fixed_rank(
         rank (int): Rank of the matrix.
             It has to be less than the minimum of the two dimensions of the
             matrix
-        f (str or callable or tuple of callables): Optional. Either:
+        f (str or callable or pair of callables): Optional. Either:
 
             - ``"softplus"``
 
             - A callable that maps real numbers to the interval :math:`(0, \infty)`
 
-            - A tuple of callables such that the first maps the real numbers to
+            - A pair of callables such that the first maps the real numbers to
               :math:`(0, \infty)` and the second is a (right) inverse of the first
 
             Default: ``"softplus"``

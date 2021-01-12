@@ -10,7 +10,7 @@ class ProductManifold(nn.ModuleList):
         .. note::
 
             This is an abstract manifold. It may be used by composing it on the
-            left and the right by an apropriate linear immersion / submersion.
+            left and the right by an appropriate linear immersion / submersion.
             See for example the implementation in :class:`~geotorch.LowRank`
 
         Args:

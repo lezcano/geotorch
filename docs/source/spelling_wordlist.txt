@@ -20,3 +20,4 @@ Sⁿ
 dπ
 π
 Mₖ
+callables

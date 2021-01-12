@@ -25,7 +25,7 @@ class TestSymmetric(TestCase):
             optim = torch.optim.SGD(layer.parameters(), lr=1.0)
 
             # Assert that is stays in Sym(n) after some optimiser steps
-            for i in range(2):
+            for _ in range(2):
                 with P.cached():
                     self.assertTrue(Symmetric.in_manifold(layer.weight))
                     loss = layer(input_).sum()

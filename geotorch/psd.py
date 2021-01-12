@@ -10,13 +10,13 @@ class PSD(PSSDFixedRank):
 
         Args:
             size (torch.size): Size of the tensor to be parametrized
-            f (str or callable or tuple of callables): Optional. Either:
+            f (str or callable or pair of callables): Optional. Either:
 
                 - ``"softplus"``
 
                 - A callable that maps real numbers to the interval :math:`(0, \infty)`
 
-                - A tuple of callables such that the first maps the real numbers to
+                - A pair of callables such that the first maps the real numbers to
                   :math:`(0, \infty)` and the second is a (right) inverse of the first
 
                 Default: ``"softplus"``

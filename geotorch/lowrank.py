@@ -127,7 +127,7 @@ class LowRank(ProductManifold):
     def in_manifold(self, X, eps=1e-5):
         r"""
         Checks that a matrix is in the manifold. The matrix may be given
-        factorised in a `3`-tuple :math:`(U, \Sigma, V)` of a matrix, vector,
+        factorized in a `3`-tuple :math:`(U, \Sigma, V)` of a matrix, vector,
         and matrix representing an SVD of the matrix.
 
 

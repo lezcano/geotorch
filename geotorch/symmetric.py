@@ -70,8 +70,12 @@ class SymF(ProductManifold):
             rank (int): Rank of the matrices.
                 It has to be less or equal to
                 :math:`\min(\texttt{size}[-1], \texttt{size}[-2])`
-            f (callable): Function parametrizing the space of possible
-                eigenvalues of the matrix
+            f (callable or pair of callables): Either:
+
+                - A callable
+
+                - A pair of callables such that the second is a (right)
+                  inverse of the first
             triv (str or callable): Optional.
                 A map that maps skew-symmetric matrices onto the orthogonal matrices
                 surjectively. This is used to optimize the :math:`Q` in the eigenvalue
@@ -107,7 +111,7 @@ class SymF(ProductManifold):
             return f
         else:
             raise ValueError(
-                "Argument f is not callable nor a tuple of callables. "
+                "Argument f is not callable nor a pair of callables. "
                 "Found {}".format(f)
             )
 

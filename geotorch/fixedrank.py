@@ -24,13 +24,13 @@ class FixedRank(LowRank):
             rank (int): Rank of the matrices.
                 It has to be less or equal to
                 :math:`\min(\texttt{size}[-1], \texttt{size}[-2])`
-            f (str or callable or tuple of callables): Optional. Either:
+            f (str or callable or pair of callables): Optional. Either:
 
                 - ``"softplus"``
 
                 - A callable that maps real numbers to the interval :math:`(0, \infty)`
 
-                - A tuple of callables such that the first maps the real numbers onto
+                - A pair of callables such that the first maps the real numbers onto
                   :math:`(0, \infty)` and the second is a (right) inverse of the first
 
                 Default: ``"softplus"``
@@ -56,9 +56,8 @@ class FixedRank(LowRank):
         else:
             raise ValueError(
                 "Argument f was not recognized and is "
-                "not callable. Should be one of {}, or a callable or a pair of callables. Found {}".format(
-                    list(FixedRank.fs.keys()), f
-                )
+                "not callable or a pair of callables. "
+                "Should be one of {}. Found {}".format(list(FixedRank.fs.keys()), f)
             )
 
     def submersion(self, U, S, V):

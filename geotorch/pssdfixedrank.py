@@ -16,13 +16,13 @@ class PSSDFixedRank(SymF):
             rank (int): Rank of the matrices.
                 It has to be less or equal to
                 :math:`\min(\texttt{size}[-1], \texttt{size}[-2])`
-            f (str or callable or tuple of callables): Optional. Either:
+            f (str or callable or pair of callables): Optional. Either:
 
                 - ``"softplus"``
 
                 - A callable that maps real numbers to the interval :math:`(0, \infty)`
 
-                - A tuple of callables such that the first maps the real numbers to
+                - A pair of callables such that the first maps the real numbers to
                   :math:`(0, \infty)` and the second is a (right) inverse of the first
 
                 Default: ``"softplus"``
@@ -45,7 +45,7 @@ class PSSDFixedRank(SymF):
         else:
             raise ValueError(
                 "Argument f was not recognized and is "
-                "not callable or a tuple of callables. "
+                "not callable or a pair of callables. "
                 "Should be one of {}. Found {}".format(list(PSSDFixedRank.fs.keys()), f)
             )
 
