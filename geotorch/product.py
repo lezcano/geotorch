@@ -14,7 +14,7 @@ class ProductManifold(nn.ModuleList):
             See for example the implementation in :class:`~geotorch.LowRank`
 
         Args:
-            manifolds (iterable): an iterable of manifolds
+            manifolds (iterable): An iterable of manifolds
         """
         super().__init__(manifolds)
 
@@ -25,6 +25,3 @@ class ProductManifold(nn.ModuleList):
         return tuple(
             mani.initialize_(X, check_in_manifold) for mani, X in zip(self, Xs)
         )
-
-    def in_manifold(self, Xs):
-        return all(mani.in_manifold(X) for mani, X in zip(self, Xs))
