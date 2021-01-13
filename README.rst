@@ -41,7 +41,7 @@ The constrained tensor is always initialized to a matrix sampled according to so
 .. code:: python
 
     linear = nn.Linear(64, 64)
-    geotorch.orthogonal(linear, "weight")  # linear.weight is a matrix sampled uniformly
+    geotorch.orthogonal(linear, "weight")  # linear.weight is an orthogonal matrix sampled uniformly
     linear.weight = torch.eye(64)          # linear.weight is the identity matrix
 
 Constraints
