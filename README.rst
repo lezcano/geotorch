@@ -36,6 +36,14 @@ It is compatible out of the box with any optimizer, layer, and model implemented
     # Use your optimizer of choice. Any optimizer works out of the box with any parametrization
     optim = torch.optim.Adam(model.parameters(), lr=lr)
 
+The constrained tensor is initialized to a matrix sampled according to some standard distributions on each space when using any of the constraint functions listed below (e.g. |orthogonal|_). Even then, we may initialize the tensors manually by assigning to them:
+
+.. code:: python
+
+    linear = nn.Linear(64, 64)
+    geotorch.orthogonal(linear, "weight")  # linear.weight is a matrix sampled uniformly
+    linear.weight = torch.eye(64)          # linear.weight is the identity matrix
+
 Constraints
 -----------
 
@@ -97,14 +105,14 @@ optimizer.
 
 GeoTorch currently supports the following spaces:
 
-- |reals|_: Rⁿ. Unrestricted optimization
+- |reals|_: ``Rⁿ``. Unrestricted optimization
 - |sym|_: Vector space of symmetric matrices
 - |skew|_: Vector space of skew-symmetric matrices
-- |sphere|_: Sphere in Rⁿ. { x ∈ Rⁿ | ||x|| = 1 } ⊂ Rⁿ
+- |sphere|_: Sphere in ``Rⁿ``. ``{ x ∈ Rⁿ | ||x|| = 1 } ⊂ Rⁿ``
 - |so|_: Manifold of ``n×n`` orthogonal matrices
 - |st|_: Manifold of ``n×k`` matrices with orthonormal columns
 - |almost|_: Manifold of ``n×k`` matrices with singular values in the interval ``[1-λ, 1+λ]``
-- |grass|_: Manifold of ``k``-dimensional subspaces in Rⁿ
+- |grass|_: Manifold of ``k``-dimensional subspaces in ``Rⁿ``
 - |glp|_: Manifold of invertible ``n×n`` matrices with positive determinant
 - |low|_: Variety of ``n×k`` matrices of rank ``r`` or less
 - |fixed|_: Manifold of ``n×k`` matrices of rank ``r``
@@ -112,7 +120,40 @@ GeoTorch currently supports the following spaces:
 - |pssd|_: Cone of ``n×n`` symmetric positive semi-definite matrices
 - |pssdlow|_: Variety of ``n×n`` symmetric positive semi-definite matrices of rank ``r`` or less
 - |pssdfixed|_: Manifold of ``n×n`` symmetric positive semi-definite matrices of rank ``r``
-- |product|_: Product of manifolds M₁ × ... × Mₖ
+- |product|_: Product of manifolds ``M₁ × ... × Mₖ``
+
+Every space of dimension ``(n, k)`` can be applied to tensors of shape ``(*, n, k)``, so we also get efficient parallel implementations of product spaces such as
+
+- ``ObliqueManifold(n,k)``: Matrix with unit length columns, ``Sⁿ⁻¹ × ...ᵏ⁾ × Sⁿ⁻¹``
+
+Using GeoTorch in your Code
+---------------------------
+
+The files in `examples/copying_problem.py`_ and `examples/sequential_mnist.py`_ serve as tutorials to see how to handle the initialization and usage of GeoTorch in some real code. They also show how to implement Riemannian Gradient Descent and some other tricks.
+
+You may try GeoTorch installing it with
+
+.. code:: bash
+
+    pip install git+https://github.com/Lezcano/geotorch/
+
+GeoTorch is tested in Linux, Mac, and Windows environments for Python >= 3.6.
+
+Sharing Weights, Parametrizations, and Normalizing Flows
+--------------------------------------------------------
+
+If one wants to use a parametrized tensor in different places in their model, or uses one parametrized layer many times, for example in an RNN, it is recommended to wrap the forward pass as follows to avoid each parametrization to be computed many times:
+
+.. code:: python
+
+    with geotorch.parametrize.cached():
+        logits = model(input_)
+
+Of course, this ``with`` statement may be used simply inside the forward function where the parametrized layer is used several times.
+
+These ideas fall in the context of parametrized optimization, where one wraps a tensor ``X`` with a function ``f``, and rather than using ``X``, uses ``f(X)``. Particular examples of this idea are pruning, weight normalization, and spectral normalization among others. This repository implements a framework to approach this kind of problems. The framework is currently `PR #33344`_ in PyTorch. All the functionality of this PR is located in `geotorch/parametrize.py`_.
+
+As every space in GeoTorch is, at its core, a map from a flat space into a manifold, the tools implemented here also serve as a building block in normalizing flows. Using a factorized space such as |low|_ it is direct to compute the determinant of the transformation it defines, as we have direct access to the singular values of the layer.
 
 .. |reals| replace:: ``Rn(n)``
 .. _reals: https://geotorch.readthedocs.io/en/latest/vector_spaces/reals.html
@@ -147,39 +188,6 @@ GeoTorch currently supports the following spaces:
 .. |product| replace:: ``ProductManifold(M₁, ..., Mₖ)``
 .. _product: https://geotorch.readthedocs.io/en/latest/product.html
 
-
-Every space of dimension ``(n, k)`` can be applied to tensors of shape ``(*, n, k)``, so we also get efficient parallel implementations of product spaces such as
-
-- ``ObliqueManifold(n,k)``: Matrix with unit length columns, Sⁿ⁻¹ × ...ᵏ⁾ × Sⁿ⁻¹
-
-Using GeoTorch in your Code
----------------------------
-
-The files in `examples/copying_problem.py`_ and `examples/sequential_mnist.py`_ serve as tutorials to see how to handle the initialization and usage of GeoTorch in some real code. They also show how to implement Riemannian Gradient Descent and some other tricks.
-
-You may try GeoTorch installing it with
-
-.. code:: bash
-
-    pip install git+https://github.com/Lezcano/geotorch/
-
-GeoTorch is tested in Linux, Mac, and Windows environments for Python >= 3.6.
-
-Sharing Weights, Parametrizations, and Normalizing Flows
---------------------------------------------------------
-
-If one wants to use a parametrized tensor in different places in their model, or uses one parametrized layer many times, for example in an RNN, it is recommended to wrap the forward pass as follows to avoid each parametrization to be computed many times:
-
-.. code:: python
-
-    with geotorch.parametrize.cached():
-        logits = model(input_)
-
-Of course, this ``with`` statement may be used simply inside the forward function where the parametrized layer is used several times.
-
-These ideas fall in the context of parametrized optimization, where one wraps a tensor ``X`` with a function ``f``, and rather than using ``X``, uses ``f(X)``. Particular examples of this idea are pruning, weight normalization, and spectral normalization among others. This repository implements a framework to approach this kind of problems. The framework is currently `PR #33344`_ in PyTorch. All the functionality of this PR is located in `geotorch/parametrize.py`_.
-
-As every space in GeoTorch is, at its core, a map from a flat space into a manifold, the tools implemented here also serve as a building block in normalizing flows. Using a factorized space such as LowRank it is direct to compute the determinant of the transformation it defines, as we have direct access to the singular values of the layer.
 
 Bibliography
 ------------
