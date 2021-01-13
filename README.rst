@@ -36,7 +36,7 @@ It is compatible out of the box with any optimizer, layer, and model implemented
     # Use your optimizer of choice. Any optimizer works out of the box with any parametrization
     optim = torch.optim.Adam(model.parameters(), lr=lr)
 
-The constrained tensor is initialized to a matrix sampled according to some standard distributions on each space when using any of the constraint functions listed below (e.g. |orthogonal|_). Even then, we may initialize the tensors manually by assigning to them:
+The constrained tensor is always initialized to a matrix sampled according to some standard distributions on each space. Even then, we may initialize the tensors manually by assigning to them:
 
 .. code:: python
 
