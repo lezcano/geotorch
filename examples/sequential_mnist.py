@@ -97,13 +97,14 @@ class ExpRNNCell(nn.Module):
         # Initialize the recurrent kernel à la Cayley, as having a block-diagonal matrix
         # seems to help in classification problems
 
-        def f_(x):
+        def init_(x):
             x.uniform_(0.0, math.pi / 2.0)
             c = torch.cos(x.data)
             x.data = -torch.sqrt((1.0 - c) / (1.0 + c))
 
         K = self.recurrent_kernel
-        K.weight = torus_init_(K.weight, init_=f_)
+        # We initialize it by assigning directly to it from a sampler
+        K.weight = torus_init_(K.weight, init_=init_)
 
     def default_hidden(self, input_):
         return input_.new_zeros(input_.size(0), self.hidden_size, requires_grad=False)
