@@ -129,7 +129,7 @@ Every space of dimension ``(n, k)`` can be applied to tensors of shape ``(*, n, 
 Using GeoTorch in your Code
 ---------------------------
 
-The files in `examples/copying_problem.py`_ and `examples/sequential_mnist.py`_ serve as tutorials to see how to handle the initialization and usage of GeoTorch in some real code. They also show how to implement Riemannian Gradient Descent and some other tricks.
+The files in `examples/copying_problem.py`_ and `examples/sequential_mnist.py`_ serve as tutorials to see how to handle the initialization and usage of GeoTorch in some real code. They also show how to implement Riemannian Gradient Descent and some other tricks. For an introduction to how the library is actually implemented, see `exmaples/parametrisations.ipynb`_.
 
 You may try GeoTorch installing it with
 
@@ -225,4 +225,5 @@ Please cite the following work if you found GeoTorch useful. This paper exposes 
 .. _geotorch/parametrize.py: https://github.com/Lezcano/geotorch/blob/master/geotorch/parametrize.py
 .. _examples/sequential_mnist.py: https://github.com/Lezcano/geotorch/blob/master/examples/sequential_mnist.py
 .. _examples/copying_problem.py: https://github.com/Lezcano/geotorch/blob/master/examples/copying_problem.py
+.. _examples/parametrisations.ipynb: https://github.com/Lezcano/geotorch/blob/master/examples/parametrisations.ipynb
 
