@@ -146,20 +146,18 @@ def _inject_new_class(module):
 
     # We create a new class so that we can inject properties in it
     cls_name = "Parametrized" + module.__class__.__name__
-
+    # Solution from
+    # https://stackoverflow.com/questions/51016272/python-dill-a-dynamic-class-object-inside-a-module-and-read-it-in-a-new-python-s
+    # "__module__": "__main__" allows for using dill to save and load the NN from two different sessions
     param_cls = type(
         cls_name,
         (module.__class__,),
         {
+            "__module__": "__main__",
             "__qualname__": cls_name + str(id(module)),
         },
     )
 
-    # Declare the class globally to be able to pickle it
-    # TODO Is there a better way to do this?
-    # Perhaps via __reduce__? See second answer in:
-    # https://stackoverflow.com/questions/4647566/pickle-a-dynamically-parameterized-sub-class
-    globals()[param_cls.__qualname__] = param_cls
     module.__class__ = param_cls
 
 
