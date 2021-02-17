@@ -28,7 +28,7 @@ def cached():
     finally:
         _cache_enabled -= 1
         if not _cache_enabled:
-            _cache = dict.fromkeys(_cache, None)
+            _cache = {}
 
 
 class ParametrizationList(ModuleList):
@@ -58,69 +58,6 @@ class ParametrizationList(ModuleList):
         for module in self:
             input = module(input)
         return input
-
-
-def set_caching(module, tensor_name):
-    r"""Sets up the caching mechanism for a given parametrization. This function is
-    automatically invoked when using :func:`register_parametrization`
-
-    After applying this function, the values of the parametrization will be cached
-    when the contextmanager :func:`torch.nn.cached()` is active
-
-    This function is the inverse of :func:`remove_caching`
-
-    Args:
-        module (nn.Module): module on which to remove the caching mechanism
-        tensor_name (string): name of the parameter, buffer, or parametrization
-        from which the parametrization will be applied
-    """
-    if not is_parametrized(module, tensor_name):
-        raise ValueError(
-            "The tensor {} in module {} is not parametrized".format(
-                tensor_name, type(module)
-            )
-        )
-
-    key = _key(module, tensor_name)
-    if key not in _cache:
-        _cache[key] = None
-
-
-def remove_caching(module, tensor_name):
-    r"""Removes a caching mechanism for a given parametrization
-
-    After applying this function, the values of the parametrization will not be cached even
-    in the presence of the contextmanager :func:`torch.nn.cached()`
-
-    This function is the inverse of :func:`set_caching`
-
-    Args:
-        module (nn.Module): module on which to remove the caching mechanism
-        tensor_name (string): name of the parameter, buffer, or parametrization
-        from which the parametrization will be applied
-    """
-    if not is_parametrized(module, tensor_name):
-        raise ValueError(
-            "The tensor {} in module {} is not parametrized".format(
-                tensor_name, type(module)
-            )
-        )
-
-    key = _key(module, tensor_name)
-    if key in _cache:
-        _cache.pop(key)
-
-
-def has_caching(module, tensor_name):
-    r"""Returns True if module[name] is parametrized and has
-    a caching mechanism
-
-    Args:
-        module (nn.Module): module to query
-        tensor_name (string): attribute in the module to query
-    """
-    key = _key(module, tensor_name)
-    return is_parametrized(module, tensor_name) and key in _cache
 
 
 def _inject_parametrization_list(module):
@@ -170,8 +107,8 @@ def _inject_property(module, tensor_name):
         key = _key(module, tensor_name)
         # If the _cache is not enabled or the caching was not enabled for this
         # tensor, this function just evaluates the parametrization
-        if _cache_enabled and key in _cache:
-            if _cache[key] is None:
+        if _cache_enabled:
+            if key not in _cache:
                 _cache[key] = module.parametrizations[tensor_name].evaluate()
             return _cache[key]
         else:
@@ -230,8 +167,6 @@ def register_parametrization(module, tensor_name, parametrization):
         module.parametrizations[tensor_name] = ParametrizationList(
             [parametrization], original
         )
-        # Set the cache on this tensor
-        set_caching(module, tensor_name)
     else:
         raise ValueError(
             "Module '{}' does not have a parameter, a buffer, nor a "
@@ -303,8 +238,6 @@ def remove_parametrization(module, tensor_name, leave_parametrized=True):
             else:
                 original = t
 
-    # Remove the caching mechanism if it has one
-    remove_caching(module, tensor_name)
     # Delete the property that manages the parametrization
     delattr(module.__class__, tensor_name)
     # Delete the ParametrizatinList
