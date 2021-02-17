@@ -9,7 +9,7 @@ _cache = {}
 
 
 def _key(module, tensor_name):
-    return id(module), tensor_name
+    return module.__class__.__qualname__, tensor_name
 
 
 @contextmanager
