@@ -15,7 +15,7 @@ from .pssdlowrank import PSSDLowRank
 from .pssdfixedrank import PSSDFixedRank
 
 
-def symmetric(module, tensor_name, lower=True):
+def symmetric(module, tensor_name="weight", lower=True):
     r"""Adds a symmetric parametrization to the matrix ``module.tensor_name``.
 
     When accessing ``module.tensor_name``, the module will return the parametrized
@@ -28,20 +28,20 @@ def symmetric(module, tensor_name, lower=True):
 
         >>> layer = nn.Linear(30, 30)
         >>> geotorch.symmetric(layer, "weight")
-        >>> torch.norm(layer.weight - layer.weight.t())
-        tensor(0.)
+        >>> torch.allclose(layer.weight, layer.weight.T)
+        True
 
     Args:
         module (nn.Module): module on which to register the parametrization
         tensor_name (string): name of the parameter, buffer, or parametrization
-            on which the parametrization will be applied
+            on which the parametrization will be applied. Default: ``"weight"``
         lower (bool): Optional. Uses the lower triangular part of the matrix to
             parametrize the matrix. Default: ``True``
     """
     P.register_parametrization(module, tensor_name, Symmetric(lower))
 
 
-def skew(module, tensor_name, lower=True):
+def skew(module, tensor_name="weight", lower=True):
     r"""Adds a skew-symmetric parametrization to the matrix ``module.tensor_name``.
 
     When accessing ``module.tensor_name``, the module will return the parametrized
@@ -54,20 +54,20 @@ def skew(module, tensor_name, lower=True):
 
         >>> layer = nn.Linear(30, 30)
         >>> geotorch.skew(layer, "weight")
-        >>> torch.norm(layer.weight + layer.weight.t())
-        tensor(0.)
+        >>> torch.allclose(layer.weight, -layer.weight.T)
+        True
 
     Args:
         module (nn.Module): module on which to register the parametrization
         tensor_name (string): name of the parameter, buffer, or parametrization
-            on which the parametrization will be applied
+            on which the parametrization will be applied. Default: ``"weight"``
         lower (bool): Optional. Uses the lower triangular part of the matrix to
             parametrize the matrix. Default: ``True``
     """
     P.register_parametrization(module, tensor_name, Skew(lower))
 
 
-def sphere(module, tensor_name, radius=1.0, embedded=False):
+def sphere(module, tensor_name="weight", radius=1.0, embedded=False):
     r"""Adds a spherical parametrization to the vector (or tensor) ``module.tensor_name``.
 
     When accessing ``module.tensor_name``, the module will return the parametrized
@@ -83,13 +83,13 @@ def sphere(module, tensor_name, radius=1.0, embedded=False):
         >>> torch.norm(layer.bias)
         tensor(1.)
         >>> geotorch.sphere(layer, "weight")  # Make the columns unit norm
-        >>> torch.norm(torch.norm(layer.weight, dim=-1) - torch.ones(30))
-        tensor(6.1656e-07)
+        >>> torch.allclose(torch.norm(layer.weight, dim=-1), torch.ones(30))
+        True
 
     Args:
         module (nn.Module): module on which to register the parametrization
         tensor_name (string): name of the parameter, buffer, or parametrization
-            on which the parametrization will be applied
+            on which the parametrization will be applied. Default: ``"weight"``
         radius (float): Optional.
             Radius of the sphere. It has to be positive. Default: 1.
         embedded (bool): Optional.
@@ -104,7 +104,7 @@ def sphere(module, tensor_name, radius=1.0, embedded=False):
     setattr(module, tensor_name, M.sample())
 
 
-def orthogonal(module, tensor_name, triv="expm"):
+def orthogonal(module, tensor_name="weight", triv="expm"):
     r"""Adds an orthogonal parametrization to the tensor ``module.tensor_name``.
 
     When accessing ``module.tensor_name``, the module will return the
@@ -117,7 +117,7 @@ def orthogonal(module, tensor_name, triv="expm"):
 
         >>> layer = nn.Linear(20, 30)
         >>> geotorch.orthogonal(layer, "weight")
-        >>> torch.norm(layer.weight.t() @ layer.weight - torch.eye(20,20))
+        >>> torch.norm(layer.weight.T @ layer.weight - torch.eye(20,20))
         tensor(4.8488e-05)
 
         >>> layer = nn.Conv2d(20, 40, 3, 3)  # Make the kernels orthogonal
@@ -128,7 +128,7 @@ def orthogonal(module, tensor_name, triv="expm"):
     Args:
         module (nn.Module): module on which to register the parametrization
         tensor_name (string): name of the parameter, buffer, or parametrization
-            on which the parametrization will be applied
+            on which the parametrization will be applied. Default: ``"weight"``
         triv (str or callable): Optional.
             A map that maps a skew-symmetric matrix to an orthogonal matrix.
             It can be the exponential of matrices or the cayley transform passing
@@ -140,7 +140,7 @@ def orthogonal(module, tensor_name, triv="expm"):
     setattr(module, tensor_name, M.sample())
 
 
-def almost_orthogonal(module, tensor_name, lam, f="sin", triv="expm"):
+def almost_orthogonal(module, tensor_name="weight", lam=0.1, f="sin", triv="expm"):
     r"""Adds an almost orthogonal parametrization to the tensor ``module.tensor_name``.
 
     When accessing ``module.tensor_name``, the module will return the
@@ -161,8 +161,8 @@ def almost_orthogonal(module, tensor_name, lam, f="sin", triv="expm"):
     Args:
         module (nn.Module): module on which to register the parametrization
         tensor_name (string): name of the parameter, buffer, or parametrization
-            on which the parametrization will be applied
-        lam (float): Radius of the interval for the singular values. A float in the interval :math:`[0, 1]`
+            on which the parametrization will be applied. Default: ``"weight"``
+        lam (float): Radius of the interval for the singular values. A float in the interval :math:`[0, 1]`. Default: ``0.1``
         f (str or callable or pair of callables): Optional. Either:
 
             - One of ``["scaled_sigmoid", "tanh", "sin"]``
@@ -185,7 +185,7 @@ def almost_orthogonal(module, tensor_name, lam, f="sin", triv="expm"):
     setattr(module, tensor_name, M.sample())
 
 
-def grassmannian(module, tensor_name, triv="expm"):
+def grassmannian(module, tensor_name="weight", triv="expm"):
     r"""Adds an parametrization to the tensor ``module.tensor_name`` so that the
     result represents a subspace. If the initial matrix was of size :math:`n \times k`
     the parametrized matrix will represent a subspace of dimension :math:`k` of
@@ -220,7 +220,7 @@ def grassmannian(module, tensor_name, triv="expm"):
     Args:
         module (nn.Module): module on which to register the parametrization
         tensor_name (string): name of the parameter, buffer, or parametrization
-            on which the parametrization will be applied
+            on which the parametrization will be applied. Default: ``"weight"``
         triv (str or callable): Optional.
             A map that maps a skew-symmetric matrix to an orthogonal matrix.
             It can be the exponential of matrices or the cayley transform passing
@@ -312,7 +312,7 @@ def fixed_rank(module, tensor_name, rank, f="softplus", triv="expm"):
     setattr(module, tensor_name, M.sample())
 
 
-def invertible(module, tensor_name, f="softplus", triv="expm"):
+def invertible(module, tensor_name="weight", f="softplus", triv="expm"):
     r"""Adds an invertibility constraint to the tensor ``module.tensor_name``.
 
     When accessing ``module.tensor_name``, the module will return the
@@ -332,7 +332,7 @@ def invertible(module, tensor_name, f="softplus", triv="expm"):
     Args:
         module (nn.Module): module on which to register the parametrization
         tensor_name (string): name of the parameter, buffer, or parametrization
-            on which the parametrization will be applied
+            on which the parametrization will be applied. Default: ``"weight"``
         f (str or callable or pair of callables): Optional. Either:
 
             - ``"softplus"``
@@ -355,7 +355,7 @@ def invertible(module, tensor_name, f="softplus", triv="expm"):
     setattr(module, tensor_name, M.sample())
 
 
-def positive_definite(module, tensor_name, f="softplus", triv="expm"):
+def positive_definite(module, tensor_name="weight", f="softplus", triv="expm"):
     r"""Adds a positive definiteness constraint to the tensor ``module.tensor_name``.
 
     When accessing ``module.tensor_name``, the module will return the
@@ -375,7 +375,7 @@ def positive_definite(module, tensor_name, f="softplus", triv="expm"):
     Args:
         module (nn.Module): module on which to register the parametrization
         tensor_name (string): name of the parameter, buffer, or parametrization
-            on which the parametrization will be applied
+            on which the parametrization will be applied. Default: ``"weight"``
         f (str or callable or pair of callables): Optional. Either:
 
             - ``"softplus"``
@@ -398,7 +398,7 @@ def positive_definite(module, tensor_name, f="softplus", triv="expm"):
     setattr(module, tensor_name, M.sample())
 
 
-def positive_semidefinite(module, tensor_name, triv="expm"):
+def positive_semidefinite(module, tensor_name="weight", triv="expm"):
     r"""Adds a positive definiteness constraint to the tensor ``module.tensor_name``.
 
     When accessing ``module.tensor_name``, the module will return the
@@ -420,7 +420,7 @@ def positive_semidefinite(module, tensor_name, triv="expm"):
     Args:
         module (nn.Module): module on which to register the parametrization
         tensor_name (string): name of the parameter, buffer, or parametrization
-            on which the parametrization will be applied
+            on which the parametrization will be applied. Default: ``"weight"``
         triv (str or callable): Optional.
             A map that maps skew-symmetric matrices onto the orthogonal
             matrices surjectively. This is used to optimize the :math:`Q` in the eigenvalue

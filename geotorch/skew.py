@@ -1,6 +1,6 @@
+import torch
 from torch import nn
 from .exceptions import VectorError, NonSquareError
-from .utils import normalized_matrix_one_norm
 
 
 class Skew(nn.Module):
@@ -33,9 +33,9 @@ class Skew(nn.Module):
         return self.frame(X, self.lower)
 
     @staticmethod
-    def in_manifold(X, eps=1e-5):
-        if X.dim() < 2 or X.size(-2) != X.size(-1):
-            return False
-        D = 0.5 * (X + X.transpose(-2, -1))
-        error = normalized_matrix_one_norm(D)
-        return (error < eps).all().item()
+    def in_manifold(X):
+        return (
+            X.dim() >= 2
+            and X.size(-2) == X.size(-1)
+            and torch.allclose(X, -X.transpose(-2, -1))
+        )

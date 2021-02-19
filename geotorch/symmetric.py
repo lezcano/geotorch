@@ -11,7 +11,7 @@ from .exceptions import (
     InManifoldError,
     InverseError,
 )
-from .utils import _extra_repr, normalized_matrix_one_norm
+from .utils import _extra_repr
 
 
 def _decreasing_symeig(X, eigenvectors):
@@ -52,11 +52,11 @@ class Symmetric(nn.Module):
 
     @staticmethod
     def in_manifold(X, eps=1e-6):
-        if X.dim() < 2 or X.size(-2) != X.size(-1):
-            return False
-        D = 0.5 * (X - X.transpose(-2, -1))
-        error = normalized_matrix_one_norm(D)
-        return (error < eps).all().item()
+        return (
+            X.dim() >= 2
+            and X.size(-2) == X.size(-1)
+            and torch.allclose(X, X.transpose(-2, -1), atol=eps)
+        )
 
 
 class SymF(ProductManifold):

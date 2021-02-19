@@ -1,4 +1,3 @@
-import math
 import torch
 
 
@@ -20,19 +19,6 @@ def transpose(fun):
         return X
 
     return new_fun
-
-
-def normalized_matrix_one_norm(X):
-    if X.size(-2) != X.size(-1):
-        raise ValueError("X should be square. Got {}".format(X.size()))
-    # Older torch versions do not implement matrix norm 1
-    # We normalise by sqrt(n) as that's the growth of the operator norm with n. See
-    # https://terrytao.wordpress.com/2010/01/09/254a-notes-3-the-operator-norm-of-a-random-matrix/
-    n = X.size(-1)
-    if torch.__version__ >= "1.7.0":
-        return torch.linalg.norm(X, dim=(-2, -1), ord=1) / math.sqrt(n)
-    else:
-        return X.abs().sum(dim=-2).max(dim=-1).values / math.sqrt(n)
 
 
 def _extra_repr(**kwargs):  # noqa: C901

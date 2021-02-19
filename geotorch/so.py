@@ -2,7 +2,7 @@ import math
 import torch
 from torch import nn
 
-from .utils import _extra_repr, normalized_matrix_one_norm
+from .utils import _extra_repr
 from .skew import Skew
 
 try:
@@ -13,13 +13,11 @@ from .exceptions import NonSquareError, VectorError, InManifoldError
 
 
 def _has_orthonormal_columns(X, eps):
-    n, k = X.size()[-2:]
+    k = X.size(-1)
     Id = torch.eye(k, dtype=X.dtype, device=X.device)
     if X.dim() > 2:
         Id = Id.repeat(*(X.size()[:-2] + (1, 1)))
-    D = X.transpose(-2, -1) @ X - Id
-    error = normalized_matrix_one_norm(D)
-    return (error < eps).all().item()
+    return torch.allclose(X.transpose(-2, -1) @ X, Id, atol=eps)
 
 
 def cayley_map(X):
@@ -110,7 +108,6 @@ class SO(nn.Module):
             eps (float): Optional. Tolerance to numerical errors.
                 Default: ``1e-4``
         """
-
         if X.size() != self.base.size():
             return False
         is_orth = _has_orthonormal_columns(X, eps)
