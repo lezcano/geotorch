@@ -8,6 +8,8 @@ import torch.nn as nn
 import geotorch.parametrize as P
 
 import geotorch
+from geotorch.skew import Skew
+from geotorch.symmetric import Symmetric
 from geotorch.so import SO
 from geotorch.stiefel import Stiefel
 from geotorch.grassmannian import Grassmannian
@@ -68,6 +70,16 @@ class TestIntegration(TestCase):
             return [torch.device("cuda")]
         else:
             return [torch.device("cpu")]
+
+    def test_vector_spaces(self):
+        self._test_manifolds(
+            [Skew, Symmetric, geotorch.skew, geotorch.symmetric],
+            [],
+            dicts_product(lower=[True, False]),
+            self.devices(),
+            self.sizes(square=True),
+            initialize=False,
+        )
 
     def test_so(self):
         self._test_manifolds(
@@ -144,7 +156,9 @@ class TestIntegration(TestCase):
             self.sizes(square=False),
         )
 
-    def _test_manifolds(self, Ms, argss_sample, argss_constr, devices, sizes):
+    def _test_manifolds(
+        self, Ms, argss_sample, argss_constr, devices, sizes, initialize=False
+    ):
         with torch.random.fork_rng(devices=range(torch.cuda.device_count())):
             torch.random.manual_seed(8888)
             for M, args_sample, args_constr, device, size in itertools.product(
@@ -152,9 +166,11 @@ class TestIntegration(TestCase):
             ):
                 if "rank" in args_constr and args_constr["rank"] > min(size):
                     continue
-                self._test_manifold(M, args_sample, args_constr, device, size)
+                self._test_manifold(
+                    M, args_sample, args_constr, device, size, initialize
+                )
 
-    def _test_manifold(self, M, args_sample, args_constr, device, size):
+    def _test_manifold(self, M, args_sample, args_constr, device, size, initialize):
         # Test Linear
         layer = nn.Linear(*size)
         input_ = torch.rand(3, size[0]).to(device)
@@ -169,7 +185,7 @@ class TestIntegration(TestCase):
         layer = layer.to(device)
         # Check that it does not change the size of the layer
         self.assertEqual(old_size, layer.weight.size(), msg=f"{layer}")
-        self._test_interface(layer, args_sample, input_)
+        self._test_training(layer, args_sample, input_, initialize)
 
         # Just for the smaller ones, for the large ones this is just too expensive
         if min(size) < 100:
@@ -187,7 +203,7 @@ class TestIntegration(TestCase):
             layer = layer.to(device)
             # Check that it does not change the size of the layer
             self.assertEqual(old_size, layer.weight.size(), msg=f"{layer}")
-            self._test_interface(layer, args_sample, input_)
+            self._test_training(layer, args_sample, input_, initialize)
 
     def matrix_from_factor_svd(self, U, S, V):
         Vt = V.transpose(-2, -1)
@@ -212,22 +228,25 @@ class TestIntegration(TestCase):
         else:
             return X
 
-    def _test_interface(self, layer, args_sample, input_):
+    def _test_training(self, layer, args_sample, input_, initialize):
         msg = f"{layer}\n{args_sample}"
         M = layer.parametrizations.weight[0]
-        initial_size = layer.weight.size()
-        X = M.sample(**args_sample)
-        self.assertTrue(M.in_manifold(X), msg=msg)
-        layer.weight = X
-        with P.cached():
-            # Compute the product if it is factorized
-            X_matrix = self.matrix_from_factor(X, M).to(layer.weight.device)
-            # The sampled matrix should not have a gradient
-            self.assertFalse(X_matrix.requires_grad)
-            # Size does not change
-            self.assertEqual(initial_size, layer.weight.size(), msg=msg)
-            # Tha initialisation initialisation is equal to what we passed
-            self.assertTrue(torch.allclose(layer.weight, X_matrix, atol=1e-5), msg=msg)
+        if initialize:
+            initial_size = layer.weight.size()
+            X = M.sample(**args_sample)
+            self.assertTrue(M.in_manifold(X), msg=msg)
+            layer.weight = X
+            with P.cached():
+                # Compute the product if it is factorized
+                X_matrix = self.matrix_from_factor(X, M).to(layer.weight.device)
+                # The sampled matrix should not have a gradient
+                self.assertFalse(X_matrix.requires_grad)
+                # Size does not change
+                self.assertEqual(initial_size, layer.weight.size(), msg=msg)
+                # Tha initialisation initialisation is equal to what we passed
+                self.assertTrue(
+                    torch.allclose(layer.weight, X_matrix, atol=1e-5), msg=msg
+                )
 
         # Take a couple SGD steps
         optim = torch.optim.SGD(layer.parameters(), lr=1e-3)
