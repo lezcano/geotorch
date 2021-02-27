@@ -15,6 +15,14 @@ from .pssdlowrank import PSSDLowRank
 from .pssdfixedrank import PSSDFixedRank
 
 
+def _register_manifold(module, tensor_name, cls, *args):
+    tensor = getattr(module, tensor_name)
+    M = cls(tensor.size(), *args).to(device=tensor.device, dtype=tensor.dtype)
+    P.register_parametrization(module, tensor_name, M)
+    setattr(module, tensor_name, M.sample())
+    return module
+
+
 def symmetric(module, tensor_name="weight", lower=True):
     r"""Adds a symmetric parametrization to the matrix ``module.tensor_name``.
 
@@ -39,6 +47,7 @@ def symmetric(module, tensor_name="weight", lower=True):
             parametrize the matrix. Default: ``True``
     """
     P.register_parametrization(module, tensor_name, Symmetric(lower))
+    return module
 
 
 def skew(module, tensor_name="weight", lower=True):
@@ -65,6 +74,7 @@ def skew(module, tensor_name="weight", lower=True):
             parametrize the matrix. Default: ``True``
     """
     P.register_parametrization(module, tensor_name, Skew(lower))
+    return module
 
 
 def sphere(module, tensor_name="weight", radius=1.0, embedded=False):
@@ -97,11 +107,8 @@ def sphere(module, tensor_name="weight", radius=1.0, embedded=False):
             map (``embedded=False``) and that using the projection from the ambient space (``embedded=True``)
             Default. ``True``
     """
-    size = getattr(module, tensor_name).size()
     cls = SphereEmbedded if embedded else Sphere
-    M = cls(size, radius)
-    P.register_parametrization(module, tensor_name, M)
-    setattr(module, tensor_name, M.sample())
+    return _register_manifold(module, tensor_name, cls, radius)
 
 
 def orthogonal(module, tensor_name="weight", triv="expm"):
@@ -134,10 +141,7 @@ def orthogonal(module, tensor_name="weight", triv="expm"):
             It can be the exponential of matrices or the cayley transform passing
             ``["expm", "cayley"]`` or a custom callable.  Default: ``"expm"``
     """
-    size = getattr(module, tensor_name).size()
-    M = Stiefel(size, triv)
-    P.register_parametrization(module, tensor_name, M)
-    setattr(module, tensor_name, M.sample())
+    return _register_manifold(module, tensor_name, Stiefel, triv)
 
 
 def almost_orthogonal(module, tensor_name="weight", lam=0.1, f="sin", triv="expm"):
@@ -179,10 +183,7 @@ def almost_orthogonal(module, tensor_name="weight", lam=0.1, f="sin", triv="expm
             SVD. It can be one of ``["expm", "cayley"]`` or a custom
             callable. Default: ``"expm"``
     """
-    size = getattr(module, tensor_name).size()
-    M = AlmostOrthogonal(size, lam, f, triv)
-    P.register_parametrization(module, tensor_name, M)
-    setattr(module, tensor_name, M.sample())
+    return _register_manifold(module, tensor_name, AlmostOrthogonal, lam, f, triv)
 
 
 def grassmannian(module, tensor_name="weight", triv="expm"):
@@ -226,10 +227,7 @@ def grassmannian(module, tensor_name="weight", triv="expm"):
             It can be the exponential of matrices or the cayley transform passing
             ``["expm", "cayley"]`` or a custom callable.  Default: ``"expm"``
     """
-    size = getattr(module, tensor_name).size()
-    M = Grassmannian(size, triv)
-    P.register_parametrization(module, tensor_name, M)
-    setattr(module, tensor_name, M.sample())
+    return _register_manifold(module, tensor_name, Grassmannian, triv)
 
 
 def low_rank(module, tensor_name, rank, triv="expm"):
@@ -261,10 +259,7 @@ def low_rank(module, tensor_name, rank, triv="expm"):
             SVD. It can be one of ``["expm", "cayley"]`` or a custom
             callable. Default: ``"expm"``
     """
-    size = getattr(module, tensor_name).size()
-    M = LowRank(size, rank, triv)
-    P.register_parametrization(module, tensor_name, M)
-    setattr(module, tensor_name, M.sample())
+    return _register_manifold(module, tensor_name, LowRank, rank, triv)
 
 
 def fixed_rank(module, tensor_name, rank, f="softplus", triv="expm"):
@@ -306,10 +301,7 @@ def fixed_rank(module, tensor_name, rank, f="softplus", triv="expm"):
             SVD. It can be one of ``["expm", "cayley"]`` or a custom
             callable. Default: ``"expm"``
     """
-    size = getattr(module, tensor_name).size()
-    M = FixedRank(size, rank, f, triv)
-    P.register_parametrization(module, tensor_name, M)
-    setattr(module, tensor_name, M.sample())
+    return _register_manifold(module, tensor_name, FixedRank, rank, f, triv)
 
 
 def invertible(module, tensor_name="weight", f="softplus", triv="expm"):
@@ -349,10 +341,7 @@ def invertible(module, tensor_name="weight", f="softplus", triv="expm"):
             SVD. It can be one of ``["expm", "cayley"]`` or a custom
             callable. Default: ``"expm"``
     """
-    size = getattr(module, tensor_name).size()
-    M = GLp(size, f, triv)
-    P.register_parametrization(module, tensor_name, M)
-    setattr(module, tensor_name, M.sample())
+    return _register_manifold(module, tensor_name, GLp, f, triv)
 
 
 def positive_definite(module, tensor_name="weight", f="softplus", triv="expm"):
@@ -392,10 +381,7 @@ def positive_definite(module, tensor_name="weight", f="softplus", triv="expm"):
             decomposition. It can be one of ``["expm", "cayley"]`` or a custom
             callable. Default: ``"expm"``
     """
-    size = getattr(module, tensor_name).size()
-    M = PSD(size, f, triv)
-    P.register_parametrization(module, tensor_name, M)
-    setattr(module, tensor_name, M.sample())
+    return _register_manifold(module, tensor_name, PSD, f, triv)
 
 
 def positive_semidefinite(module, tensor_name="weight", triv="expm"):
@@ -427,10 +413,7 @@ def positive_semidefinite(module, tensor_name="weight", triv="expm"):
             decomposition. It can be one of ``["expm", "cayley"]`` or a custom
             callable. Default: ``"expm"``
     """
-    size = getattr(module, tensor_name).size()
-    M = PSSD(size, triv)
-    P.register_parametrization(module, tensor_name, M)
-    setattr(module, tensor_name, M.sample())
+    return _register_manifold(module, tensor_name, PSSD, triv)
 
 
 def positive_semidefinite_low_rank(module, tensor_name, rank, triv="expm"):
@@ -467,10 +450,7 @@ def positive_semidefinite_low_rank(module, tensor_name, rank, triv="expm"):
             decomposition. It can be one of ``["expm", "cayley"]`` or a custom
             callable. Default: ``"expm"``
     """
-    size = getattr(module, tensor_name).size()
-    M = PSSDLowRank(size, rank, triv)
-    P.register_parametrization(module, tensor_name, M)
-    setattr(module, tensor_name, M.sample())
+    return _register_manifold(module, tensor_name, PSSDLowRank, rank, triv)
 
 
 def positive_semidefinite_fixed_rank(
@@ -519,7 +499,4 @@ def positive_semidefinite_fixed_rank(
             eigenvalue decomposition. It can be one of ``["expm", "cayley"]`` or
             a custom callable. Default: ``"expm"``
     """
-    size = getattr(module, tensor_name).size()
-    M = PSSDFixedRank(size, rank, f, triv)
-    P.register_parametrization(module, tensor_name, M)
-    setattr(module, tensor_name, M.sample())
+    return _register_manifold(module, tensor_name, PSSDFixedRank, rank, f, triv)

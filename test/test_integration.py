@@ -32,7 +32,7 @@ def dicts_product(**kwargs):
         yield dict(zip(keys, instance))
 
 
-class TestHomogeneous(TestCase):
+class TestIntegration(TestCase):
     def sizes(self, square):
         sizes = []
         if not torch.cuda.is_available():
