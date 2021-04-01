@@ -9,7 +9,7 @@ Overview
 --------
 
 GeoTorch provides a simple way to perform constrained optimization and optimization on manifolds in PyTorch.
-It is compatible out of the box with any optimizer, layer, and model implemented in PyTorch without having to reimplement the layers or optimizers and without any kind of boilerplate in the training code.
+It is compatible out of the box with any optimizer, layer, and model implemented in PyTorch without any kind of boilerplate in the training code. Just state the constraints when you construct the model and you are ready to go!
 
 .. code:: python
 
@@ -22,27 +22,25 @@ It is compatible out of the box with any optimizer, layer, and model implemented
             super(Model, self).__init__()
             self.linear = nn.Linear(64, 128)
             self.cnn = nn.Conv2d(16, 32, 3)
-            # Make the linear layer into a low rank layer with rank at most 10
-            geotorch.low_rank(self.linear, "weight", rank=10)
-            # Also works on tensors. Makes every kernel orthogonal
-            geotorch.orthogonal(self.cnn, "weight")
+            # Make the linear layer into a layer with orthonormal columns
+            geotorch.orthogonal(self.linear, "weight")
+            # Also works on tensors. Makes every kernel rank 1
+            geotorch.low_rank(self.cnn, "weight", rank=1)
+            # You may initialize the parametrized weights assigning to them
+            self.linear.weight = torch.eye(64, 128)
+            # And even use torch.init
+            self.linear.weight = nn.init.orthogonal_(self.linear.weight)
 
         def forward(self, x):
-            # self.linear has rank at most 10 and every 3x3 kernel in the CNN is orthogonal
+            # self.linear is orthogonal and every 3x3 kernel in the CNN is of rank 1
 
-    # Nothing fancy from here on. Use the model as you'd normally do.
-    model = Net()
+    # Nothing fancy from here on. Use the model as you would normally do. Everything just works
+    model = Net().cuda()
 
     # Use your optimizer of choice. Any optimizer works out of the box with any parametrization
     optim = torch.optim.Adam(model.parameters(), lr=lr)
 
-The constrained tensor is always initialized to a matrix sampled according to some standard distributions on each space. Even then, we may initialize the tensors manually by assigning to them:
-
-.. code:: python
-
-    linear = nn.Linear(64, 64)
-    geotorch.orthogonal(linear, "weight")  # linear.weight is an orthogonal matrix sampled uniformly
-    linear.weight = torch.eye(64)          # linear.weight is the identity matrix
+When the constraint is set, the constrained tensor is then initialized to a tensor sampled according to some standard distributions on each space.
 
 Constraints
 -----------
