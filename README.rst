@@ -27,7 +27,7 @@ It is compatible out of the box with any optimizer, layer, and model implemented
             # Also works on tensors. Makes every kernel rank 1
             geotorch.low_rank(self.cnn, "weight", rank=1)
             # You may initialize the parametrized weights assigning to them
-            self.linear.weight = torch.eye(64, 128)
+            self.linear.weight = torch.eye(128, 6)
             # And even use torch.init
             self.linear.weight = nn.init.orthogonal_(self.linear.weight)
 
