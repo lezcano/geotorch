@@ -41,8 +41,6 @@ It is compatible out of the box with any optimizer, layer, and model implemented
     # Use your optimizer of choice. Any optimizer works out of the box with any parametrization
     optim = torch.optim.Adam(model.parameters(), lr=lr)
 
-When the constraint is set, the constrained tensor is then initialized to a tensor sampled according to some standard distributions on each space.
-
 Constraints
 -----------
 
@@ -128,7 +126,7 @@ Every space of dimension ``(n, k)`` can be applied to tensors of shape ``(*, n, 
 Using GeoTorch in your Code
 ---------------------------
 
-The files in `examples/copying_problem.py`_ and `examples/sequential_mnist.py`_ serve as tutorials to see how to handle the initialization and usage of GeoTorch in some real code. They also show how to implement Riemannian Gradient Descent and some other tricks. For an introduction to how the library is actually implemented, see `exmaples/parametrisations.ipynb`_.
+The files in `examples/copying_problem.py`_ and `examples/sequential_mnist.py`_ serve as tutorials to see how to handle the initialization and usage of GeoTorch in some real code. They also show how to implement Riemannian Gradient Descent and some other tricks. For an introduction to how the library is actually implemented, see the Jupyter Notebook `examples/parametrisations.ipynb`_.
 
 You may try GeoTorch installing it with
 
