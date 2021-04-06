@@ -27,7 +27,7 @@ It is compatible out of the box with any optimizer, layer, and model implemented
             # Also works on tensors. Makes every kernel rank 1
             geotorch.low_rank(self.cnn, "weight", rank=1)
             # You may initialize the parametrized weights assigning to them
-            self.linear.weight = torch.eye(128, 6)
+            self.linear.weight = torch.eye(128, 64)
             # And there's nothing else to do. The rest is regular PyTorch code
 
         def forward(self, x):
