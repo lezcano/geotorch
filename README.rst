@@ -20,18 +20,20 @@ It is compatible out of the box with any optimizer, layer, and model implemented
     class Net(nn.Module):
         def __init__(self):
             super(Model, self).__init__()
+            # Make a linear layer with orthonormal columns
             self.linear = nn.Linear(64, 128)
-            self.cnn = nn.Conv2d(16, 32, 3)
-            # Make the linear layer into a layer with orthonormal columns
             geotorch.orthogonal(self.linear, "weight")
-            # Also works on tensors. Makes every kernel rank 1
+            
+            # Make a CNN with kernels of rank 1
+            self.cnn = nn.Conv2d(16, 32, 3)
             geotorch.low_rank(self.cnn, "weight", rank=1)
-            # You may initialize the parametrized weights assigning to them
+            
+            # You may initialize the parametrized weights by assigning to them
             self.linear.weight = torch.eye(128, 64)
-            # Nothing else to do from here on. The rest is regular PyTorch code
+            # And that's all you need to do. The rest is regular PyTorch code
 
         def forward(self, x):
-            # self.linear is orthogonal and every 3x3 kernel in the CNN is of rank 1
+            # self.linear is orthogonal and every 3x3 kernel in self.cnn is of rank 1
 
     # Use the model as you would normally do. Everything just works
     model = Net().cuda()
