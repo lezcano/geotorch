@@ -19,7 +19,7 @@ It is compatible out of the box with any optimizer, layer, and model implemented
 
     class Net(nn.Module):
         def __init__(self):
-            super(Model, self).__init__()
+            super().__init__()
             # Make a linear layer with orthonormal columns
             self.linear = nn.Linear(64, 128)
             geotorch.orthogonal(self.linear, "weight")
