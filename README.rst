@@ -17,17 +17,17 @@ It is compatible out of the box with any optimizer, layer, and model implemented
     import torch.nn as nn
     import geotorch
 
-    class Net(nn.Module):
+    class Model(nn.Module):
         def __init__(self):
             super().__init__()
-            # Make a linear layer with orthonormal columns
+            # One line suffices: Make a linear layer with orthonormal columns
             self.linear = nn.Linear(64, 128)
             geotorch.orthogonal(self.linear, "weight")
-            
-            # Make a CNN with kernels of rank 1
+
+            # Works with tensors: Make a CNN with kernels of rank 1
             self.cnn = nn.Conv2d(16, 32, 3)
             geotorch.low_rank(self.cnn, "weight", rank=1)
-            
+
             # Weights are initialized to a random value when you put the constraints, but
             # you may re-initialize them to a different value by assigning to them
             self.linear.weight = torch.eye(128, 64)
@@ -37,7 +37,7 @@ It is compatible out of the box with any optimizer, layer, and model implemented
             # self.linear is orthogonal and every 3x3 kernel in self.cnn is of rank 1
 
     # Use the model as you would normally do. Everything just works
-    model = Net().cuda()
+    model = Model().cuda()
 
     # Use your optimizer of choice. Any optimizer works out of the box with any parametrization
     optim = torch.optim.Adam(model.parameters(), lr=lr)
