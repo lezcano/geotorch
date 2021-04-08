@@ -91,9 +91,9 @@ class LowRank(ProductManifold):
         return U[..., : self.rank], S[..., : self.rank], V[..., : self.rank]
 
     @transpose
-    def initialize_(self, X, check_in_manifold=True):
+    def right_inverse(self, X, check_in_manifold=True):
         USV = self.submersion_inv(X, check_in_manifold)
-        X1, X2, X3 = super().initialize_(USV, check_in_manifold=False)
+        X1, X2, X3 = super().right_inverse(USV, check_in_manifold=False)
         return self.frame_inv(X1, X2, X3)
 
     def in_manifold_singular_values(self, S, eps=1e-5):

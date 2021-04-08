@@ -8,7 +8,7 @@ def update_base(layer, tensor_name):
 
 def transpose(fun):
     def new_fun(self, X, *args, **kwargs):
-        # It might happen that we get at tuple inside ``initialize_``
+        # It might happen that we get at tuple inside ``right_inverse``
         # In that case we do nothing
         if isinstance(X, torch.Tensor):
             if self.transposed:

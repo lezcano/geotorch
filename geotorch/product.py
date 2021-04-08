@@ -21,7 +21,7 @@ class ProductManifold(nn.ModuleList):
     def forward(self, Xs):
         return tuple(mani(X) for mani, X in zip(self, Xs))
 
-    def initialize_(self, Xs, check_in_manifold=True):
+    def right_inverse(self, Xs, check_in_manifold=True):
         return tuple(
-            mani.initialize_(X, check_in_manifold) for mani, X in zip(self, Xs)
+            mani.right_inverse(X, check_in_manifold) for mani, X in zip(self, Xs)
         )

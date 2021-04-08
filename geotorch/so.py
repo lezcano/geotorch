@@ -86,7 +86,7 @@ class SO(nn.Module):
         X = Skew.frame(X, self.lower)
         return self.base @ self.triv(X)
 
-    def initialize_(self, X, check_in_manifold=True):
+    def right_inverse(self, X, check_in_manifold=True):
         if check_in_manifold and not self.in_manifold(X):
             raise InManifoldError(X, self)
         with torch.no_grad():

@@ -23,3 +23,6 @@ It is realized via an eigenvalue-like factorization:
 where we have identified the vector :math:`\Lambda` with a diagonal matrix in :math:`\mathbb{R}^{r \times r}` and :math:`\left|\Lambda\right|` denotes the absolute value of the diagonal entries.
 
 .. autoclass:: PSSDLowRank
+
+    .. automethod:: sample
+    .. automethod:: in_manifold
