@@ -165,9 +165,9 @@ class SymF(ProductManifold):
             L = self.inv(L)
         return L, Q
 
-    def initialize_(self, X, check_in_manifold=True):
+    def right_inverse(self, X, check_in_manifold=True):
         L, Q = self.submersion_inv(X, check_in_manifold)
-        X1, X2 = super().initialize_([Q, L], check_in_manifold=False)
+        X1, X2 = super().right_inverse([Q, L], check_in_manifold=False)
         return self.frame_inv(X1, X2)
 
     def in_manifold_eigen(self, L, eps=1e-6):

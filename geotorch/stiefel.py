@@ -44,7 +44,7 @@ class Stiefel(SO):
         return X[..., : self.k]
 
     @transpose
-    def initialize_(self, X, check_in_manifold=True):
+    def right_inverse(self, X, check_in_manifold=True):
         if check_in_manifold and not self.in_manifold(X):
             raise InManifoldError(X, self)
         if self.n != self.k:
@@ -53,7 +53,7 @@ class Stiefel(SO):
             with torch.no_grad():
                 N.normal_()
                 # We assume for now that X is orthogonal.
-                # This will be checked in super().initialize_()
+                # This will be checked in super().right_inverse()
                 # Project N onto the orthogonal complement to X
                 # We iterate this twice for this algorithm to be numerically stable
                 # This is standard, as done in some stochastic SVD algorithms
@@ -62,7 +62,7 @@ class Stiefel(SO):
                     # And make it an orthonormal base of the image
                     N = N.qr().Q
                 X = torch.cat([X, N], dim=-1)
-        return super().initialize_(X, check_in_manifold=False)[..., : self.k]
+        return super().right_inverse(X, check_in_manifold=False)[..., : self.k]
 
     def in_manifold(self, X, eps=1e-4):
         r"""

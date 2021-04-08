@@ -74,7 +74,7 @@ class SphereEmbedded(nn.Module):
     def forward(self, x):
         return self.radius * project(x)
 
-    def initialize_(self, x, check_in_manifold=True):
+    def right_inverse(self, x, check_in_manifold=True):
         if check_in_manifold and not self.in_manifold(x):
             raise InManifoldError(x, self)
         return x / self.radius
@@ -144,7 +144,7 @@ class Sphere(nn.Module):
         vnorm = v.norm(dim=-1, keepdim=True)
         return self.radius * (torch.cos(vnorm) * x + sinc(vnorm) * v)
 
-    def initialize_(self, x, check_in_manifold=True):
+    def right_inverse(self, x, check_in_manifold=True):
         if check_in_manifold and not self.in_manifold(x):
             raise InManifoldError(x, self)
         with torch.no_grad():
