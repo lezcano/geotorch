@@ -21,7 +21,7 @@ sys.path.insert(0, os.path.abspath("../../geotorch/"))
 # -- Project information -----------------------------------------------------
 
 project = "geotorch"
-copyright = "2020, Mario Lezcano-Casado"
+copyright = "2020-, Mario Lezcano-Casado"
 author = "Mario Lezcano-Casado"
 
 # The short X.Y version.
