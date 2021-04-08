@@ -36,3 +36,6 @@ where we use a small :math:`\varepsilon > 0` for numerical stability.
     For practical applications, it will be almost always more convenient to use the class :class:`geotorch.PSSDLowRank`, as it is less restrictive, and most of the times it will converge to a max-rank solution anyway.
 
 .. autoclass:: PSSDFixedRank
+
+    .. automethod:: sample
+    .. automethod:: in_manifold

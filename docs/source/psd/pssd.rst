@@ -22,3 +22,6 @@ It is realized via an eigenvalue-like factorization:
 where we have identified the vector :math:`\Lambda` with a diagonal matrix in :math:`\mathbb{R}^{n \times n}` and :math:`\left|\Lambda\right|` denotes the absolute value of the diagonal entries.
 
 .. autoclass:: PSSD
+
+    .. automethod:: sample
+    .. automethod:: in_manifold
