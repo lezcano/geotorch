@@ -113,7 +113,7 @@ GeoTorch currently supports the following spaces:
 - |glp|_: Manifold of invertible ``n×n`` matrices with positive determinant
 - |low|_: Variety of ``n×k`` matrices of rank ``r`` or less
 - |fixed|_: Manifold of ``n×k`` matrices of rank ``r``
-- |psd|_: Cone of ``n×n`` symmetric positive definite matrices``
+- |psd|_: Cone of ``n×n`` symmetric positive definite matrices
 - |pssd|_: Cone of ``n×n`` symmetric positive semi-definite matrices
 - |pssdlow|_: Variety of ``n×n`` symmetric positive semi-definite matrices of rank ``r`` or less
 - |pssdfixed|_: Manifold of ``n×n`` symmetric positive semi-definite matrices of rank ``r``
