@@ -100,7 +100,9 @@ class ParametrizationList(ModuleList):
                     raise RuntimeError(
                         "The parametrization '{}' does not implement a 'right_inverse' method. "
                         "Assigning to a parametrized tensor is only possible when all the parametrizations "
-                        "implement a 'right_inverse' method.".format(module.__class__.__name__)
+                        "implement a 'right_inverse' method.".format(
+                            module.__class__.__name__
+                        )
                     )
             self.original.copy_(value)
 
