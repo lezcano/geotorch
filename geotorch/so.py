@@ -231,7 +231,7 @@ def torus_init_(tensor, init_=None, triv=expm):
             "Got a tensor of shape {}".format(tuple(tensor.size()))
         )
 
-    n, k = tensor.size()[-2:]
+    n = tensor.size(-2)
     tensorial_size = tensor.size()[:-2]
 
     # Non-zero elements that we are going to set on the diagonal
