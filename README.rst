@@ -9,7 +9,7 @@ Overview
 --------
 
 GeoTorch provides a simple way to perform constrained optimization and optimization on manifolds in PyTorch.
-It is compatible out of the box with any optimizer, layer, and model implemented in PyTorch without any kind of boilerplate in the training code. Just state the constraints when you construct the model and you are ready to go!
+It is compatible out of the box with any optimizer, layer, and model implemented in PyTorch without any boilerplate in the training code. Just state the constraints when you construct the model and you are ready to go!
 
 .. code:: python
 
