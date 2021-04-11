@@ -28,7 +28,8 @@ It is compatible out of the box with any optimizer, layer, and model implemented
             self.cnn = nn.Conv2d(16, 32, 3)
             geotorch.low_rank(self.cnn, "weight", rank=1)
             
-            # You may initialize the parametrized weights by assigning to them
+            # Weights are initialized to a random value when you put the constraints, but
+            # you may re-initialize them to a different value by assigning to them
             self.linear.weight = torch.eye(128, 64)
             # And that's all you need to do. The rest is regular PyTorch code
 
