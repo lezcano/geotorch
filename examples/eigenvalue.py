@@ -4,6 +4,7 @@ of a symmetric matrix via the Rayleigh quotient, restricting the optimisation
 problem to the Sphere
 """
 import torch
+
 try:
     from torch.linalg import eigvalsh
 except ImportError:
@@ -11,6 +12,7 @@ except ImportError:
 
     def eigvalsh(X):
         return symeig(X, eigenvectors=False).eigenvalues
+
 
 from torch import nn
 import geotorch

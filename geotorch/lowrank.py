@@ -1,7 +1,9 @@
 import torch
 from functools import partial
+
 try:
     from torch.linalg import svd
+
     svd = partial(svd, full_matrices=False)
 except ImportError:
     from torch import svd

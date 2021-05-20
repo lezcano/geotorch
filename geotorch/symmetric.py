@@ -1,15 +1,18 @@
 import torch
 from torch import nn
 from functools import partial
+
 try:
     from torch.linalg import eigh
     from torch.linalg import eigvalsh
 except ImportError:
     from torch import symeig
+
     eigh = partial(symeig, eigenvectors=True)
 
     def eigvalsh(X):
         return symeig(X, eigenvectors=False).eigenvalues
+
 
 from .product import ProductManifold
 from .stiefel import Stiefel
