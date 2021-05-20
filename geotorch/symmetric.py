@@ -1,5 +1,15 @@
 import torch
 from torch import nn
+from functools import partial
+try:
+    from torch.linalg import eigh
+    from torch.linalg import eigvalsh
+except ImportError:
+    from torch import symeig
+    eigh = partial(symeig, eigenvectors=True)
+
+    def eigvalsh(X):
+        return symeig(X, eigenvectors=False).eigenvalues
 
 from .product import ProductManifold
 from .stiefel import Stiefel
@@ -14,12 +24,12 @@ from .exceptions import (
 from .utils import _extra_repr
 
 
-def _decreasing_symeig(X, eigenvectors):
+def _decreasing_eigh(X, eigenvectors):
     if eigenvectors:
-        L, Q = X.symeig(eigenvectors=True)
+        L, Q = eigh(X)
         return L.flip(-1), Q.flip(-1)
     else:
-        return X.symeig().eigenvalues.flip(-1)
+        return eigvalsh(X).flip(-1)
 
 
 class Symmetric(nn.Module):
@@ -148,7 +158,7 @@ class SymF(ProductManifold):
     def submersion_inv(self, X, check_in_manifold=True):
         if isinstance(X, torch.Tensor):
             with torch.no_grad():
-                L, Q = _decreasing_symeig(X, eigenvectors=True)
+                L, Q = _decreasing_eigh(X, eigenvectors=True)
             if check_in_manifold and not self.in_manifold_eigen(L):
                 raise InManifoldError(X, self)
         else:
@@ -211,7 +221,7 @@ class SymF(ProductManifold):
 
         Args:
             X (torch.Tensor or tuple): The matrix to be checked or a tuple
-                ``(eigenvectors, eigenvalues)`` as returned by ``torch.symeig``
+                ``(eigenvectors, eigenvalues)`` as returned by ``torch.linalg.eigh``
                 or ``self.sample(factorized=True)``.
             eps (float): Optional. Threshold at which the singular values are
                     considered to be zero
@@ -226,7 +236,7 @@ class SymF(ProductManifold):
         if X.size() != size or not Symmetric.in_manifold(X, eps):
             return False
 
-        L = _decreasing_symeig(X, eigenvectors=False)
+        L = _decreasing_eigh(X, eigenvectors=False)
         return self.in_manifold_eigen(L, eps)
 
     def sample(self, init_=torch.nn.init.xavier_normal_, factorized=True):
@@ -268,7 +278,7 @@ class SymF(ProductManifold):
             )
             init_(X)
             X = X @ X.transpose(-2, -1)
-            L, Q = _decreasing_symeig(X, eigenvectors=True)
+            L, Q = _decreasing_eigh(X, eigenvectors=True)
             L = L[..., : self.rank]
             Q = Q[..., : self.rank]
             if factorized:

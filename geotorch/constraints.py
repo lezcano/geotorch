@@ -167,7 +167,7 @@ def almost_orthogonal(module, tensor_name="weight", lam=0.1, f="sin", triv="expm
 
         >>> layer = nn.Linear(20, 30)
         >>> geotorch.almost_orthogonal(layer, "weight", 0.5)
-        >>> S = torch.svd(layer.weight).S
+        >>> S = torch.linalg.svd(layer.weight).S
         >>> all(S >= 0.5 and S <= 1.5)
         True
 
@@ -252,7 +252,7 @@ def low_rank(module, tensor_name, rank, triv="expm"):
 
         >>> layer = nn.Linear(20, 30)
         >>> geotorch.low_rank(layer, "weight", 4)
-        >>> list(torch.svd(layer.weight).S > 1e-7).count(True) <= 4
+        >>> list(torch.linalg.svd(layer.weight).S > 1e-7).count(True) <= 4
         True
 
     Args:
@@ -284,7 +284,7 @@ def fixed_rank(module, tensor_name, rank, f="softplus", triv="expm"):
 
         >>> layer = nn.Linear(20, 30)
         >>> geotorch.fixed_rank(layer, "weight", 5)
-        >>> list(torch.svd(layer.weight).S > 1e-7).count(True)
+        >>> list(torch.linalg.svd(layer.weight).S > 1e-7).count(True)
         5
 
     Args:
@@ -367,7 +367,7 @@ def positive_definite(module, tensor_name="weight", f="softplus", triv="expm"):
 
         >>> layer = nn.Linear(20, 20)
         >>> geotorch.positive_definite(layer, "weight")
-        >>> (torch.symeig(layer.weight).eigenvalues > 0.0).all()
+        >>> (torch.linalg.eigvalsh(layer.weight) > 0.0).all()
         tensor(True)
 
     Args:
@@ -407,7 +407,7 @@ def positive_semidefinite(module, tensor_name="weight", triv="expm"):
 
         >>> layer = nn.Linear(20, 20)
         >>> geotorch.positive_semidefinite(layer, "weight")
-        >>> L = torch.symeig(layer.weight).eigenvalues
+        >>> L = torch.linalg.eigvalsh(layer.weight)
         >>> L[L.abs() < 1e-7] = 0.0  # Round errors
         >>> (L >= 0.0).all()
         tensor(True)
@@ -439,7 +439,7 @@ def positive_semidefinite_low_rank(module, tensor_name, rank, triv="expm"):
 
         >>> layer = nn.Linear(20, 20)
         >>> geotorch.positive_semidefinite_low_rank(layer, "weight", 5)
-        >>> L = torch.symeig(layer.weight).eigenvalues
+        >>> L = torch.linalg.eigvalsh(layer.weight)
         >>> L[L.abs() < 1e-7] = 0.0  # Round errors
         >>> (L >= 0.0).all()
         tensor(True)
@@ -478,7 +478,7 @@ def positive_semidefinite_fixed_rank(
 
         >>> layer = nn.Linear(20, 20)
         >>> geotorch.positive_semidefinite_fixed_rank(layer, "weight", 5)
-        >>> L = torch.symeig(layer.weight).eigenvalues
+        >>> L = torch.linalg.eigvalsh(layer.weight)
         >>> L[L.abs() < 1e-7] = 0.0  # Round errors
         >>> (L >= 0.0).all()
         tensor(True)

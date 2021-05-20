@@ -4,6 +4,14 @@ of a symmetric matrix via the Rayleigh quotient, restricting the optimisation
 problem to the Sphere
 """
 import torch
+try:
+    from torch.linalg import eigvalsh
+except ImportError:
+    from torch import symeig
+
+    def eigvalsh(X):
+        return symeig(X, eigenvectors=False).eigenvalues
+
 from torch import nn
 import geotorch
 
@@ -29,8 +37,8 @@ class Model(nn.Module):
 A = torch.rand(N, N)  # Uniform on [0, 1)
 A = 0.5 * (A + A.T)
 
-# Compare against diagonalization
-max_eigenvalue = torch.symeig(A).eigenvalues.max()
+# Compare against diagonalization (eigenvalues are returend in ascending order)
+max_eigenvalue = eigvalsh(A)[-1]
 print("Max eigenvalue: {:10.5f}".format(max_eigenvalue))
 
 # Instantiate model and optimiser

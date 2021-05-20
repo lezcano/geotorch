@@ -120,7 +120,7 @@ class FixedRank(LowRank):
         """
         U, S, V = super().sample(factorized=True, init_=init_)
         with torch.no_grad():
-            # S >= 0, as given by torch.symeig()
+            # S >= 0, as given by torch.linalg.eigvalsh()
             S[S < eps] = eps
         if factorized:
             return U, S, V

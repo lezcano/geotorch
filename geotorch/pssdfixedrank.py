@@ -101,7 +101,7 @@ class PSSDFixedRank(SymF):
         """
         L, Q = super().sample(factorized=True, init_=init_)
         with torch.no_grad():
-            # S >= 0, as given by torch.symeig()
+            # S >= 0, as given by torch.linalg.eigvalsh()
             small = L < eps
             L[small] = eps
         if factorized:

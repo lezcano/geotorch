@@ -1,4 +1,12 @@
 import torch
+from functools import partial
+try:
+    from torch.linalg import svd
+    svd = partial(svd, full_matrices=False)
+except ImportError:
+    from torch import svd
+
+
 from .product import ProductManifold
 from .stiefel import Stiefel
 from .reals import Rn
@@ -80,7 +88,7 @@ class LowRank(ProductManifold):
 
     def submersion_inv(self, X, check_in_manifold=True):
         if isinstance(X, torch.Tensor):
-            U, S, V = X.svd()
+            U, S, V = svd(X)
             if check_in_manifold and not self.in_manifold_singular_values(S):
                 raise InManifoldError(X, self)
         else:
@@ -136,7 +144,7 @@ class LowRank(ProductManifold):
 
         Args:
             X (torch.Tensor or tuple): The matrix to be checked or a tuple containing
-                :math:`(U, \Sigma, V)` as returned by ``torch.svd`` or
+                :math:`(U, \Sigma, V)` as returned by ``torch.linalg.svd`` or
                 ``self.sample(factorized=True)``.
             eps (float): Optional. Threshold at which the singular values are
                     considered to be zero
@@ -152,7 +160,10 @@ class LowRank(ProductManifold):
                 X = X.transpose(-2, -1)
             if X.size() != self.tensorial_size + (self.n, self.k):
                 return False
-            _, S, _ = X.svd(compute_uv=False)
+            try:
+                S = torch.linalg.svdvals(X)
+            except AttributeError:
+                S = svd(X).S
             return self.in_manifold_singular_values(S, eps)
 
     def project(self, X, factorized=True):
@@ -170,7 +181,7 @@ class LowRank(ProductManifold):
                     used to initialize a parametrized tensor.
                     Default: ``True``
         """
-        U, S, V = X.svd()
+        U, S, V = svd(X)
         U, S, V = U[..., : self.rank], S[..., : self.rank], V[..., : self.rank]
         if factorized:
             return U, S, V
@@ -211,7 +222,7 @@ class LowRank(ProductManifold):
                 *(self.tensorial_size + (self.n, self.k)), device=device, dtype=dtype
             )
             init_(X)
-            U, S, V = X.svd()
+            U, S, V = svd(X)
             U, S, V = U[..., : self.rank], S[..., : self.rank], V[..., : self.rank]
             if factorized:
                 return U, S, V

@@ -1,6 +1,10 @@
 import math
 import torch
 from torch import nn
+try:
+    from torch.linalg import qr
+except ImportError:
+    from torch import qr
 
 from .utils import _extra_repr
 from .skew import Skew
@@ -186,7 +190,7 @@ def uniform_init_(tensor):
         x = torch.empty_like(tensor).normal_(0, 1)
         if transpose:
             x.transpose_(-2, -1)
-        q, r = torch.qr(x)
+        q, r = qr(x)
 
         # Make uniform (diag r >= 0)
         d = r.diagonal(dim1=-2, dim2=-1).sign()
