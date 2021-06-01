@@ -27,7 +27,7 @@ from geotorch.utils import update_base
 
 
 def dicts_product(**kwargs):
-    """ Returns a product of all the lists of the keys """
+    """Returns a product of all the lists of the keys"""
     keys = kwargs.keys()
     vals = kwargs.values()
     for instance in itertools.product(*vals):
