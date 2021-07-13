@@ -10,8 +10,6 @@ class TestLinalg(TestCase):
         assert X.size(-1) == X.size(-2)
         n = X.size(-1)
         Id = torch.eye(n, n, dtype=X.dtype, device=X.device)
-        if X.ndimension() > 2:
-            Id = Id.expand_as(X)
         acc = Id
         last = Id
         for i in range(1, deg + 1):
@@ -35,9 +33,9 @@ class TestLinalg(TestCase):
         return E
 
     def assertIsCloseSquare(self, X, Y, places=4):
-        self.assertEqual(X.ndimension(), 2)
+        self.assertEqual(X.ndim, 2)
         self.assertEqual(X.size(0), X.size(1))
-        self.assertAlmostEqual(torch.norm(X - Y).item(), 0.0, places=places)
+        self.assertAlmostEqual(torch.dist(X, Y).item(), 0.0, places=places)
 
     def compare_f(self, f_batching, f_simple, allows_batches, dtype, gradients=False):
         # Test expm without batching

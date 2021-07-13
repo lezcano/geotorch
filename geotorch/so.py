@@ -17,21 +17,24 @@ except ImportError:
 from .exceptions import NonSquareError, VectorError, InManifoldError
 
 
+def solve(A, B):
+    try:
+        return torch.linalg.solve(A, B)
+    except AttributeError:
+        return torch.solve(B, A).solution
+
+
 def _has_orthonormal_columns(X, eps):
     k = X.size(-1)
     Id = torch.eye(k, dtype=X.dtype, device=X.device)
-    if X.dim() > 2:
-        Id = Id.repeat(*(X.size()[:-2] + (1, 1)))
     return torch.allclose(X.transpose(-2, -1) @ X, Id, atol=eps)
 
 
 def cayley_map(X):
+    # compute (I+X/2)(I-X/2)^{-1}
     n = X.size(-1)
     Id = torch.eye(n, dtype=X.dtype, device=X.device)
-    if X.ndimension() > 2:
-        Id = Id.expand_as(X)
-    halfX = 0.5 * X  # To make it into a retraction so that (d\phi)_0 = Id
-    return torch.solve(Id + halfX, Id - halfX).solution
+    return solve(Id.add(X, alpha=-0.5), Id.add(X, alpha=-0.5))
 
 
 class SO(nn.Module):
@@ -180,7 +183,7 @@ def uniform_init_(tensor):
     """
     # We re-implement torch.nn.init.orthogonal_, as their treatment of batches
     # is not in a per-matrix base
-    if tensor.ndimension() < 2:
+    if tensor.ndim < 2:
         raise ValueError(
             "Only tensors with 2 or more dimensions are supported. "
             "Got a tensor of shape {}".format(tuple(tensor.size()))
@@ -229,7 +232,7 @@ def torus_init_(tensor, init_=None, triv=expm):
         triv (callable): Optional. A function that maps skew-symmetric matrices
                 to orthogonal matrices.
     """
-    if tensor.ndimension() < 2 or tensor.size(-1) != tensor.size(-2):
+    if tensor.ndim < 2 or tensor.size(-1) != tensor.size(-2):
         raise ValueError(
             "Only tensors with 2 or more dimensions which are square in "
             "the last two dimensions are supported. "

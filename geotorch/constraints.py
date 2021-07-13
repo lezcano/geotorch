@@ -138,7 +138,7 @@ def orthogonal(module, tensor_name="weight", triv="expm"):
 
         >>> layer = nn.Conv2d(20, 40, 3, 3)  # Make the kernels orthogonal
         >>> geotorch.orthogonal(layer, "weight")
-        >>> torch.norm(layer.weight.transpose(-2, -1) @ layer.weight - torch.eye(3,3).repeat(40,20,1,1))
+        >>> torch.norm(layer.weight.transpose(-2, -1) @ layer.weight - torch.eye(3,3))
         tensor(1.2225e-05)
 
     Args:
@@ -224,7 +224,7 @@ def grassmannian(module, tensor_name="weight", triv="expm"):
 
         >>> layer = nn.Conv2d(20, 40, 3, 3)  # Make the kernels represent subspaces
         >>> geotorch.grassmannian(layer, "weight")
-        >>> torch.norm(layer.weight.transpose(-2, -1) @ layer.weight - torch.eye(3,3).repeat(40,20,1,1))
+        >>> torch.norm(layer.weight.transpose(-2, -1) @ layer.weight - torch.eye(3,3))
         tensor(8.3796-06)
 
     Args:
