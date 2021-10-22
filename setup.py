@@ -50,6 +50,6 @@ setup(
     keywords=["Constrained Optimization", "Optimization on Manifolds", "Pytorch"],
     packages=find_packages(),
     python_requires=">=3.5",
-    install_requires=["torch>=1.5"],
+    install_requires=["torch>=1.8"],
     extras_require={"dev": DEV_REQUIRES, "test": TEST_REQUIRES},
 )
