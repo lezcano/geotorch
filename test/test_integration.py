@@ -36,21 +36,19 @@ def dicts_product(**kwargs):
 
 class TestIntegration(TestCase):
     def sizes(self, square):
-        sizes = []
-        if not torch.cuda.is_available():
-            sizes = [(i, i) for i in range(1, 11)]
-            if not square:
-                sizes.extend(
-                    [
-                        (i, j)
-                        for i, j in itertools.product(range(1, 5), range(1, 5))
-                        if i != j
-                    ]
-                )
-                sizes.extend(
-                    [(1, 7), (2, 7), (1, 8), (2, 8), (7, 1), (7, 2), (8, 1), (8, 2)]
-                )
-        else:
+        sizes = [(i, i) for i in range(1, 11)]
+        if not square:
+            sizes.extend(
+                [
+                    (i, j)
+                    for i, j in itertools.product(range(1, 5), range(1, 5))
+                    if i != j
+                ]
+            )
+            sizes.extend(
+                [(1, 7), (2, 7), (1, 8), (2, 8), (7, 1), (7, 2), (8, 1), (8, 2)]
+            )
+        if torch.cuda.is_available():
             sizes.extend([(256, 256), (512, 512)])
             if not square:
                 sizes.extend([(256, 128), (128, 512), (1024, 512)])
@@ -94,7 +92,7 @@ class TestIntegration(TestCase):
         self._test_manifolds(
             [Stiefel, Grassmannian, geotorch.orthogonal, geotorch.grassmannian],
             dicts_product(distribution=["uniform", "torus"]),
-            [{}],
+            dicts_product(triv=["expm", "cayley"]),
             self.devices(),
             self.sizes(square=False),
         )
@@ -102,7 +100,7 @@ class TestIntegration(TestCase):
     def test_rank(self):
         self._test_manifolds(
             [LowRank, FixedRank, geotorch.low_rank, geotorch.fixed_rank],
-            dicts_product(factorized=[True, False]),
+            [{}],
             dicts_product(rank=self.ranks()),
             self.devices(),
             self.sizes(square=False),
@@ -118,7 +116,7 @@ class TestIntegration(TestCase):
                 geotorch.positive_semidefinite,
                 geotorch.invertible,
             ],
-            dicts_product(factorized=[True, False]),
+            [{}],
             [{}],
             self.devices(),
             self.sizes(square=True),
@@ -132,7 +130,7 @@ class TestIntegration(TestCase):
                 geotorch.positive_semidefinite_low_rank,
                 geotorch.positive_semidefinite_fixed_rank,
             ],
-            dicts_product(factorized=[True, False]),
+            [{}],
             dicts_product(rank=self.ranks()),
             self.devices(),
             self.sizes(square=True),
@@ -141,7 +139,7 @@ class TestIntegration(TestCase):
     def test_almost_orthogonal(self):
         self._test_manifolds(
             [AlmostOrthogonal, geotorch.almost_orthogonal],
-            dicts_product(factorized=[True, False], distribution=["uniform", "torus"]),
+            dicts_product(distribution=["uniform", "torus"]),
             dicts_product(lam=self.lambdas(), f=list(AlmostOrthogonal.fs.keys())),
             self.devices(),
             self.sizes(square=True),
@@ -171,62 +169,28 @@ class TestIntegration(TestCase):
                 )
 
     def _test_manifold(self, M, args_sample, args_constr, device, size, initialize):
-        # Test Linear
-        layer = nn.Linear(*size)
-        input_ = torch.rand(3, size[0]).to(device)
-        old_size = layer.weight.size()
-        # Somewhat dirty but will do
-        if isinstance(M, types.FunctionType):
-            M(layer, "weight", **args_constr)
-        else:
-            P.register_parametrization(
-                layer, "weight", M(size=layer.weight.size(), **args_constr)
-            )
-        layer = layer.to(device)
-        # Check that it does not change the size of the layer
-        self.assertEqual(old_size, layer.weight.size(), msg=f"{layer}")
-        self._test_training(layer, args_sample, input_, initialize)
-
-        # Just for the smaller ones, for the large ones this is just too expensive
+        inputs = [torch.rand(3, size[0], device=device)]
+        layers = [nn.Linear(*size, device=device)]
+        # Just test on convolution for small layers, otherwise it takes too long
         if min(size) < 100:
-            # Test Convolutionar (tensorial)
-            layer = nn.Conv2d(5, 4, size)
-            input_ = torch.rand(6, 5, size[0] + 7, size[1] + 3).to(device)
+            inputs.append(torch.rand(6, 5, size[0] + 7, size[1] + 3, device=device))
+            layers.append(nn.Conv2d(5, 4, size, device=device))
+
+        for input_, layer in zip(inputs, layers):
             old_size = layer.weight.size()
             # Somewhat dirty but will do
             if isinstance(M, types.FunctionType):
                 M(layer, "weight", **args_constr)
             else:
-                P.register_parametrization(
-                    layer, "weight", M(size=layer.weight.size(), **args_constr)
-                )
-            layer = layer.to(device)
+                # initialize the weight first (annoying)
+                M_ = M(size=layer.weight.size(), **args_constr).to(device)
+                X = M_.sample(**args_sample)
+                with torch.no_grad():
+                    layer.weight.copy_(X)
+                P.register_parametrization(layer, "weight", M_)
             # Check that it does not change the size of the layer
             self.assertEqual(old_size, layer.weight.size(), msg=f"{layer}")
             self._test_training(layer, args_sample, input_, initialize)
-
-    def matrix_from_factor_svd(self, U, S, V):
-        Vt = V.transpose(-2, -1)
-        # Multiply the three of them, S as a diagonal matrix
-        return U @ (S.unsqueeze(-1).expand_as(Vt) * Vt)
-
-    def matrix_from_factor_eigen(self, L, Q):
-        Qt = Q.transpose(-2, -1)
-        # Multiply the three of them as Q\LambdaQ^T
-        return Q @ (L.unsqueeze(-1).expand_as(Qt) * Qt)
-
-    def matrix_from_factor(self, X, M):
-        transpose = hasattr(M, "transposed") and M.transposed
-        if not isinstance(X, tuple):
-            return X
-        elif len(X) == 2:
-            X = self.matrix_from_factor_eigen(X[0], X[1])
-        else:
-            X = self.matrix_from_factor_svd(X[0], X[1], X[2])
-        if transpose:
-            return X.transpose(-2, -1)
-        else:
-            return X
 
     def _test_training(self, layer, args_sample, input_, initialize):
         msg = f"{layer}\n{args_sample}"
@@ -238,15 +202,12 @@ class TestIntegration(TestCase):
             layer.weight = X
             with P.cached():
                 # Compute the product if it is factorized
-                X_matrix = self.matrix_from_factor(X, M).to(layer.weight.device)
                 # The sampled matrix should not have a gradient
-                self.assertFalse(X_matrix.requires_grad)
+                self.assertFalse(X.requires_grad)
                 # Size does not change
                 self.assertEqual(initial_size, layer.weight.size(), msg=msg)
                 # Tha initialisation initialisation is equal to what we passed
-                self.assertTrue(
-                    torch.allclose(layer.weight, X_matrix, atol=1e-5), msg=msg
-                )
+                self.assertTrue(torch.allclose(layer.weight, X, atol=1e-5), msg=msg)
 
         # Take a couple SGD steps
         optim = torch.optim.SGD(layer.parameters(), lr=1e-3)

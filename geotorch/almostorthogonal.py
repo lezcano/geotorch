@@ -107,7 +107,7 @@ class AlmostOrthogonal(LowRank):
             and ((S - 1.0).abs() <= lam).all().item()
         )
 
-    def sample(self, distribution="uniform", init_=None, factorized=True):
+    def sample(self, distribution="uniform", init_=None):
         r"""
         Returns a randomly sampled orthogonal matrix according to the specified
         ``distribution``. The options are:
@@ -142,30 +142,9 @@ class AlmostOrthogonal(LowRank):
                     to some distribution. See
                     `torch.init <https://pytorch.org/docs/stable/nn.init.html>`_.
                     Default: :math:`\operatorname{Uniform}(-\pi, \pi)`
-            factorized (bool): Optional. Return an SVD decomposition of the
-                    sampled matrix as a tuple :math:`(U, \Sigma, V)`.
-                    Using ``factorized=True`` is more efficient when the result is
-                    used to initialize a parametrized tensor.
-                    Default: ``True``
         """
-        with torch.no_grad():
-            device = self[0].base.device
-            dtype = self[0].base.dtype
-            # Sample U and set S = 1, V = Id
-            U = self[0].sample(distribution=distribution, init_=init_)
-            S = torch.ones(
-                *(self.tensorial_size + (self.n,)), device=device, dtype=dtype
-            )
-            V = torch.eye(self.n, device=device, dtype=dtype)
-            if len(self.tensorial_size) > 0:
-                V = V.repeat(*(self.tensorial_size + (1, 1)))
-
-            if factorized:
-                return U, S, V
-            else:
-                Vt = V.transpose(-2, -1)
-                # Multiply the three of them, S as a diagonal matrix
-                return U @ (S.unsqueeze(-1).expand_as(Vt) * Vt)
+        # Sample an orthogonal matrix as U and return it
+        return self[0].sample(distribution=distribution, init_=init_)
 
     def extra_repr(self):
         return _extra_repr(

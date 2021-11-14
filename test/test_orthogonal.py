@@ -22,10 +22,7 @@ class TestOrthogonal(TestCase):
             SO(size=(3, 3), triv="wrong")
 
         # Try a custom trivialization (it should break in the forward)
-        try:
-            cls(size=(3, 3), triv=lambda: 3)
-        except ValueError:
-            self.fail("{} raised ValueError unexpectedly!".format(cls))
+        cls(size=(3, 3), triv=lambda: 3)
 
         # Try to instantiate it in a vector rather than a matrix
         with self.assertRaises(VectorError):

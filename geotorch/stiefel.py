@@ -1,11 +1,5 @@
 import torch
 
-try:
-    from torch.linalg import qr
-except ImportError:
-    from torch import qr
-
-
 from .utils import transpose, _extra_repr
 from .so import SO, _has_orthonormal_columns
 
@@ -66,7 +60,7 @@ class Stiefel(SO):
                 for _ in range(2):
                     N = N - X @ (X.transpose(-2, -1) @ N)
                     # And make it an orthonormal base of the image
-                    N = qr(N).Q
+                    N = torch.linalg.qr(N).Q
                 X = torch.cat([X, N], dim=-1)
         return super().right_inverse(X, check_in_manifold=False)[..., : self.k]
 
