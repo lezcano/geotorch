@@ -186,7 +186,7 @@ def uniform_init_(tensor):
 
         # Make uniform (diag r >= 0)
         d = r.diagonal(dim1=-2, dim2=-1).sign()
-        q *= d
+        q *= d.unsqueeze(-2)
         if transpose:
             q.transpose_(-2, -1)
 

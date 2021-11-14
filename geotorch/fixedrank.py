@@ -117,7 +117,7 @@ class FixedRank(LowRank):
         with torch.no_grad():
             # S >= 0, as given by torch.linalg.eigvalsh()
             S[S < eps] = eps
-        X = (U * S) @ V.transpose(-2, -1)
+        X = (U * S.unsqueeze(-2)) @ V.transpose(-2, -1)
         if self.transposed:
             X = X.transpose(-2, -1)
         return X

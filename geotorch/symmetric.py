@@ -120,7 +120,7 @@ class SymF(ProductManifold):
 
     def submersion(self, Q, L):
         L = self.f(L)
-        return (Q * L) @ Q.transpose(-2, -1)
+        return (Q * L.unsqueeze(-2)) @ Q.transpose(-2, -1)
 
     def forward(self, X):
         X = self.frame(X)
@@ -228,7 +228,7 @@ class SymF(ProductManifold):
             if factorized:
                 return L, Q
             else:
-                return (Q * L) @ Q.transpose(-2, -1)
+                return (Q * L.unsqueeze(-2)) @ Q.transpose(-2, -1)
 
     def extra_repr(self):
         return _extra_repr(

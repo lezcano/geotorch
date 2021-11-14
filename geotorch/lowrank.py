@@ -57,7 +57,7 @@ class LowRank(ProductManifold):
         return U, S, V
 
     def submersion(self, U, S, V):
-        return (U * S) @ V.transpose(-2, -1)
+        return (U * S.unsqueeze(-2)) @ V.transpose(-2, -1)
 
     @transpose
     def forward(self, X):
@@ -158,7 +158,7 @@ class LowRank(ProductManifold):
             if factorized:
                 return U, S, Vt.transpose(-2, -1)
             else:
-                X = (U * S) @ Vt
+                X = (U * S.unsqueeze(-2)) @ Vt
                 if self.transposed:
                     X = X.transpose(-2, -1)
                 return X

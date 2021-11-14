@@ -36,21 +36,19 @@ def dicts_product(**kwargs):
 
 class TestIntegration(TestCase):
     def sizes(self, square):
-        sizes = []
-        if not torch.cuda.is_available():
-            sizes = [(i, i) for i in range(1, 11)]
-            if not square:
-                sizes.extend(
-                    [
-                        (i, j)
-                        for i, j in itertools.product(range(1, 5), range(1, 5))
-                        if i != j
-                    ]
-                )
-                sizes.extend(
-                    [(1, 7), (2, 7), (1, 8), (2, 8), (7, 1), (7, 2), (8, 1), (8, 2)]
-                )
-        else:
+        sizes = [(i, i) for i in range(1, 11)]
+        if not square:
+            sizes.extend(
+                [
+                    (i, j)
+                    for i, j in itertools.product(range(1, 5), range(1, 5))
+                    if i != j
+                ]
+            )
+            sizes.extend(
+                [(1, 7), (2, 7), (1, 8), (2, 8), (7, 1), (7, 2), (8, 1), (8, 2)]
+            )
+        if torch.cuda.is_available():
             sizes.extend([(256, 256), (512, 512)])
             if not square:
                 sizes.extend([(256, 128), (128, 512), (1024, 512)])
