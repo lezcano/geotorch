@@ -40,8 +40,7 @@ else:
         several times the parametrized tensors. For example, the loop of an RNN with a
         parametrized recurrent kernel:
 
-    def set_original_(self, value: Tensor) -> None:
-        r"""This method is called when assigning to a parametrized tensor.
+        .. code-block:: python
 
             with P.cached():
                 for x in xs:
@@ -289,17 +288,18 @@ else:
         This works by substituting the class of the module by a class
         that extends it to be able to inject a property
 
-    def forward(self) -> Tensor:
-        x = self.original
-        for module in self:
-            x = module(x)
-        if x.size() != self.original.size():
+        Args:
+            module (nn.Module): module into which to inject the property
+        """
+        cls = module.__class__
+
+        def getstate(self):
             raise RuntimeError(
-                "The parametrization may not change the size of the parametrized tensor. "
-                "Size of original tensor: {} "
-                "Size of parametrized tensor: {}".format(self.original.size(), x.size())
+                "Serialization of parametrized modules is only "
+                "supported through state_dict(). See:\n"
+                "https://pytorch.org/tutorials/beginner/saving_loading_models.html"
+                "#saving-loading-a-general-checkpoint-for-inference-and-or-resuming-training"
             )
-        return x
 
         param_cls = type(
             f"Parametrized{cls.__name__}",
@@ -375,16 +375,14 @@ else:
         If the original tensor requires a gradient, the backward pass will differentiate
         through :attr:`parametrization`, and the optimizer will update the tensor accordingly.
 
-def _inject_new_class(module: Module) -> None:
-    r"""Sets up the parametrization mechanism used by parametrizations.
+        The first time that a module registers a parametrization, this function will add an attribute
+        ``parametrizations`` to the module of type :class:`~ParametrizationList`.
 
         The list of parametrizations on the tensor ``weight`` will be accessible under
         ``module.parametrizations.weight``.
 
-    Args:
-        module (nn.Module): module into which to inject the property
-    """
-    cls = module.__class__
+        The original tensor will be accessible under
+        ``module.parametrizations.weight.original``.
 
         Parametrizations may be concatenated by registering several parametrizations
         on the same attribute.
@@ -395,15 +393,9 @@ def _inject_new_class(module: Module) -> None:
         Parametrized parameters and buffers have an inbuilt caching system that can be activated
         using the context manager :func:`cached`.
 
-    param_cls = type(
-        "Parametrized{}".format(cls.__name__),
-        (cls,),
-        {
-            "__getstate__": getstate,
-        },
-    )
+        A :attr:`parametrization` may optionally implement a method with signature
 
-    module.__class__ = param_cls
+        .. code-block:: python
 
             def right_inverse(self, X: Tensor) -> Union[Tensor, Sequence[Tensor]]
 
@@ -579,18 +571,25 @@ def _inject_new_class(module: Module) -> None:
                 f"Module '{module}' does not have a parameter, a buffer, or a "
                 f"parametrized element with name '{tensor_name}'"
             )
-        )
+        return module
 
-    # Fetch the original tensor
-    original = module.parametrizations[tensor_name].original  # type: ignore
-    if leave_parametrized:
-        t = getattr(module, tensor_name)
-        # If they have the same dtype, we reuse the original tensor.
-        # We do this so that the parameter does not to change the id()
-        # This way the user does not need to update the optimizer
-        if t.dtype == original.dtype:
-            with torch.no_grad():
-                original.set_(t)
+    def is_parametrized(module: Module, tensor_name: Optional[str] = None) -> bool:
+        r"""Returns ``True`` if module has an active parametrization.
+
+        If the argument :attr:`tensor_name` is specified, returns ``True`` if
+        ``module[tensor_name]`` is parametrized.
+
+        Args:
+            module (nn.Module): module to query
+            name (str, optional): attribute in the module to query
+                Default: ``None``
+        """
+        parametrizations = getattr(module, "parametrizations", None)
+        if parametrizations is None or not isinstance(parametrizations, ModuleDict):
+            return False
+        if tensor_name is None:
+            # Check that there is at least one parametrized buffer or Parameter
+            return len(parametrizations) > 0
         else:
             return tensor_name in parametrizations
 
