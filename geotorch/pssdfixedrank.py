@@ -96,4 +96,4 @@ class PSSDFixedRank(SymF):
         with torch.no_grad():
             # L >= 0, as given by torch.linalg.eigvalsh()
             L[L < eps] = eps
-        return (Q * L) @ Q.transpose(-2, -1)
+        return (Q * L.unsqueeze(-2)) @ Q.transpose(-2, -1)
