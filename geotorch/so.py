@@ -194,7 +194,7 @@ def uniform_init_(tensor):
         # first column by -1 (does not change the measure)
         if n == k:
             mask = (torch.det(q) >= 0.0).float()
-            mask[mask == 0.] = -1.
+            mask[mask == 0.0] = -1.0
             mask = mask.unsqueeze(-1)
             q[..., 0] *= mask
         tensor.copy_(q)
