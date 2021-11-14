@@ -28,7 +28,7 @@ def _register_manifold(module, tensor_name, cls, *args):
     else:
         setattr(module, tensor_name, X)
 
-    P.register_parametrization(module, tensor_name, M)
+    P.register_parametrization(module, tensor_name, M, unsafe=True)
 
     return module
 
