@@ -19,15 +19,16 @@ from .pssdfixedrank import PSSDFixedRank
 def _register_manifold(module, tensor_name, cls, *args):
     tensor = getattr(module, tensor_name)
     M = cls(tensor.size(), *args).to(device=tensor.device, dtype=tensor.dtype)
-    P.register_parametrization(module, tensor_name, M)
 
     # Initialize without checking in manifold
     X = M.sample()
-    param_list = module.parametrizations[tensor_name]
-    with torch.no_grad():
-        for m in reversed(param_list):
-            X = m.right_inverse(X, check_in_manifold=False)
-        param_list.original.copy_(X)
+    if not P.is_parametrized(module, tensor_name):
+        with torch.no_grad():
+            tensor.copy_(X)
+    else:
+        setattr(module, tensor_name, X)
+
+    P.register_parametrization(module, tensor_name, M)
 
     return module
 

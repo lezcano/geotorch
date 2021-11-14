@@ -3,25 +3,13 @@ import torch
 from torch import nn
 
 try:
-    from torch.linalg import qr
+    from torch.linalg import matrix_exp as expm
 except ImportError:
-    from torch import qr
+    from torch import matrix_exp as expm
 
 from .utils import _extra_repr
 from .skew import Skew
-
-try:
-    from torch import matrix_exp as expm
-except ImportError:
-    from .linalg.expm import expm
 from .exceptions import NonSquareError, VectorError, InManifoldError
-
-
-def solve(A, B):
-    try:
-        return torch.linalg.solve(A, B)
-    except AttributeError:
-        return torch.solve(B, A).solution
 
 
 def _has_orthonormal_columns(X, eps):
@@ -34,7 +22,7 @@ def cayley_map(X):
     # compute (I+X/2)(I-X/2)^{-1}
     n = X.size(-1)
     Id = torch.eye(n, dtype=X.dtype, device=X.device)
-    return solve(Id.add(X, alpha=-0.5), Id.add(X, alpha=-0.5))
+    return torch.linalg.solve(Id.add(X, alpha=-0.5), Id.add(X, alpha=0.5))
 
 
 class SO(nn.Module):
@@ -194,11 +182,11 @@ def uniform_init_(tensor):
         x = torch.empty_like(tensor).normal_(0, 1)
         if transpose:
             x.transpose_(-2, -1)
-        q, r = qr(x)
+        q, r = torch.linalg.qr(x)
 
         # Make uniform (diag r >= 0)
         d = r.diagonal(dim1=-2, dim2=-1).sign()
-        q *= d.unsqueeze(-2).expand_as(q)
+        q *= d
         if transpose:
             q.transpose_(-2, -1)
 
@@ -207,7 +195,7 @@ def uniform_init_(tensor):
         if n == k:
             mask = (torch.det(q) > 0.0).float()
             mask[mask == 0.0] = -1.0
-            mask = mask.unsqueeze(-1).unsqueeze(-1).expand_as(q)
+            mask = mask.unsqueeze(-1).unsqueeze(-1)
             q[..., 0] *= mask[..., 0]
         tensor.copy_(q)
         return tensor

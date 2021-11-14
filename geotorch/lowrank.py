@@ -1,13 +1,4 @@
 import torch
-from functools import partial
-
-try:
-    from torch.linalg import svd
-
-    svd = partial(svd, full_matrices=False)
-except ImportError:
-    from torch import svd
-
 
 from .product import ProductManifold
 from .stiefel import Stiefel
@@ -66,9 +57,7 @@ class LowRank(ProductManifold):
         return U, S, V
 
     def submersion(self, U, S, V):
-        Vt = V.transpose(-2, -1)
-        # Multiply the three of them, S as a diagonal matrix
-        return U @ (S.unsqueeze(-1).expand_as(Vt) * Vt)
+        return (U * S) @ V.transpose(-2, -1)
 
     @transpose
     def forward(self, X):
@@ -80,24 +69,19 @@ class LowRank(ProductManifold):
         with torch.no_grad():
             # X1 is lower-triangular
             # X2 is a vector
-            # X3 is upper-triangular
+            # X3 is lower-triangular
             size = self.tensorial_size + (self.n, self.k)
-            ret = torch.zeros(*size, dtype=X1.dtype, device=X1.device)
+            ret = torch.zeros(size, dtype=X1.dtype, device=X1.device)
             ret[..., : self.rank] += X1
             ret[..., : self.rank, : self.rank] += torch.diag_embed(X2)
-            ret[..., : self.rank, :] += X3.transpose(-2, -1)
+            ret.transpose(-2, -1)[..., : self.rank] += X3
         return ret
 
     def submersion_inv(self, X, check_in_manifold=True):
-        if isinstance(X, torch.Tensor):
-            U, S, V = svd(X)
-            if check_in_manifold and not self.in_manifold_singular_values(S):
-                raise InManifoldError(X, self)
-        else:
-            # We assume that we got he U S V factorized in a tuple / list
-            U, S, V = X
-            if check_in_manifold and not self.in_manifold_tuple(U, S, V):
-                raise InManifoldError(X, self)
+        U, S, Vt = torch.linalg.svd(X, full_matrices=False)
+        V = Vt.transpose(-2, -1)
+        if check_in_manifold and not self.in_manifold_singular_values(S):
+            raise InManifoldError(X, self)
         return U[..., : self.rank], S[..., : self.rank], V[..., : self.rank]
 
     @transpose
@@ -126,74 +110,24 @@ class LowRank(ProductManifold):
         infty_norm_err = D.abs().max(dim=-1).values
         return (infty_norm_err < eps).all()
 
-    def in_manifold_tuple(self, U, S, V, eps=1e-5):
-        return (
-            self.in_manifold_singular_values(S, eps)
-            and self[0].in_manifold(U)
-            and self[1].in_manifold(S)
-            and self[2].in_manifold(V)
-        )
-
     def in_manifold(self, X, eps=1e-5):
         r"""
-        Checks that a matrix is in the manifold. The matrix may be given
-        factorized in a `3`-tuple :math:`(U, \Sigma, V)` of a matrix, vector,
-        and matrix representing an SVD of the matrix.
-
-
-        For tensors with more than 2 dimensions the first dimensions are
-        treated as batch dimensions.
+        Checks that a given matrix is in the manifold.
 
         Args:
-            X (torch.Tensor or tuple): The matrix to be checked or a tuple containing
-                :math:`(U, \Sigma, V)` as returned by ``torch.linalg.svd`` or
-                ``self.sample(factorized=True)``.
+            X (torch.Tensor or tuple): The input matrix or matrices of shape ``(*, n, k)``.
             eps (float): Optional. Threshold at which the singular values are
                     considered to be zero
                     Default: ``1e-5``
         """
-        if isinstance(X, tuple):
-            if len(X) == 3:
-                return self.in_manifold_tuple(X[0], X[1], X[2])
-            else:
-                return False
-        else:
-            if X.size(-1) > X.size(-2):
-                X = X.transpose(-2, -1)
-            if X.size() != self.tensorial_size + (self.n, self.k):
-                return False
-            try:
-                S = torch.linalg.svdvals(X)
-            except AttributeError:
-                S = svd(X).S
-            return self.in_manifold_singular_values(S, eps)
+        if X.size(-1) > X.size(-2):
+            X = X.transpose(-2, -1)
+        if X.size() != self.tensorial_size + (self.n, self.k):
+            return False
+        S = torch.linalg.svdvals(X)
+        return self.in_manifold_singular_values(S, eps)
 
-    def project(self, X, factorized=True):
-        r"""
-        Project a matrix onto the manifold.
-
-        If ``factorized==True``, it returns a tuple containing the SVD decomposition of
-        the matrix.
-
-        Args:
-            X (torch.Tensor): Matrix to be projected onto the manifold
-            factorized (bool): Optional. Return an SVD decomposition of the
-                    sampled matrix as a tuple :math:`(U, \Sigma, V)`.
-                    Using ``factorized=True`` is more efficient when the result is
-                    used to initialize a parametrized tensor.
-                    Default: ``True``
-        """
-        U, S, V = svd(X)
-        U, S, V = U[..., : self.rank], S[..., : self.rank], V[..., : self.rank]
-        if factorized:
-            return U, S, V
-        else:
-            X = self.submersion(U, S, V)
-            if self.transposed:
-                X = X.transpose(-2, -1)
-            return X
-
-    def sample(self, init_=torch.nn.init.xavier_normal_, factorized=True):
+    def sample(self, init_=torch.nn.init.xavier_normal_, factorized=False):
         r"""
         Returns a randomly sampled matrix on the manifold by sampling a matrix according
         to ``init_`` and projecting it onto the manifold.
@@ -211,11 +145,6 @@ class LowRank(ProductManifold):
                     in place according to some distribution. See
                     `torch.init <https://pytorch.org/docs/stable/nn.init.html>`_.
                     Default: ``torch.nn.init.xavier_normal_``
-            factorized (bool): Optional. Return an SVD decomposition of the
-                    sampled matrix as a tuple :math:`(U, \Sigma, V)`.
-                    Using ``factorized=True`` is more efficient when the result is
-                    used to initialize a parametrized tensor.
-                    Default: ``True``
         """
         with torch.no_grad():
             device = self[0].base.device
@@ -224,14 +153,12 @@ class LowRank(ProductManifold):
                 *(self.tensorial_size + (self.n, self.k)), device=device, dtype=dtype
             )
             init_(X)
-            U, S, V = svd(X)
-            U, S, V = U[..., : self.rank], S[..., : self.rank], V[..., : self.rank]
+            U, S, Vt = torch.linalg.svd(X, full_matrices=False)
+            U, S, Vt = U[..., : self.rank], S[..., : self.rank], Vt[..., : self.rank, :]
             if factorized:
-                return U, S, V
+                return U, S, Vt.transpose(-2, -1)
             else:
-                Vt = V.transpose(-2, -1)
-                # Multiply the three of them, S as a diagonal matrix
-                X = U @ (S.unsqueeze(-1).expand_as(Vt) * Vt)
+                X = (U * S) @ Vt
                 if self.transposed:
                     X = X.transpose(-2, -1)
                 return X

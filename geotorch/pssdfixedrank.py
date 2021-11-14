@@ -51,23 +51,20 @@ class PSSDFixedRank(SymF):
 
     def in_manifold_eigen(self, L, eps=1e-6):
         r"""
-        Checks that an ordered vector of eigenvalues values is in the manifold.
-
-        For tensors with more than 1 dimension the first dimensions are
-        treated as batch dimensions.
+        Checks that an ascending ordered vector of eigenvalues is in the manifold.
 
         Args:
-            L (torch.Tensor): Vector of eigenvalues
+            L (torch.Tensor): Vector of eigenvalues of shape `(*, rank)`
             eps (float): Optional. Threshold at which the eigenvalues are
                 considered to be zero
                 Default: ``1e-6``
         """
         return (
             super().in_manifold_eigen(L, eps)
-            and (L[..., : self.rank] >= eps).all().item()
+            and (L[..., -self.rank :] >= eps).all().item()
         )
 
-    def sample(self, init_=torch.nn.init.xavier_normal_, factorized=True, eps=5e-6):
+    def sample(self, init_=torch.nn.init.xavier_normal_, eps=5e-6):
         r"""
         Returns a randomly sampled matrix on the manifold as
 
@@ -92,22 +89,11 @@ class PSSDFixedRank(SymF):
                     to some distribution. See
                     `torch.init <https://pytorch.org/docs/stable/nn.init.html>`_.
                     Default: ``torch.nn.init.xavier_normal_``
-            factorized (bool): Optional. Return the tuple :math:`(\Lambda, Q)` with an
-                    eigenvalue decomposition of the sampled matrix. This can also be used
-                    to initialize the layer.
-                    Default: ``True``
             eps (float): Optional. Minimum eigenvalue of the sampled matrix.
                     Default: ``5e-6``
         """
         L, Q = super().sample(factorized=True, init_=init_)
         with torch.no_grad():
-            # S >= 0, as given by torch.linalg.eigvalsh()
-            small = L < eps
-            L[small] = eps
-        if factorized:
-            return L, Q
-        else:
-            # Project onto the manifold
-            Qt = Q.transpose(-2, -1)
-            # Multiply the three of them as Q\LambdaQ^T
-            return Q @ (L.unsqueeze(-1).expand_as(Qt) * Qt)
+            # L >= 0, as given by torch.linalg.eigvalsh()
+            L[L < eps] = eps
+        return (Q * L) @ Q.transpose(-2, -1)

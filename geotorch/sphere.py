@@ -89,8 +89,7 @@ class SphereEmbedded(nn.Module):
         Args:
             X (torch.Tensor): The vector to be checked.
             eps (float): Optional. Threshold at which the norm is considered
-                    to be equal to `1`.
-                    Default: ``1e-5``
+                    to be equal to ``1``. Default: ``1e-5``
         """
         return _in_sphere(x, self.radius, eps)
 
@@ -162,8 +161,7 @@ class Sphere(nn.Module):
         Args:
             X (torch.Tensor): The vector to be checked.
             eps (float): Optional. Threshold at which the norm is considered
-                    to be equal to `1`.
-                    Default: ``1e-5``
+                    to be equal to ``1``. Default: ``1e-5``
         """
         return _in_sphere(x, self.radius, eps)
 

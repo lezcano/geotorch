@@ -135,7 +135,7 @@ You may try GeoTorch installing it with
 
     pip install git+https://github.com/Lezcano/geotorch/
 
-GeoTorch is tested in Linux, Mac, and Windows environments for Python >= 3.6.
+GeoTorch is tested in Linux, Mac, and Windows environments for Python >= 3.6 and supports PyTorch >= 1.9
 
 Sharing Weights, Parametrizations, and Normalizing Flows
 --------------------------------------------------------

@@ -89,7 +89,7 @@ class FixedRank(LowRank):
         infty_norm = D.abs().max(dim=-1).values
         return (infty_norm > eps).all().item()
 
-    def sample(self, init_=torch.nn.init.xavier_normal_, factorized=True, eps=5e-6):
+    def sample(self, init_=torch.nn.init.xavier_normal_, eps=5e-6):
         r"""
         Returns a randomly sampled matrix on the manifold by sampling a matrix according
         to ``init_`` and projecting it onto the manifold.
@@ -110,11 +110,6 @@ class FixedRank(LowRank):
                     in place according to some distribution. See
                     `torch.init <https://pytorch.org/docs/stable/nn.init.html>`_.
                     Default: ``torch.nn.init.xavier_normal_``
-            factorized (bool): Optional. Return an SVD decomposition of the
-                    sampled matrix as a tuple :math:`(U, \Sigma, V)`.
-                    Using ``factorized=True`` is more efficient when the result is
-                    used to initialize a parametrized tensor.
-                    Default: ``True``
             eps (float): Optional. Minimum singular value of the sampled matrix.
                     Default: ``5e-6``
         """
@@ -122,12 +117,7 @@ class FixedRank(LowRank):
         with torch.no_grad():
             # S >= 0, as given by torch.linalg.eigvalsh()
             S[S < eps] = eps
-        if factorized:
-            return U, S, V
-        else:
-            Vt = V.transpose(-2, -1)
-            # Multiply the three of them, S as a diagonal matrix
-            X = U @ (S.unsqueeze(-1).expand_as(Vt) * Vt)
-            if self.transposed:
-                X = X.transpose(-2, -1)
-            return X
+        X = (U * S) @ V.transpose(-2, -1)
+        if self.transposed:
+            X = X.transpose(-2, -1)
+        return X
