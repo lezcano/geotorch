@@ -20,11 +20,11 @@ It is compatible out of the box with any optimizer, layer, and model implemented
     class Model(nn.Module):
         def __init__(self):
             super().__init__()
-            # One line suffices: Make a linear layer with orthonormal columns
+            # One line suffices: Instantiate a linear layer with orthonormal columns
             self.linear = nn.Linear(64, 128)
             geotorch.orthogonal(self.linear, "weight")
 
-            # Works with tensors: Make a CNN with kernels of rank 1
+            # Works with tensors: Instantiate a CNN with kernels of rank 1
             self.cnn = nn.Conv2d(16, 32, 3)
             geotorch.low_rank(self.cnn, "weight", rank=1)
 
@@ -98,8 +98,7 @@ Supported Spaces
 
 Each constraint in GeoTorch is implemented as a manifold. These give the user more flexibility
 on the options that they choose for each parametrization. All these support Riemannian Gradient
-Descent by default (more on this `here`_), but they also support optimization via any other PyTorch
-optimizer.
+Descent (more on this `here`_), but they also support optimization via any other PyTorch optimizer.
 
 GeoTorch currently supports the following spaces:
 
@@ -129,7 +128,7 @@ Using GeoTorch in your Code
 
 The files in `examples/copying_problem.py`_ and `examples/sequential_mnist.py`_ serve as tutorials to see how to handle the initialization and usage of GeoTorch in some real code. They also show how to implement Riemannian Gradient Descent and some other tricks. For an introduction to how the library is actually implemented, see the Jupyter Notebook `examples/parametrisations.ipynb`_.
 
-You may try GeoTorch installing it with
+You may try GeoTorch installing it as
 
 .. code:: bash
 
