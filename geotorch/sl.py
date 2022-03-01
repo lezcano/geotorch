@@ -35,7 +35,7 @@ class SL(GLp):
 
             def f_sl(x):
                 y = f(x)
-                return y / y.prod(dim=-1, keepdim=True).pow(1. / y.shape[-1])
+                return y / y.prod(dim=-1, keepdim=True).pow(1.0 / y.shape[-1])
 
             return (f_sl, inv)
         else:
@@ -85,5 +85,5 @@ class SL(GLp):
         U, S, V = super().sample(factorized=True, init_=init_)
         with torch.no_grad():
             # S >= 0, as given by torch.linalg.eigvalsh()
-            S = S / S.prod(dim=-1, keepdim=True).pow(1. / S.shape[-1])
+            S = S / S.prod(dim=-1, keepdim=True).pow(1.0 / S.shape[-1])
         return (U * S.unsqueeze(-2)) @ V.transpose(-2, -1)
