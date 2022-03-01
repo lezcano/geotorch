@@ -53,7 +53,7 @@ class SL(GLp):
         print(infty_norm < eps)
         return (infty_norm < eps).all().item()
 
-    def in_manifold(self, X, eps=1e-3):
+    def in_manifold(self, X, eps=5e-3):
         r"""
         Checks that a given matrix is in the manifold.
 
