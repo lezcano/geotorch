@@ -156,7 +156,10 @@ class LowRank(ProductManifold):
             U, S, Vt = torch.linalg.svd(X, full_matrices=False)
             U, S, Vt = U[..., : self.rank], S[..., : self.rank], Vt[..., : self.rank, :]
             if factorized:
-                return U, S, Vt.transpose(-2, -1)
+                if self.transposed:
+                    return Vt, S, U.transpose(-2, -1)
+                else:
+                    return U, S, Vt.transpose(-2, -1)
             else:
                 X = (U * S.unsqueeze(-2)) @ Vt
                 if self.transposed:

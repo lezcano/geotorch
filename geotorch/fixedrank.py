@@ -89,7 +89,7 @@ class FixedRank(LowRank):
         infty_norm = D.abs().max(dim=-1).values
         return (infty_norm > eps).all().item()
 
-    def sample(self, init_=torch.nn.init.xavier_normal_, eps=5e-6):
+    def sample(self, init_=torch.nn.init.xavier_normal_, eps=5e-6, factorized=False):
         r"""
         Returns a randomly sampled matrix on the manifold by sampling a matrix according
         to ``init_`` and projecting it onto the manifold.
@@ -117,7 +117,11 @@ class FixedRank(LowRank):
         with torch.no_grad():
             # S >= 0, as given by torch.linalg.eigvalsh()
             S[S < eps] = eps
-        X = (U * S.unsqueeze(-2)) @ V.transpose(-2, -1)
-        if self.transposed:
-            X = X.transpose(-2, -1)
-        return X
+        if factorized:
+            return U, S, V
+        else:
+            # Compute U S V^T
+            if self.transposed:
+                return (U * S.unsqueeze(-2)) @ V.transpose(-2, -1)
+            else:
+                return U @ (S.unsqueeze(-1) * V.transpose(-2, -1))
