@@ -16,6 +16,7 @@ implementation of each space, take a look at the different manifolds.
 .. autofunction:: low_rank
 .. autofunction:: fixed_rank
 .. autofunction:: invertible
+.. autofunction:: sln
 .. autofunction:: positive_definite
 .. autofunction:: positive_semidefinite
 .. autofunction:: positive_semidefinite_low_rank
