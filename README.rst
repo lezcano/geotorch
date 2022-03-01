@@ -54,6 +54,7 @@ The following constraints are implemented and may be used as in the example abov
 - |grassmannian|_. Skew-symmetric matrices
 - |almost_orthogonal|_. Matrices with singular values in  the interval ``[1-λ, 1+λ]``
 - |invertible|_. Invertible matrices with positive determinant
+- |sln|_. Matrices of determinant equal to ``1``
 - |low_rank|_. Matrices of rank at most ``r``
 - |fixed_rank|_. Matrices of rank ``r``
 - |positive_definite|_. Positive definite matrices
@@ -75,6 +76,8 @@ The following constraints are implemented and may be used as in the example abov
 .. _almost_orthogonal: https://geotorch.readthedocs.io/en/latest/constraints.html#geotorch.almost_orthogonal
 .. |invertible| replace:: ``geotorch.invertible``
 .. _invertible: https://geotorch.readthedocs.io/en/latest/constraints.html#geotorch.invertible
+.. |sln| replace:: ``geotorch.sln``
+.. _sln: https://geotorch.readthedocs.io/en/latest/constraints.html#geotorch.sln
 .. |low_rank| replace:: ``geotorch.low_rank(r)``
 .. _low_rank: https://geotorch.readthedocs.io/en/latest/constraints.html#geotorch.low_rank
 .. |fixed_rank| replace:: ``geotorch.fixed_rank(r)``
@@ -111,6 +114,7 @@ GeoTorch currently supports the following spaces:
 - |almost|_: Manifold of ``n×k`` matrices with singular values in the interval ``[1-λ, 1+λ]``
 - |grass|_: Manifold of ``k``-dimensional subspaces in ``Rⁿ``
 - |glp|_: Manifold of invertible ``n×n`` matrices with positive determinant
+- |sl|_: Manifold of ``n×n`` matrices with determinant equal to `1`
 - |low|_: Variety of ``n×k`` matrices of rank ``r`` or less
 - |fixed|_: Manifold of ``n×k`` matrices of rank ``r``
 - |psd|_: Cone of ``n×n`` symmetric positive definite matrices
@@ -170,6 +174,8 @@ As every space in GeoTorch is, at its core, a map from a flat space into a manif
 .. _grass: https://geotorch.readthedocs.io/en/latest/orthogonal/grassmannian.html
 .. |glp| replace:: ``GLp(n)``
 .. _glp: https://geotorch.readthedocs.io/en/latest/invertibility/glp.html
+.. |sl| replace:: ``SL(n)``
+.. _sl: https://geotorch.readthedocs.io/en/latest/invertibility/sl.html
 .. |low| replace:: ``LowRank(n,k,r)``
 .. _low: https://geotorch.readthedocs.io/en/latest/lowrank/lowrank.html
 .. |fixed| replace:: ``FixedRank(n,k,r)``

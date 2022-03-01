@@ -20,6 +20,7 @@ from geotorch.pssd import PSSD
 from geotorch.pssdlowrank import PSSDLowRank
 from geotorch.pssdfixedrank import PSSDFixedRank
 from geotorch.glp import GLp
+from geotorch.sl import SL
 from geotorch.almostorthogonal import AlmostOrthogonal
 from geotorch.sphere import Sphere, SphereEmbedded
 
@@ -112,9 +113,11 @@ class TestIntegration(TestCase):
                 PSD,
                 PSSD,
                 GLp,
+                SL,
                 geotorch.positive_definite,
                 geotorch.positive_semidefinite,
                 geotorch.invertible,
+                geotorch.sln,
             ],
             [{}],
             [{}],

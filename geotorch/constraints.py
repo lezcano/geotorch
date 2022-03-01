@@ -10,6 +10,7 @@ from .almostorthogonal import AlmostOrthogonal
 from .lowrank import LowRank
 from .fixedrank import FixedRank
 from .glp import GLp
+from .sl import SL
 from .psd import PSD
 from .pssd import PSSD
 from .pssdlowrank import PSSDLowRank
@@ -327,7 +328,7 @@ def invertible(module, tensor_name="weight", f="softplus", triv="expm"):
     Examples::
 
         >>> layer = nn.Linear(20, 20)
-        >>> geotorch.invertible(layer, "weight", 5)
+        >>> geotorch.invertible(layer, "weight")
         >>> torch.det(layer.weight) > 0.0
         True
 
@@ -352,6 +353,45 @@ def invertible(module, tensor_name="weight", f="softplus", triv="expm"):
             callable. Default: ``"expm"``
     """
     return _register_manifold(module, tensor_name, GLp, f, triv)
+
+
+def sln(module, tensor_name="weight", f="softplus", triv="expm"):
+    r"""Adds a constraint of having determinant one to the tensor ``module.tensor_name``.
+
+    When accessing ``module.tensor_name``, the module will return the
+    parametrized version :math:`X` which will have determinant equal to 1.
+
+    If the tensor has more than two dimensions, the parametrization will be
+    applied to the last two dimensions.
+
+    Examples::
+
+        >>> layer = nn.Linear(20, 20)
+        >>> geotorch.sln(layer, "weight")
+        >>> torch.det(layer.weight)
+        tensor(1.0000)
+
+    Args:
+        module (nn.Module): module on which to register the parametrization
+        tensor_name (string): name of the parameter, buffer, or parametrization
+            on which the parametrization will be applied. Default: ``"weight"``
+        f (str or callable or pair of callables): Optional. Either:
+
+            - ``"softplus"``
+
+            - A callable that maps real numbers to the interval :math:`(0, \infty)`
+
+            - A pair of callables such that the first maps the real numbers to
+              :math:`(0, \infty)` and the second is a (right) inverse of the first
+
+            Default: ``"softplus"``
+        triv (str or callable): Optional.
+            A map that maps skew-symmetric matrices onto the orthogonal matrices
+            surjectively. This is used to optimize the :math:`U` and :math:`V` in the
+            SVD. It can be one of ``["expm", "cayley"]`` or a custom
+            callable. Default: ``"expm"``
+    """
+    return _register_manifold(module, tensor_name, SL, f, triv)
 
 
 def positive_definite(module, tensor_name="weight", f="softplus", triv="expm"):

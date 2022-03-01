@@ -8,6 +8,7 @@ from .constraints import (
     low_rank,
     fixed_rank,
     invertible,
+    sln,
     positive_definite,
     positive_semidefinite,
     positive_semidefinite_low_rank,
@@ -25,6 +26,7 @@ from .almostorthogonal import AlmostOrthogonal
 from .lowrank import LowRank
 from .fixedrank import FixedRank
 from .glp import GLp
+from .sl import SL
 from .psd import PSD
 from .pssd import PSSD
 from .pssdfixedrank import PSSDFixedRank
@@ -48,6 +50,7 @@ __all__ = [
     "Stiefel",
     "AlmostOrthogonal",
     "GLp",
+    "SL",
     "FixedRank",
     "PSD",
     "PSSD",
@@ -62,6 +65,7 @@ __all__ = [
     "fixed_rank",
     "almost_orthogonal",
     "invertible",
+    "sln",
     "positive_definite",
     "positive_semidefinite",
     "positive_semidefinite_low_rank",
