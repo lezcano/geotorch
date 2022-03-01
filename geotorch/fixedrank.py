@@ -120,7 +120,7 @@ class FixedRank(LowRank):
         if factorized:
             return U, S, V
         else:
-            # Compute U S V^T
+            # Compute U S V^T efficiently
             if self.transposed:
                 return (U * S.unsqueeze(-2)) @ V.transpose(-2, -1)
             else:

@@ -157,7 +157,7 @@ class LowRank(ProductManifold):
             U, S, Vt = U[..., : self.rank], S[..., : self.rank], Vt[..., : self.rank, :]
             if factorized:
                 if self.transposed:
-                    return Vt, S, U.transpose(-2, -1)
+                    return Vt.transpose(-2, -1), S, U
                 else:
                     return U, S, Vt.transpose(-2, -1)
             else:
