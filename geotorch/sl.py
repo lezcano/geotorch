@@ -46,7 +46,7 @@ class SL(GLp):
         if not super().in_manifold_singular_values(S, eps):
             return False
         # We compute the \infty-norm of the determinant minus 1 and should be about zero
-        print(S.prod(dim=-1) -1)
+        print(S.prod(dim=-1) - 1)
         infty_norm = (S.prod(dim=-1) - 1).abs().max(dim=-1).values
         print(eps)
         print(infty_norm)
