@@ -19,12 +19,12 @@ It is realized via an SVD-like factorization:
             (U, \Sigma, V) &\mapsto Uf(\Sigma)V^\intercal
     \end{align*}
 
-where we have identified the vector :math:`\Sigma` with a diagonal matrix in :math:`\mathbb{R}^{n \times n}`. The function :math:`f\colon \mathbb{R} \to (0, \infty)` is applied element-wise to the diagonal. By default, the `softmax` function is used
+where we have identified the vector :math:`\Sigma` with a diagonal matrix in :math:`\mathbb{R}^{n \times n}`. The function :math:`f\colon \mathbb{R} \to (0, \infty)` is applied element-wise to the diagonal. By default, the `softplus` function is used
 
 .. math::
 
     \begin{align*}
-        \operatorname{softmax} \colon \mathbb{R} &\to (0, \infty) \\
+        \operatorname{softplus} \colon \mathbb{R} &\to (0, \infty) \\
             x &\mapsto \log(1+\exp(x)) + \varepsilon
     \end{align*}
 

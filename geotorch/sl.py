@@ -41,7 +41,7 @@ class SL(GLp):
         else:
             return f_name
 
-    def in_manifold_singular_values(self, S, eps=1e-3):
+    def in_manifold_singular_values(self, S, eps=5e-3):
         if not super().in_manifold_singular_values(S, eps):
             return False
         # We compute the \infty-norm of the determinant minus 1 and should be about zero
