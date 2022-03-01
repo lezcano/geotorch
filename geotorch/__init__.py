@@ -26,6 +26,7 @@ from .almostorthogonal import AlmostOrthogonal
 from .lowrank import LowRank
 from .fixedrank import FixedRank
 from .glp import GLp
+from .sl import SL
 from .psd import PSD
 from .pssd import PSSD
 from .pssdfixedrank import PSSDFixedRank
