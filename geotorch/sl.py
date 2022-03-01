@@ -42,15 +42,10 @@ class SL(GLp):
             return f_name
 
     def in_manifold_singular_values(self, S, eps=5e-3):
-        print("A")
         if not super().in_manifold_singular_values(S, eps):
             return False
         # We compute the \infty-norm of the determinant minus 1 and should be about zero
-        print(S.prod(dim=-1) - 1)
         infty_norm = (S.prod(dim=-1) - 1).abs().max(dim=-1).values
-        print(eps)
-        print(infty_norm)
-        print(infty_norm < eps)
         return (infty_norm < eps).all().item()
 
     def in_manifold(self, X, eps=5e-3):
@@ -61,7 +56,7 @@ class SL(GLp):
             X (torch.Tensor or tuple): The input matrix or matrices of shape ``(*, n, k)``.
             eps (float): Optional. Threshold at which the singular values are
                     considered to be zero
-                    Default: ``1e-4``
+                    Default: ``5e-3``
         """
         # The purpose of this function is just to have a more lax default eps value
         return super().in_manifold(X, eps)
