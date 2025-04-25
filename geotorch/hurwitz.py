@@ -37,10 +37,9 @@ class Hurwitz(ProductManifold):
 
         assert alpha >=0, ValueError(f"alpha must be positive found {alpha}")
 
-        n, tensorial_size = Hurwitz.parse_size(size)
-        super().__init__(Hurwitz.manifolds(n, tensorial_size, triv))
+        n = Hurwitz.parse_size(size)
+        super().__init__(Hurwitz.manifolds(n, triv))
         self.n = n
-        self.tensorial_size = tensorial_size
         self.alpha = alpha
         self.register_buffer('In', torch.eye(n))
 
@@ -49,14 +48,13 @@ class Hurwitz(ProductManifold):
         if len(size) < 2:
             raise VectorError(cls.__name__, size)
         n, k = size[-2:]
-        tensorial_size = size[:-2]
         if n != k:
             raise NonSquareError(cls.__name__, size)
-        return n, tensorial_size
+        return n
     
     @staticmethod
-    def manifolds(n, tensorial_size, triv):
-        size = tensorial_size + (n, n)
+    def manifolds(n, triv):
+        size = (n, n)
         return PSD(size, triv=triv), PSD(size, triv=triv), Skew(size)
     
 
@@ -68,7 +66,7 @@ class Hurwitz(ProductManifold):
         return self.submersion(Q, P, S)
 
 
-    def submersion_inv(self, A: torch.Tensor, check_in_manifold=True, rho=1, tol = 1e-5):
+    def submersion_inv(self, A: torch.Tensor, check_in_manifold=True, rho=1, tol = 1e-4):
         r"""
             Args: 
                 A (torch.Tensor): a square and Hurwitz matrix with eigenvalues lower than -alpha
@@ -76,6 +74,8 @@ class Hurwitz(ProductManifold):
                 the manifold
 
                 rho (float): a scaling parameter for the matrix Q = -rho I
+
+                tol (float): a small margin to ensure P is not close to singularity, can be increased if needed
 
         """
         if check_in_manifold and not self.in_manifold_eigen(A):
@@ -85,27 +85,19 @@ class Hurwitz(ProductManifold):
         with torch.no_grad():
             A_shifted = A + (self.alpha - tol) * self.In 
             A_shifted_T = A_shifted.mT.contiguous()
-            print(A_shifted.dtype)
             M = torch.kron(self.In,  A_shifted_T) + torch.kron(A_shifted_T, self.In)
-            Q = (rho * self.In).unsqueeze(0).repeat(*self.tensorial_size, 1, 1)
+            Q = (rho * self.In)              
             flat_Q = Q.flatten(-2, -1)
             vec_P = torch.linalg.solve(M, -flat_Q)
-            P = vec_P.view(*self.tensorial_size, self.n, self.n)
-            residual = A.mT @ P + P @ A + 2 * (self.alpha - tol)* P + Q
-            print(f"A eigenvalues : {torch.linalg.eigvals(A)}")
-            print(f"Alpha : {self.alpha}")
-            print(f"Residual norm: {torch.norm(residual):.2e}")
-
-            assert torch.allclose(A.mT @ P + P @ A + 2* (self.alpha - tol)*P, -Q, atol=1e-5)
+            P = vec_P.view(self.n, self.n)
+            residual = torch.norm(A.mT @ P + P @ A + 2 * (self.alpha - tol)* P + Q)
+            if residual >=tol:
+                raise ValueError(f"Lyapunov equation ill-conditioned solve failed. \n Residual norm: {torch.norm(residual):.2e}")
 
             S = P @ (A + (self.alpha-tol) * self.In) + 0.5 * Q 
 
-            print(S)
-            print(S.mT)
             P_inv = torch.inverse(P)
-            A_rec = P_inv @ (-Q/2 + S) -(self.alpha-tol) * self.In
-            print(f"Distance between As at the end of computation of ri {torch.dist(A_rec, A)}")
-            print(f"Current alpha in submersion_inv {(self.alpha-tol)}")
+
             return Q, P_inv, S
 
         
@@ -118,14 +110,10 @@ class Hurwitz(ProductManifold):
         r"""
         Check that all eigenvalues have real part lower than -alpha
         """
-        if A.size()[:-2] != self.tensorial_size:  # check dimensions
-            print(A.size(), self.tensorial_size)
-            return False
-        else:
-            eig = torch.linalg.eigvals(A)
-            reig = torch.real(eig)
-            return (reig <= -self.alpha + eps).all().item()
-        
+        eig = torch.linalg.eigvals(A)
+        reig = torch.real(eig)
+        return (reig <= -self.alpha + eps).all().item()
+    
 
     def sample(self, init_=torch.nn.init.xavier_normal_, gamma=1.0):
         r"""
@@ -148,11 +136,11 @@ class Hurwitz(ProductManifold):
         """
         with torch.no_grad():
 
-            X_p = torch.empty(*(self.tensorial_size + (self.n, self.n)))
+            X_p = torch.empty((self.n, self.n))
             init_(X_p)
             P = X_p @ X_p.transpose(-2, -1) + 1e-3 * self.In  
 
-            X_q = torch.empty(*(self.tensorial_size + (self.n, self.n)))
+            X_q = torch.empty((self.n, self.n))
             init_(X_q)
             Q = X_q @ X_q.mT + 1e-3 * self.In
 
@@ -172,6 +160,5 @@ class Hurwitz(ProductManifold):
         print(self.alpha)
         return _extra_repr(
             n=self.n,
-            alpha=self.alpha,
-            tensorial_size=self.tensorial_size,
-        )
+            alpha=self.alpha
+            )

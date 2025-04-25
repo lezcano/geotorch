@@ -552,11 +552,11 @@ def positive_semidefinite_fixed_rank(
     return _register_manifold(module, tensor_name, PSSDFixedRank, rank, f, triv)
 
 
-def alpha_stable(module, tensor_name="weight", alpha=0.0):
+def alpha_stable(module: torch.nn.Module, tensor_name="weight", alpha=1e-3):
     r"""Adds an alpha_stability parametrization to the matrix ``module.tensor_name``.
 
     When accessing ``module.tensor_name``, the module will return the parametrized
-    version :math:`X` so that :math:`X^\intercal = -X`.
+    version :math:`A` so that :math:`\min_{\lambda \in Sp(A)} \Re(\lambda)<= -\alpha`.
 
     If the tensor has more than two dimensions, the parametrization will be
     applied to the last two dimensions.
