@@ -59,7 +59,6 @@ class PSSDFixedRank(SymF):
                 considered to be zero
                 Default: ``1e-6``
         """
-        print(L)
         return (
             super().in_manifold_eigen(L, eps)
             and (L[..., -self.rank :] >= eps).all().item()
