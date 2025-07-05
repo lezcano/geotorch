@@ -20,7 +20,7 @@ class Hurwitz(ProductManifold):
         Manifold of matrices with eigenvalues with negative real parts,
         also called Hurwitz matrices.
 
-        :math`A` is Hurwitz with prescribed decay rate \alpha
+        :math`A` is Hurwitz with prescribed decay rate :math:`\alpha`
         if and only if it can be written as
         ..math::
             A = P^{-1}(-\frac{Q}{2} +S) - \alpha \mathrm{I}_n
