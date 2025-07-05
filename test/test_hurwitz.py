@@ -8,13 +8,14 @@ import geotorch
 class TestHurwitz(TestCase):
 
     def setUp(self):
-        self.size = (5, 5)
+        self.size = (2, 5, 5)
         self.alpha = 1e-3
         self.hurwitz = Hurwitz(self.size, alpha=self.alpha)
 
     def test_parse_size_correct(self):
-        n = self.hurwitz.parse_size(self.size)
+        n, tensorial_size = self.hurwitz.parse_size(self.size)
         self.assertEqual(n, 5)
+        self.assertEqual(tensorial_size, (2,))
 
     def test_parse_size_non_square_error(self):
         with self.assertRaises(NonSquareError):
@@ -37,7 +38,7 @@ class TestHurwitz(TestCase):
 
     def test_submersion_inv_valid_matrix(self):
         A = self.hurwitz.sample()
-        alpha = get_lyap_exp(A) - 1e-4
+        alpha = float(get_lyap_exp(A) - 1e-4)
         self.hurwitz.alpha = alpha
         Q, P_inv, S = self.hurwitz.submersion_inv(A)
         self.assertEqual(Q.shape, self.size)
@@ -54,7 +55,7 @@ class TestHurwitz(TestCase):
 
     def test_right_inverse(self):
         A = self.hurwitz.sample()
-        self.hurwitz.alpha = get_lyap_exp(A)
+        self.hurwitz.alpha = float(get_lyap_exp(A))
         X1, X2, X3 = self.hurwitz.right_inverse(A)
         A_from_ri = self.hurwitz.forward(X1, X2, X3)
         print(torch.dist(A_from_ri, A))
@@ -84,10 +85,16 @@ class TestHurwitz(TestCase):
         self.assertEqual(A.shape, (5, 5))
         self.assertTrue(hurwitz.in_manifold_eigen(A))
 
+    def test_batch_sample(self):
+        hurwitz = Hurwitz((4, 5, 5), alpha=self.alpha)
+        A = hurwitz.sample()
+        self.assertEqual(A.shape, (4, 5, 5))
+        self.assertTrue(hurwitz.in_manifold_eigen(A))
+
     def test_batch_submersion_inv(self):
-        hurwitz_batch = Hurwitz((1, 2, 2))
+        hurwitz_batch = Hurwitz((7, 2, 2))
         A_batch = hurwitz_batch.sample()
-        hurwitz_batch.alpha = get_lyap_exp(A_batch)
+        hurwitz_batch.alpha = float(get_lyap_exp(A_batch))
         Q, P_inv, S = hurwitz_batch.submersion_inv(A_batch)
         A_reconstructed = P_inv @ (-0.5 * Q + S) - (hurwitz_batch.alpha -1e-6) * torch.eye(2)
 

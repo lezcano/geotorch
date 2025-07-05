@@ -38,24 +38,26 @@ class Hurwitz(ProductManifold):
 
         assert alpha >=0, ValueError(f"alpha must be positive found {alpha}")
 
-        n = Hurwitz.parse_size(size)
-        super().__init__(Hurwitz.manifolds(n, triv))
+        n, tensorial_size = Hurwitz.parse_size(size)
+        super().__init__(Hurwitz.manifolds(n, tensorial_size, triv))
         self.n = n
+        self.tensorial_size = tensorial_size
         self.alpha = alpha
-        self.register_buffer('In', torch.eye(n))
+        self.register_buffer('In', torch.eye(n).expand(*self.tensorial_size, n, n))
 
     @classmethod
     def parse_size(cls, size):
         if len(size) < 2:
             raise VectorError(cls.__name__, size)
         n, k = size[-2:]
+        tensorial_size = size[:-2]
         if n != k:
             raise NonSquareError(cls.__name__, size)
-        return n
+        return n, tensorial_size
     
     @staticmethod
-    def manifolds(n, triv):
-        size = (n, n)
+    def manifolds(n, tensorial_size, triv):
+        size =  tensorial_size + (n, n)
         return PSD(size, triv=triv), PSD(size, triv=triv), Skew(size)
     
 
@@ -86,12 +88,26 @@ class Hurwitz(ProductManifold):
         with torch.no_grad():
             A_shifted = A + (self.alpha - tol) * self.In 
             A_shifted_T = A_shifted.mT.contiguous()
-            M = torch.kron(self.In,  A_shifted_T) + torch.kron(A_shifted_T, self.In)
+
+            # Batched Kronecker product using vmap for cleaner implementation
+            def _single_kron_sum(A_single):
+                I_single = torch.eye(self.n, device=A.device, dtype=A.dtype)
+                return torch.kron(I_single, A_single) + torch.kron(A_single, I_single)
+            
+            flat_batch_size = torch.prod(torch.tensor(self.tensorial_size)) if self.tensorial_size else 1
+            A_flat = A_shifted_T.reshape(flat_batch_size, self.n, self.n)
+
+            M_flat = torch.vmap(_single_kron_sum)(A_flat)
+            M = M_flat.reshape(*self.tensorial_size, self.n*self.n, self.n*self.n)
+
             Q = (rho * self.In)              
             flat_Q = Q.flatten(-2, -1)
-            vec_P = torch.linalg.solve(M, -flat_Q)
-            P = vec_P.view(self.n, self.n)
-            residual = torch.norm(A.mT @ P + P @ A + 2 * (self.alpha - tol)* P + Q)
+
+
+            vec_P = torch.linalg.solve(M, -flat_Q.unsqueeze(-1)).squeeze(-1)
+            P = vec_P.view(*self.tensorial_size, self.n, self.n)
+
+            residual = torch.norm(A.mT @ P + P @ A + 2 * (self.alpha - tol) * P + Q)
             if residual >=tol:
                 raise ValueError(f"Lyapunov equation ill-conditioned solve failed. \n Residual norm: {torch.norm(residual):.2e}")
 
@@ -140,12 +156,11 @@ class Hurwitz(ProductManifold):
             mani_psd = PSD((self.n, self.n))
             mani_skew = Skew((self.n, self.n))
 
-            P_inv = mani_psd.sample(init_)
+            P = mani_psd.sample(init_)
             Q = mani_psd.sample(init_)
             S = mani_skew.sample(init_)
             
-            A = P_inv @ (-0.5 * Q + S) - self.alpha * self.In
-
+            A = self.submersion(Q, P, S)
             return A
 
 
