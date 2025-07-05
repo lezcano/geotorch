@@ -94,8 +94,7 @@ class Skew(nn.Module):
                 *(self.tensorial_size + (self.n, self.n)))
             init_(X)
             if lower:
-                tril_X = X.tril(-1)
-                return tril_X - tril_X.mT
+                X.tril_(-1)
             else:
-                triu_X = X.triu(1)
-                return triu_X - triu_X.mT
+                X.triu_(1)
+            return X - X.mT

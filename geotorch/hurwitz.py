@@ -18,16 +18,17 @@ class Hurwitz(ProductManifold):
     def __init__(self, size, alpha: float = 0.0, triv="expm"):
         r"""
         Manifold of matrices with eigenvalues with negative real parts,
-        also called Hurwitz matrices. They represend linear stable linear dynamical systems.
+        also called Hurwitz matrices.
 
-        We have the following result : A is Hurwitz with prescribed decay rate \alpha
+        :math`A` is Hurwitz with prescribed decay rate \alpha
         if and only if it can be written as
-        :math:`A = P^{-1}(-\frac{Q}{2} +S) - \alpha I_n`
-        with $P > 0, Q > 0$ and ^S^skew-symmetric
+        ..math::
+            A = P^{-1}(-\frac{Q}{2} +S) - \alpha \mathrm{I}_n
+        with :math:`P \in \operatorname{PSD}(n), Q \in \operatorname{PSD}(n)` and :math: `S \in \operatorname{Skew}(n)`
+
         Args:
             size (torch.size): Size of the tensor to be parametrized
             alpha (float): the upper bound on the matrix's eigenvalues real part
-                :math: `\min_{\lambda \in Sp(A)}  \Re(\lambda) \leq -\alpha`
             triv (str or callable): Optional.
                 A map that maps skew-symmetric matrices onto the orthogonal matrices
                 surjectively. This is used to optimize the :math:`Q` in the eigenvalue
@@ -115,11 +116,13 @@ class Hurwitz(ProductManifold):
         return (reig <= -self.alpha + eps).all().item()
     
 
-    def sample(self, init_=torch.nn.init.xavier_normal_, gamma=1.0):
+    def sample(self, init_=torch.nn.init.xavier_normal_):
         r"""
-        Returns a randomly sampled Hurwitz (α-stable) matrix on the manifold as:
+        Returns a randomly sampled Hurwitz (:math:`\alpha`-stable) matrix on the manifold as:
 
-            A = P^{-1}(-Q/2 + S) - αI,  with Q = γP
+        .. math::
+            A = P^{-1}(-Q/2 + S) - \alpha I
+        with :math:`P^{-1}_{i,j}, Q_{i,j}, S_{i,j} \sim \texttt{init_}`
 
         The output of this method can be used to initialize a parametrized tensor as::
 
@@ -131,26 +134,16 @@ class Hurwitz(ProductManifold):
         Args:
             init_ (callable): Initialization method for random matrices.
                             Default: ``torch.nn.init.xavier_normal_``
-            gamma (float): Scaling parameter for Q = gamma * P.
-                        Default: ``1.0``
         """
         with torch.no_grad():
 
-            X_p = torch.empty((self.n, self.n))
-            init_(X_p)
-            P = X_p @ X_p.transpose(-2, -1) + 1e-3 * self.In  
+            mani_psd = PSD((self.n, self.n))
+            mani_skew = Skew((self.n, self.n))
 
-            X_q = torch.empty((self.n, self.n))
-            init_(X_q)
-            Q = X_q @ X_q.mT + 1e-3 * self.In
-
+            P_inv = mani_psd.sample(init_)
+            Q = mani_psd.sample(init_)
+            S = mani_skew.sample(init_)
             
-            X_s = torch.empty_like(X_p)
-            init_(X_s)
-            S = X_s - X_s.transpose(-2, -1)
-
-            
-            P_inv = torch.inverse(P)
             A = P_inv @ (-0.5 * Q + S) - self.alpha * self.In
 
             return A
