@@ -1,4 +1,5 @@
 import torch
+import math
 from .psd import PSD
 from .skew import Skew
 from .product import ProductManifold
@@ -10,8 +11,10 @@ from .exceptions import (
     InManifoldError,
 )
 
+
 def get_lyap_exp(A):
     return -torch.max(torch.real(torch.linalg.eigvals(A)))
+
 
 class Hurwitz(ProductManifold):
 
@@ -36,7 +39,7 @@ class Hurwitz(ProductManifold):
                 callable. Default: ``"expm"``
         """
 
-        assert alpha >=0, ValueError(f"alpha must be positive found {alpha}")
+        assert alpha >= 0, ValueError(f"alpha must be positive found {alpha}")
 
         n, tensorial_size = Hurwitz.parse_size(size)
         super().__init__(Hurwitz.manifolds(n, tensorial_size, triv))
@@ -54,22 +57,20 @@ class Hurwitz(ProductManifold):
         if n != k:
             raise NonSquareError(cls.__name__, size)
         return n, tensorial_size
-    
+
     @staticmethod
     def manifolds(n, tensorial_size, triv):
-        size =  tensorial_size + (n, n)
+        size = tensorial_size + (n, n)
         return PSD(size, triv=triv), PSD(size, triv=triv), Skew(size)
-    
 
     def submersion(self, Q, P, S):
-            return P @ (-0.5 * Q + S) - self.alpha * self.In
+        return P @ (-0.5 * Q + S) - self.alpha * self.In
 
     def forward(self, X1, X2, X3):
         Q, P, S = super().forward([X1, X2, X3])
         return self.submersion(Q, P, S)
 
-
-    def submersion_inv(self, A: torch.Tensor, check_in_manifold=True, rho=1, tol = 1e-4):
+    def submersion_inv(self, A: torch.Tensor, check_in_manifold=True, rho=1, tol=1e-4):
         r"""
             Args: 
                 A (torch.Tensor): a square and Hurwitz matrix with eigenvalues lower than -alpha
@@ -84,45 +85,44 @@ class Hurwitz(ProductManifold):
         if check_in_manifold and not self.in_manifold_eigen(A):
             print(f"Enforced alpha = {self.alpha} and given alpha = {get_lyap_exp(A)}")
             raise InManifoldError(get_lyap_exp(A), self.alpha)
-        
+
         with torch.no_grad():
-            A_shifted = A + (self.alpha - tol) * self.In 
+            A_shifted = A + (self.alpha - tol) * self.In
             A_shifted_T = A_shifted.mT.contiguous()
 
             # Batched Kronecker product using vmap for cleaner implementation
             def _single_kron_sum(A_single):
                 I_single = torch.eye(self.n, device=A.device, dtype=A.dtype)
                 return torch.kron(I_single, A_single) + torch.kron(A_single, I_single)
-            
-            flat_batch_size = torch.prod(torch.tensor(self.tensorial_size)) if self.tensorial_size else 1
+
+            flat_batch_size = math.prod(self.tensorial_size)
             A_flat = A_shifted_T.reshape(flat_batch_size, self.n, self.n)
 
             M_flat = torch.vmap(_single_kron_sum)(A_flat)
-            M = M_flat.reshape(*self.tensorial_size, self.n*self.n, self.n*self.n)
+            M = M_flat.reshape(*self.tensorial_size, self.n * self.n, self.n * self.n)
 
-            Q = (rho * self.In)              
+            Q = (rho * self.In)
             flat_Q = Q.flatten(-2, -1)
-
 
             vec_P = torch.linalg.solve(M, -flat_Q.unsqueeze(-1)).squeeze(-1)
             P = vec_P.view(*self.tensorial_size, self.n, self.n)
 
             residual = torch.norm(A.mT @ P + P @ A + 2 * (self.alpha - tol) * P + Q)
-            if residual >=tol:
-                raise ValueError(f"Lyapunov equation ill-conditioned solve failed. \n Residual norm: {torch.norm(residual):.2e}")
+            if residual >= tol:
+                raise ValueError(
+                    f"Lyapunov equation ill-conditioned solve failed. \n Residual norm: {torch.norm(residual):.2e}")
 
-            S = P @ (A + (self.alpha-tol) * self.In) + 0.5 * Q 
+            S = P @ (A + (self.alpha - tol) * self.In) + 0.5 * Q
 
             P_inv = torch.inverse(P)
 
             return Q, P_inv, S
 
-        
     def right_inverse(self, A, check_in_manifold=True):
         Q, P, S = self.submersion_inv(A, check_in_manifold)
         X1, X2, X3 = super().right_inverse([Q, P, S])
         return X1, X2, X3
-    
+
     def in_manifold_eigen(self, A, eps=1e-6):
         r"""
         Check that all eigenvalues have real part lower than -alpha
@@ -130,7 +130,6 @@ class Hurwitz(ProductManifold):
         eig = torch.linalg.eigvals(A)
         reig = torch.real(eig)
         return (reig <= -self.alpha + eps).all().item()
-    
 
     def sample(self, init_=torch.nn.init.xavier_normal_):
         r"""
@@ -159,14 +158,13 @@ class Hurwitz(ProductManifold):
             P = mani_psd.sample(init_)
             Q = mani_psd.sample(init_)
             S = mani_skew.sample(init_)
-            
+
             A = self.submersion(Q, P, S)
             return A
-
 
     def extra_repr(self) -> str:
         print(self.alpha)
         return _extra_repr(
             n=self.n,
             alpha=self.alpha
-            )
+        )
