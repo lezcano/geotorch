@@ -9,6 +9,7 @@ import geotorch.parametrize as P
 from geotorch.skew import Skew
 import geotorch
 
+
 class TestSkew(TestCase):
     def test_backprop(self):
         r"""Test that we may instantiate the parametrizations and
@@ -38,11 +39,11 @@ class TestSkew(TestCase):
             Skew(torch.rand(3, 2).size())
 
         with self.assertRaises(ValueError):
-            Skew((torch.rand(1, 3).size())
-)
+            Skew((torch.rand(1, 3).size()))
+
         # Try to instantiate it in a vector rather than a matrix
         with self.assertRaises(ValueError):
             Skew(torch.rand(4).size())
 
     def test_repr(self):
-        print(Skew((5,5)))
+        print(Skew((5, 5)))

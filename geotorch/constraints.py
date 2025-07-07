@@ -85,7 +85,7 @@ def skew(module, tensor_name="weight", lower=True):
         lower (bool): Optional. Uses the lower triangular part of the matrix to
             parametrize the matrix. Default: ``True``
     """
-    return  _register_manifold(module, tensor_name, Skew, lower)
+    return _register_manifold(module, tensor_name, Skew, lower)
 
 
 def sphere(module, tensor_name="weight", radius=1.0, embedded=False):

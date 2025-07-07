@@ -87,6 +87,7 @@ else:
                 Warning: the parametrization is not checked for consistency upon registration.
                 Enable this flag at your own risk.
         """
+
         original: Tensor
         unsafe: bool
 

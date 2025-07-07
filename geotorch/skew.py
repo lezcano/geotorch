@@ -29,7 +29,7 @@ class Skew(nn.Module):
         if n != k:
             raise NonSquareError(cls.__name__, size)
         return n, tensorial_size
-    
+
     @staticmethod
     def frame(X, lower):
         if lower:
@@ -53,7 +53,7 @@ class Skew(nn.Module):
             return X.tril(-1)
         else:
             return X.triu(1)
-    
+
     @staticmethod
     def in_manifold(X):
         return (
@@ -61,7 +61,7 @@ class Skew(nn.Module):
             and X.size(-2) == X.size(-1)
             and torch.allclose(X, -X.transpose(-2, -1))
         )
-    
+
     def sample(self, init_=nn.init.xavier_normal_, lower=True):
         r"""
         Returns a randomly sampled matrix on the manifold as
@@ -90,8 +90,7 @@ class Skew(nn.Module):
                     Default: ``torch.nn.init.xavier_normal_``
         """
         with torch.no_grad():
-            X = torch.empty(
-                *(self.tensorial_size + (self.n, self.n)))
+            X = torch.empty(*(self.tensorial_size + (self.n, self.n)))
             init_(X)
             if lower:
                 X.tril_(-1)

@@ -3,6 +3,7 @@ In this program we show how to use GeoTorch to compute the maximum eigenvalue
 of a symmetric matrix via the Rayleigh quotient, restricting the optimisation
 problem to the Sphere
 """
+
 import torch
 
 try:

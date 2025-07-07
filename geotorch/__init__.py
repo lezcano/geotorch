@@ -13,7 +13,7 @@ from .constraints import (
     positive_semidefinite,
     positive_semidefinite_low_rank,
     positive_semidefinite_fixed_rank,
-    alpha_stable
+    alpha_stable,
 )
 from .product import ProductManifold
 from .reals import Rn

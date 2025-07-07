@@ -3,6 +3,7 @@ from geotorch.exceptions import NonSquareError, VectorError, InManifoldError
 from geotorch.hurwitz import Hurwitz, get_lyap_exp
 from unittest import TestCase
 import torch
+
 torch.set_default_dtype(torch.float64)
 
 
@@ -77,8 +78,8 @@ class TestHurwitz(TestCase):
 
     def test_extra_repr(self):
         repr_str = self.hurwitz.extra_repr()
-        self.assertIn('n=5', repr_str)
-        self.assertIn('alpha=', repr_str)
+        self.assertIn("n=5", repr_str)
+        self.assertIn("alpha=", repr_str)
 
     def test_sample(self):
         hurwitz = Hurwitz((5, 5), alpha=self.alpha)
@@ -97,13 +98,15 @@ class TestHurwitz(TestCase):
         A_batch = hurwitz_batch.sample()
         hurwitz_batch.alpha = float(get_lyap_exp(A_batch))
         Q, P_inv, S = hurwitz_batch.submersion_inv(A_batch)
-        A_reconstructed = P_inv @ (-0.5 * Q + S) - \
-            (hurwitz_batch.alpha - 1e-6) * torch.eye(2)
+        A_reconstructed = P_inv @ (-0.5 * Q + S) - (
+            hurwitz_batch.alpha - 1e-6
+        ) * torch.eye(2)
 
         self.assertTrue(torch.allclose(A_batch, A_reconstructed, atol=1e-4))
 
     def test_register_hurwitz(self):
         layer = torch.nn.Linear(self.size[-2], self.size[-1])
         geotorch.alpha_stable(layer, "weight", alpha=0.5)
-        self.assertTrue(torch.all(torch.real(
-            torch.linalg.eigvals(layer.weight)) <= -0.5))
+        self.assertTrue(
+            torch.all(torch.real(torch.linalg.eigvals(layer.weight)) <= -0.5)
+        )

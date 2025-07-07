@@ -3,7 +3,6 @@ import math
 from .psd import PSD
 from .skew import Skew
 from .product import ProductManifold
-from .exceptions import VectorError, NonSquareError
 from .utils import _extra_repr
 from .exceptions import (
     VectorError,
@@ -46,7 +45,7 @@ class Hurwitz(ProductManifold):
         self.n = n
         self.tensorial_size = tensorial_size
         self.alpha = alpha
-        self.register_buffer('In', torch.eye(n).expand(*self.tensorial_size, n, n))
+        self.register_buffer("In", torch.eye(n).expand(*self.tensorial_size, n, n))
 
     @classmethod
     def parse_size(cls, size):
@@ -72,14 +71,14 @@ class Hurwitz(ProductManifold):
 
     def submersion_inv(self, A: torch.Tensor, check_in_manifold=True, rho=1, tol=1e-4):
         r"""
-            Args: 
-                A (torch.Tensor): a square and Hurwitz matrix with eigenvalues lower than -alpha
-                check_in_manifold (bool): if set to True we raise an error if the matrix A is not in
-                the manifold
+        Args:
+            A (torch.Tensor): a square and Hurwitz matrix with eigenvalues lower than -alpha
+            check_in_manifold (bool): if set to True we raise an error if the matrix A is not in
+            the manifold
 
-                rho (float): a scaling parameter for the matrix Q = -rho I
+            rho (float): a scaling parameter for the matrix Q = -rho I
 
-                tol (float): a small margin to ensure P is not close to singularity, can be increased if needed
+            tol (float): a small margin to ensure P is not close to singularity, can be increased if needed
 
         """
         if check_in_manifold and not self.in_manifold_eigen(A):
@@ -101,7 +100,7 @@ class Hurwitz(ProductManifold):
             M_flat = torch.vmap(_single_kron_sum)(A_flat)
             M = M_flat.reshape(*self.tensorial_size, self.n * self.n, self.n * self.n)
 
-            Q = (rho * self.In)
+            Q = rho * self.In
             flat_Q = Q.flatten(-2, -1)
 
             vec_P = torch.linalg.solve(M, -flat_Q.unsqueeze(-1)).squeeze(-1)
@@ -110,7 +109,8 @@ class Hurwitz(ProductManifold):
             residual = torch.norm(A.mT @ P + P @ A + 2 * (self.alpha - tol) * P + Q)
             if residual >= tol:
                 raise ValueError(
-                    f"Lyapunov equation ill-conditioned solve failed. \n Residual norm: {torch.norm(residual):.2e}")
+                    f"Lyapunov equation ill-conditioned solve failed. \n Residual norm: {torch.norm(residual):.2e}"
+                )
 
             S = P @ (A + (self.alpha - tol) * self.In) + 0.5 * Q
 
@@ -164,7 +164,4 @@ class Hurwitz(ProductManifold):
 
     def extra_repr(self) -> str:
         print(self.alpha)
-        return _extra_repr(
-            n=self.n,
-            alpha=self.alpha
-        )
+        return _extra_repr(n=self.n, alpha=self.alpha)
