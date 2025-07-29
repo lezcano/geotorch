@@ -15,6 +15,7 @@ from .psd import PSD
 from .pssd import PSSD
 from .pssdlowrank import PSSDLowRank
 from .pssdfixedrank import PSSDFixedRank
+from .hurwitz import Hurwitz
 
 
 def _register_manifold(module, tensor_name, cls, *args):
@@ -84,8 +85,7 @@ def skew(module, tensor_name="weight", lower=True):
         lower (bool): Optional. Uses the lower triangular part of the matrix to
             parametrize the matrix. Default: ``True``
     """
-    P.register_parametrization(module, tensor_name, Skew(lower))
-    return module
+    return _register_manifold(module, tensor_name, Skew, lower)
 
 
 def sphere(module, tensor_name="weight", radius=1.0, embedded=False):
@@ -550,3 +550,29 @@ def positive_semidefinite_fixed_rank(
             a custom callable. Default: ``"expm"``
     """
     return _register_manifold(module, tensor_name, PSSDFixedRank, rank, f, triv)
+
+
+def alpha_stable(module: torch.nn.Module, tensor_name="weight", alpha=1e-3):
+    r"""Adds an :math:`alpha`-stability constraint to the matrix ``module.tensor_name``.
+
+    When accessing ``module.tensor_name``, the module will return the parametrized
+    version :math:`X` so that all of its eigenvalues have a negative real part lower
+    than :math:`-\alpha`, with :math:`\alpha \geq 0`.
+
+    If the tensor has more than two dimensions, the parametrization will be
+    applied to the last two dimensions.
+
+    Examples::
+
+        >>> layer = nn.Linear(30, 30)
+        >>> alpha_stable(layer, "weight", alpha=2)
+        >>> torch.all(torch.real(torch.linalg.eigvals(layer.weight))<=-layer.alpha)
+        True
+
+    Args:
+        module (nn.Module): module on which to register the parametrization
+        tensor_name (string): name of the parameter, buffer, or parametrization
+            on which the parametrization will be applied. Default: ``"weight"``
+        alpha (float): Absolute value of the upper bound on the real part of the eigevenalues of :math: `X`
+    """
+    return _register_manifold(module, tensor_name, Hurwitz, alpha)

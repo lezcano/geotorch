@@ -48,4 +48,7 @@ def _extra_repr(**kwargs):  # noqa: C901
     if "transposed" in kwargs:
         if kwargs["transposed"]:
             ret += ", transposed"
+    if "alpha" in kwargs:
+        ret += ", alpha={}".format(kwargs["alpha"])
+
     return ret

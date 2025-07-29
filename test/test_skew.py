@@ -7,6 +7,7 @@ import torch.nn as nn
 
 import geotorch.parametrize as P
 from geotorch.skew import Skew
+import geotorch
 
 
 class TestSkew(TestCase):
@@ -19,8 +20,7 @@ class TestSkew(TestCase):
 
         for n, lower in itertools.product(sizes, [True, False]):
             layer = nn.Linear(n, n)
-            P.register_parametrization(layer, "weight", Skew(lower=lower))
-
+            geotorch.skew(layer, "weight", lower)
             input_ = torch.rand(5, n)
             optim = torch.optim.SGD(layer.parameters(), lr=1.0)
 
@@ -36,14 +36,14 @@ class TestSkew(TestCase):
     def test_non_square(self):
         # Non-square skew
         with self.assertRaises(ValueError):
-            Skew()(torch.rand(3, 2))
+            Skew(torch.rand(3, 2).size())
 
         with self.assertRaises(ValueError):
-            Skew()(torch.rand(1, 3))
+            Skew((torch.rand(1, 3).size()))
 
         # Try to instantiate it in a vector rather than a matrix
         with self.assertRaises(ValueError):
-            Skew()(torch.rand(4))
+            Skew(torch.rand(4).size())
 
     def test_repr(self):
-        print(Skew())
+        print(Skew((5, 5)))

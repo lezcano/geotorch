@@ -13,6 +13,7 @@ from .constraints import (
     positive_semidefinite,
     positive_semidefinite_low_rank,
     positive_semidefinite_fixed_rank,
+    alpha_stable,
 )
 from .product import ProductManifold
 from .reals import Rn
@@ -31,6 +32,7 @@ from .psd import PSD
 from .pssd import PSSD
 from .pssdfixedrank import PSSDFixedRank
 from .pssdlowrank import PSSDLowRank
+from .hurwitz import Hurwitz
 from .utils import update_base
 
 
@@ -56,6 +58,7 @@ __all__ = [
     "PSSD",
     "PSSDLowRank",
     "PSSDFixedRank",
+    "Hurwitz",
     "skew",
     "symmetric",
     "sphere",
@@ -70,5 +73,6 @@ __all__ = [
     "positive_semidefinite",
     "positive_semidefinite_low_rank",
     "positive_semidefinite_fixed_rank",
+    "alpha_stable",
     "update_base",
 ]
