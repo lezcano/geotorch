@@ -46,6 +46,9 @@ class Hurwitz(ProductManifold):
         self.tensorial_size = tensorial_size
         self.alpha = alpha
         self.register_buffer("In", torch.eye(n).expand(*self.tensorial_size, n, n))
+        self.register_buffer(
+            "alphaIn", self.alpha * torch.eye(n).expand(*self.tensorial_size, n, n)
+        )
 
     @classmethod
     def parse_size(cls, size):
@@ -63,7 +66,7 @@ class Hurwitz(ProductManifold):
         return PSD(size, triv=triv), PSD(size, triv=triv), Skew(size)
 
     def submersion(self, Q, P, S):
-        return P @ (-0.5 * Q + S) - self.alpha * self.In
+        return P @ torch.add(S, Q, alpha=-0.5) - self.alphaIn
 
     def forward(self, X1, X2, X3):
         Q, P, S = super().forward([X1, X2, X3])
