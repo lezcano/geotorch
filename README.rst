@@ -211,8 +211,8 @@ Please cite the following work if you found GeoTorch useful. This paper exposes 
     }
 
 
-.. |Build| image:: https://github.com/lezcano/geotorch/workflows/Build/badge.svg
-   :target: https://github.com/lezcano/geotorch/workflows/Build/badge.svg
+.. |Build| image:: https://github.com/lezcano/geotorch/actions/workflows/build.yml/badge.svg
+   :target: https://github.com/lezcano/geotorch/actions/workflows/build.yml
    :alt: Build
 .. |Docs| image:: https://readthedocs.org/projects/geotorch/badge/?version=latest
    :target: https://geotorch.readthedocs.io/en/latest/?badge=latest
