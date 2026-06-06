@@ -1,4 +1,5 @@
 import torch
+from torch.nn import functional as F
 
 from .utils import transpose, _extra_repr
 from .so import SO, _has_orthonormal_columns
@@ -34,8 +35,7 @@ class Stiefel(SO):
 
     def frame(self, X):
         n, k = X.size(-2), X.size(-1)
-        size_z = X.size()[:-2] + (n, n - k)
-        return torch.cat([X, X.new_zeros(*size_z)], dim=-1)
+        return F.pad(X, (0, n - k))
 
     @transpose
     def forward(self, X):

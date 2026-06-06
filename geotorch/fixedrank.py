@@ -119,7 +119,4 @@ class FixedRank(LowRank):
             return U, S, V
         else:
             # Compute U S V^T efficiently
-            if self.transposed:
-                return (U * S.unsqueeze(-2)) @ V.transpose(-2, -1)
-            else:
-                return U @ (S.unsqueeze(-1) * V.transpose(-2, -1))
+            return (U * S.unsqueeze(-2)) @ V.mT

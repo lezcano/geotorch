@@ -135,11 +135,7 @@ class SO(nn.Module):
                     `torch.init <https://pytorch.org/docs/stable/nn.init.html>`_.
                     Default: :math:`\operatorname{Uniform}(-\pi, \pi)`
         """
-        device = self.base.device
-        dtype = self.base.dtype
-        ret = torch.empty(
-            *(self.tensorial_size + (self.n, self.n)), device=device, dtype=dtype
-        )
+        ret = self.base.new_empty(self.tensorial_size + (self.n, self.n))
         if distribution == "uniform":
             uniform_init_(ret)
         elif distribution == "torus":

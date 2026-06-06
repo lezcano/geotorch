@@ -152,9 +152,7 @@ class Sphere(nn.Module):
         r"""
         Returns a uniformly sampled vector on the sphere.
         """
-        device = self.base.device
-        dtype = self.base.dtype
-        x = torch.empty(*(self.tensorial_size) + (self.n,), device=device, dtype=dtype)
+        x = self.base.new_empty(self.tensorial_size + (self.n,))
         return uniform_init_sphere_(x, r=self.radius)
 
     def extra_repr(self):

@@ -118,7 +118,7 @@ class Model(nn.Module):
         return torch.stack(outputs, dim=1)
 
     def loss(self, logits, y):
-        return self.loss_func(logits.view(-1, 9), y.view(-1))
+        return self.loss_func(logits.flatten(0, 1), y.flatten())
 
     def accuracy(self, logits, y):
         return torch.eq(torch.argmax(logits, dim=2), y).float().mean()
@@ -155,10 +155,9 @@ def main():
     model = Model(alphabet_size, hidden_size).to(device)
 
     p_orth = model.rnn.recurrent_kernel
-    orth_params = p_orth.parameters()
-    non_orth_params = (
-        p for p in model.parameters() if p not in set(p_orth.parameters())
-    )
+    orth_params = list(p_orth.parameters())
+    orth_params_set = set(orth_params)
+    non_orth_params = [p for p in model.parameters() if p not in orth_params_set]
 
     if RGD:
         # Implement Stochstic Riemannian Gradient Descent via SGD

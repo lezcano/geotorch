@@ -1,4 +1,4 @@
-import torch
+from torch.nn import functional as F
 
 from .stiefel import Stiefel
 
@@ -20,8 +20,5 @@ class Grassmannian(Stiefel):
         super().__init__(size=size, triv=triv)
 
     def frame(self, X):
-        k = X.size(-1)
-        size_z = X.size()[:-2] + (k, k)
-        Z = X.new_zeros(*size_z)
-        X = torch.cat([Z, X[..., k:, :]], dim=-2)
-        return super().frame(X)
+        n, k = X.size(-2), X.size(-1)
+        return F.pad(X[..., k:, :], (0, n - k, k, 0))

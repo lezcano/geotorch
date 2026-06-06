@@ -129,10 +129,10 @@ class SymF(ProductManifold):
 
     def frame_inv(self, X1, X2):
         size = self.tensorial_size + (self.n, self.n)
-        ret = torch.zeros(*size, dtype=X1.dtype, device=X1.device)
+        ret = X1.new_zeros(size)
         with torch.no_grad():
-            ret[..., : self.rank] += X1
-            ret[..., : self.rank, : self.rank] += torch.diag_embed(X2)
+            ret[..., : self.rank].copy_(X1)
+            ret.diagonal(dim1=-2, dim2=-1)[..., : self.rank].add_(X2)
         return ret
 
     def submersion_inv(self, X, check_in_manifold=True):
@@ -215,11 +215,7 @@ class SymF(ProductManifold):
                     Default: ``torch.nn.init.xavier_normal_``
         """
         with torch.no_grad():
-            device = self[0].base.device
-            dtype = self[0].base.dtype
-            X = torch.empty(
-                *(self.tensorial_size + (self.n, self.n)), device=device, dtype=dtype
-            )
+            X = self[0].base.new_empty(self.tensorial_size + (self.n, self.n))
             init_(X)
             X = X @ X.transpose(-2, -1)
             L, Q = torch.linalg.eigh(X)

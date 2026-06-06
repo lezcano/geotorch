@@ -24,7 +24,7 @@ class Model(nn.Module):
 
     def forward(self, A):
         x = self.x
-        return x @ A @ x
+        return torch.linalg.multi_dot((x, A, x))
 
 
 # Generate matrix

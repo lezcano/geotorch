@@ -71,10 +71,10 @@ class LowRank(ProductManifold):
             # X2 is a vector
             # X3 is lower-triangular
             size = self.tensorial_size + (self.n, self.k)
-            ret = torch.zeros(size, dtype=X1.dtype, device=X1.device)
-            ret[..., : self.rank] += X1
-            ret[..., : self.rank, : self.rank] += torch.diag_embed(X2)
-            ret.transpose(-2, -1)[..., : self.rank] += X3
+            ret = X1.new_zeros(size)
+            ret[..., : self.rank].copy_(X1)
+            ret.diagonal(dim1=-2, dim2=-1)[..., : self.rank].add_(X2)
+            ret.mT[..., : self.rank].add_(X3)
         return ret
 
     def submersion_inv(self, X, check_in_manifold=True):
@@ -147,11 +147,7 @@ class LowRank(ProductManifold):
                     Default: ``torch.nn.init.xavier_normal_``
         """
         with torch.no_grad():
-            device = self[0].base.device
-            dtype = self[0].base.dtype
-            X = torch.empty(
-                *(self.tensorial_size + (self.n, self.k)), device=device, dtype=dtype
-            )
+            X = self[0].base.new_empty(self.tensorial_size + (self.n, self.k))
             init_(X)
             U, S, Vt = torch.linalg.svd(X, full_matrices=False)
             U, S, Vt = U[..., : self.rank], S[..., : self.rank], Vt[..., : self.rank, :]
