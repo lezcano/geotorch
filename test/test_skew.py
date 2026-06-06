@@ -4,8 +4,8 @@ import itertools
 
 import torch
 import torch.nn as nn
+from torch.nn.utils import parametrize
 
-import geotorch.parametrize as P
 from geotorch.skew import Skew
 import geotorch
 
@@ -26,7 +26,7 @@ class TestSkew(TestCase):
 
             # Assert that is stays in Skew(n) after some optimiser steps
             for _ in range(2):
-                with P.cached():
+                with parametrize.cached():
                     self.assertTrue(Skew.in_manifold(layer.weight))
                     loss = layer(input_).sum()
                 optim.zero_grad()
@@ -47,3 +47,9 @@ class TestSkew(TestCase):
 
     def test_repr(self):
         print(Skew((5, 5)))
+
+    def test_sample_uses_module_dtype(self):
+        manifold = Skew((2, 3, 3)).double()
+        sample = manifold.sample()
+        self.assertEqual(sample.dtype, torch.float64)
+        self.assertEqual(sample.shape, (2, 3, 3))

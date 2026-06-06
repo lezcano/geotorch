@@ -1,5 +1,5 @@
 import torch
-import geotorch.parametrize as P
+from torch.nn.utils import parametrize
 
 from .symmetric import Symmetric
 from .skew import Skew
@@ -24,13 +24,13 @@ def _register_manifold(module, tensor_name, cls, *args):
 
     # Initialize without checking in manifold
     X = M.sample()
-    if not P.is_parametrized(module, tensor_name):
+    if not parametrize.is_parametrized(module, tensor_name):
         with torch.no_grad():
             tensor.copy_(X)
     else:
         setattr(module, tensor_name, X)
 
-    P.register_parametrization(module, tensor_name, M, unsafe=True)
+    parametrize.register_parametrization(module, tensor_name, M, unsafe=True)
 
     return module
 
@@ -58,7 +58,7 @@ def symmetric(module, tensor_name="weight", lower=True):
         lower (bool): Optional. Uses the lower triangular part of the matrix to
             parametrize the matrix. Default: ``True``
     """
-    P.register_parametrization(module, tensor_name, Symmetric(lower))
+    parametrize.register_parametrization(module, tensor_name, Symmetric(lower))
     return module
 
 
@@ -101,10 +101,10 @@ def sphere(module, tensor_name="weight", radius=1.0, embedded=False):
 
         >>> layer = nn.Linear(20, 30)
         >>> geotorch.sphere(layer, "bias")
-        >>> torch.norm(layer.bias)
+        >>> torch.linalg.vector_norm(layer.bias)
         tensor(1.)
         >>> geotorch.sphere(layer, "weight")  # Make the columns unit norm
-        >>> torch.allclose(torch.norm(layer.weight, dim=-1), torch.ones(30))
+        >>> torch.allclose(torch.linalg.vector_norm(layer.weight, dim=-1), torch.ones(30))
         True
 
     Args:
@@ -135,12 +135,12 @@ def orthogonal(module, tensor_name="weight", triv="expm"):
 
         >>> layer = nn.Linear(20, 30)
         >>> geotorch.orthogonal(layer, "weight")
-        >>> torch.norm(layer.weight.T @ layer.weight - torch.eye(20,20))
+        >>> torch.linalg.matrix_norm(layer.weight.T @ layer.weight - torch.eye(20,20))
         tensor(4.8488e-05)
 
         >>> layer = nn.Conv2d(20, 40, 3, 3)  # Make the kernels orthogonal
         >>> geotorch.orthogonal(layer, "weight")
-        >>> torch.norm(layer.weight.transpose(-2, -1) @ layer.weight - torch.eye(3,3))
+        >>> torch.linalg.matrix_norm(layer.weight.transpose(-2, -1) @ layer.weight - torch.eye(3,3))
         tensor(1.2225e-05)
 
     Args:
@@ -221,12 +221,12 @@ def grassmannian(module, tensor_name="weight", triv="expm"):
 
         >>> layer = nn.Linear(20, 30)
         >>> geotorch.grassmannian(layer, "weight")
-        >>> torch.norm(layer.weight.t() @ layer.weight - torch.eye(20,20))
+        >>> torch.linalg.matrix_norm(layer.weight.t() @ layer.weight - torch.eye(20,20))
         tensor(1.8933e-05)
 
         >>> layer = nn.Conv2d(20, 40, 3, 3)  # Make the kernels represent subspaces
         >>> geotorch.grassmannian(layer, "weight")
-        >>> torch.norm(layer.weight.transpose(-2, -1) @ layer.weight - torch.eye(3,3))
+        >>> torch.linalg.matrix_norm(layer.weight.transpose(-2, -1) @ layer.weight - torch.eye(3,3))
         tensor(8.3796-06)
 
     Args:
@@ -566,8 +566,8 @@ def alpha_stable(module: torch.nn.Module, tensor_name="weight", alpha=1e-3):
 
         >>> layer = nn.Linear(30, 30)
         >>> alpha_stable(layer, "weight", alpha=2)
-        >>> torch.all(torch.real(torch.linalg.eigvals(layer.weight))<=-layer.alpha)
-        True
+        >>> torch.all(torch.linalg.eigvals(layer.weight).real <= -2)
+        tensor(True)
 
     Args:
         module (nn.Module): module on which to register the parametrization

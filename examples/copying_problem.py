@@ -20,6 +20,7 @@ dynamics account for using SGD as the optimizer calling `update_basis()` after e
 import torch
 from torch import nn
 import torch.nn.functional as F
+from torch.nn.utils import parametrize
 
 import geotorch
 
@@ -47,11 +48,12 @@ class modrelu(nn.Module):
     def __init__(self, features):
         super(modrelu, self).__init__()
         self.features = features
-        self.b = nn.Parameter(torch.Tensor(self.features))
+        self.b = nn.Parameter(torch.empty(self.features))
         self.reset_parameters()
 
     def reset_parameters(self):
-        self.b.data.uniform_(-0.01, 0.01)
+        with torch.no_grad():
+            self.b.uniform_(-0.01, 0.01)
 
     def forward(self, inputs):
         norm = torch.abs(inputs)
@@ -77,7 +79,7 @@ class ExpRNNCell(nn.Module):
         self.reset_parameters()
 
     def reset_parameters(self):
-        nn.init.kaiming_normal_(self.input_kernel.weight.data, nonlinearity="relu")
+        nn.init.kaiming_normal_(self.input_kernel.weight, nonlinearity="relu")
         # The manifold class is under `layer.parametrizations.tensor_name[0]`
         M = self.recurrent_kernel.parametrizations.weight[0]
         # Every manifold has a convenience sample method, but you can use your own initializer
@@ -103,13 +105,13 @@ class Model(nn.Module):
         self.reset_parameters()
 
     def reset_parameters(self):
-        nn.init.kaiming_normal_(self.lin.weight.data, nonlinearity="relu")
-        nn.init.constant_(self.lin.bias.data, 0)
+        nn.init.kaiming_normal_(self.lin.weight, nonlinearity="relu")
+        nn.init.constant_(self.lin.bias, 0)
 
     def forward(self, inputs):
         out_rnn = self.rnn.default_hidden(inputs[:, 0, ...])
         outputs = []
-        with geotorch.parametrize.cached():
+        with parametrize.cached():
             for input in torch.unbind(inputs, dim=1):
                 out_rnn = self.rnn(input, out_rnn)
                 outputs.append(self.lin(out_rnn))

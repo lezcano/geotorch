@@ -9,7 +9,7 @@ def softplus_epsilon(x, epsilon=1e-6):
 
 def inv_softplus_epsilon(x, epsilon=1e-6):
     y = x - epsilon
-    return torch.where(y > 20, y, y.expm1().log())
+    return y + (-y).expm1().neg().log()
 
 
 class FixedRank(LowRank):
@@ -84,10 +84,8 @@ class FixedRank(LowRank):
         """
         if not super().in_manifold_singular_values(S, eps):
             return False
-        # We compute the \infty-norm of the eigenvalues
         D = S[..., : self.rank]
-        infty_norm = D.abs().max(dim=-1).values
-        return (infty_norm > eps).all().item()
+        return (D > eps).all().item()
 
     def sample(self, init_=torch.nn.init.xavier_normal_, eps=5e-6, factorized=False):
         r"""
@@ -102,7 +100,7 @@ class FixedRank(LowRank):
 
             >>> layer = nn.Linear(20, 20)
             >>> M = FixedRank(layer.weight.size(), rank=6)
-            >>> geotorch.register_parametrization(layer, "weight", M)
+            >>> torch.nn.utils.parametrize.register_parametrization(layer, "weight", M)
             >>> layer.weight = M.sample()
 
         Args:

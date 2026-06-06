@@ -35,7 +35,6 @@ from .pssdlowrank import PSSDLowRank
 from .hurwitz import Hurwitz
 from .utils import update_base
 
-
 __version__ = "0.3.0"
 
 

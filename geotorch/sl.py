@@ -1,6 +1,7 @@
 import torch
 from .glp import GLp
 from .fixedrank import FixedRank
+from .exceptions import InManifoldError
 
 
 class SL(GLp):
@@ -35,18 +36,25 @@ class SL(GLp):
 
             def f_sl(x):
                 y = f(x)
-                return y / y.prod(dim=-1, keepdim=True).pow(1.0 / y.shape[-1])
+                log_y = y.log()
+                return (log_y - log_y.mean(dim=-1, keepdim=True)).exp()
 
             return (f_sl, inv)
         else:
             return f_name
 
     def in_manifold_singular_values(self, S, eps=5e-3):
-        if not super().in_manifold_singular_values(S, eps):
+        rank_eps = torch.finfo(S.dtype).eps * max(self.n, self.k)
+        if not super().in_manifold_singular_values(S, rank_eps):
             return False
-        # We compute the \infty-norm of the determinant minus 1 and should be about zero
-        infty_norm = (S.prod(dim=-1) - 1).abs().max(dim=-1).values
-        return (infty_norm < eps).all().item()
+        eps = max(eps, 8 * rank_eps**0.5)
+        logabsdet = S.log().sum(dim=-1).abs()
+        return (logabsdet < eps).all().item()
+
+    def submersion_inv(self, X, check_in_manifold=True):
+        if check_in_manifold and not self.in_manifold(X):
+            raise InManifoldError(X, self)
+        return super().submersion_inv(X, check_in_manifold=False)
 
     def in_manifold(self, X, eps=5e-3):
         r"""
@@ -58,8 +66,14 @@ class SL(GLp):
                     considered to be zero
                     Default: ``5e-3``
         """
-        # The purpose of this function is just to have a more lax default eps value
-        return super().in_manifold(X, eps)
+        if X.size() != self.tensorial_size + (self.n, self.k):
+            return False
+        sign, logabsdet = torch.linalg.slogdet(X)
+        eps = max(
+            eps,
+            8 * (torch.finfo(X.dtype).eps * max(self.n, self.k)) ** 0.5,
+        )
+        return ((sign > 0) & (logabsdet.abs() < eps)).all().item()
 
     def sample(self, init_=torch.nn.init.xavier_normal_, eps=5e-6, factorized=False):
         r"""
@@ -71,7 +85,7 @@ class SL(GLp):
 
             >>> layer = nn.Linear(20, 20)
             >>> M = SL(layer.weight.size(), rank=6)
-            >>> geotorch.register_parametrization(layer, "weight", M)
+            >>> torch.nn.utils.parametrize.register_parametrization(layer, "weight", M)
             >>> layer.weight = M.sample()
 
         Args:
@@ -82,8 +96,17 @@ class SL(GLp):
             eps (float): Optional. Minimum singular value of the sampled matrix.
                     Default: ``5e-6``
         """
-        U, S, V = super().sample(factorized=True, init_=init_)
+        U, S, V = super().sample(factorized=True, init_=init_, eps=eps)
         with torch.no_grad():
-            # S >= 0, as given by torch.linalg.eigvalsh()
-            S = S / S.prod(dim=-1, keepdim=True).pow(1.0 / S.shape[-1])
-        return (U * S.unsqueeze(-2)) @ V.transpose(-2, -1)
+            min_singular_value = max(
+                eps,
+                (torch.finfo(S.dtype).eps * max(self.n, self.k)) ** 0.5,
+            )
+            S.clamp_min_(min_singular_value)
+            log_S = S.log()
+            S = (log_S - log_S.mean(dim=-1, keepdim=True)).exp()
+            X = (U * S.unsqueeze(-2)) @ V.transpose(-2, -1)
+            sign, logabsdet = torch.linalg.slogdet(X)
+            X[..., :, 0] *= sign.unsqueeze(-1)
+            X *= (-logabsdet / self.n).exp().unsqueeze(-1).unsqueeze(-1)
+        return X

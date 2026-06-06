@@ -204,7 +204,7 @@ class SymF(ProductManifold):
 
             >>> layer = nn.Linear(20, 20)
             >>> M = PSSD(layer.weight.size())
-            >>> geotorch.register_parametrization(layer, "weight", M)
+            >>> torch.nn.utils.parametrize.register_parametrization(layer, "weight", M)
             >>> layer.weight = M.sample()
 
         Args:

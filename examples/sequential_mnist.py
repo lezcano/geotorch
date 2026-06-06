@@ -13,6 +13,7 @@ Lines 167-176 show how to assign different learning rates to parametrized weight
 
 import torch
 import torch.nn as nn
+from torch.nn.utils import parametrize
 import math
 import argparse
 from torchvision import datasets, transforms
@@ -55,11 +56,12 @@ class modrelu(nn.Module):
     def __init__(self, features):
         super(modrelu, self).__init__()
         self.features = features
-        self.b = nn.Parameter(torch.Tensor(self.features))
+        self.b = nn.Parameter(torch.empty(self.features))
         self.reset_parameters()
 
     def reset_parameters(self):
-        self.b.data.uniform_(-0.01, 0.01)
+        with torch.no_grad():
+            self.b.uniform_(-0.01, 0.01)
 
     def forward(self, inputs):
         norm = torch.abs(inputs)
@@ -92,15 +94,15 @@ class ExpRNNCell(nn.Module):
         self.reset_parameters()
 
     def reset_parameters(self):
-        nn.init.kaiming_normal_(self.input_kernel.weight.data, nonlinearity="relu")
+        nn.init.kaiming_normal_(self.input_kernel.weight, nonlinearity="relu")
 
         # Initialize the recurrent kernel à la Cayley, as having a block-diagonal matrix
         # seems to help in classification problems
 
         def init_(x):
             x.uniform_(0.0, math.pi / 2.0)
-            c = torch.cos(x.data)
-            x.data = -torch.sqrt((1.0 - c) / (1.0 + c))
+            c = torch.cos(x)
+            x.copy_(-torch.sqrt((1.0 - c) / (1.0 + c)))
 
         K = self.recurrent_kernel
         # We initialize it by assigning directly to it from a sampler
@@ -130,7 +132,7 @@ class Model(nn.Module):
         if self.permute:
             inputs = inputs[:, self.permutation]
         out_rnn = self.rnn.default_hidden(inputs[:, 0, ...])
-        with geotorch.parametrize.cached():
+        with parametrize.cached():
             for input in torch.unbind(inputs, dim=1):
                 out_rnn = self.rnn(input.unsqueeze(dim=1), out_rnn)
         return self.lin(out_rnn)
@@ -154,11 +156,11 @@ def main():
         datasets.MNIST(
             "./mnist", train=True, download=True, transform=transforms.ToTensor()
         ),
-        **kwargs
+        **kwargs,
     )
     test_loader = torch.utils.data.DataLoader(
         datasets.MNIST("./mnist", train=False, transform=transforms.ToTensor()),
-        **kwargs
+        **kwargs,
     )
 
     # Model and optimizers

@@ -137,7 +137,7 @@ class LowRank(ProductManifold):
 
             >>> layer = nn.Linear(20, 20)
             >>> M = LowRank(layer.weight.size(), rank=6)
-            >>> geotorch.register_parametrization(layer, "weight", M)
+            >>> torch.nn.utils.parametrize.register_parametrization(layer, "weight", M)
             >>> layer.weight = M.sample()
 
         Args:

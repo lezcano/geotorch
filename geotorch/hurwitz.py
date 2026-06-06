@@ -12,7 +12,7 @@ from .exceptions import (
 
 
 def get_lyap_exp(A):
-    return -torch.max(torch.real(torch.linalg.eigvals(A)))
+    return -torch.linalg.eigvals(A).real.max()
 
 
 class Hurwitz(ProductManifold):
@@ -38,17 +38,15 @@ class Hurwitz(ProductManifold):
                 callable. Default: ``"expm"``
         """
 
-        assert alpha >= 0, ValueError(f"alpha must be positive found {alpha}")
+        if alpha < 0:
+            raise ValueError(f"alpha must be non-negative, found {alpha}")
 
         n, tensorial_size = Hurwitz.parse_size(size)
         super().__init__(Hurwitz.manifolds(n, tensorial_size, triv))
         self.n = n
         self.tensorial_size = tensorial_size
-        self.alpha = alpha
         self.register_buffer("In", torch.eye(n).expand(*self.tensorial_size, n, n))
-        self.register_buffer(
-            "alphaIn", self.alpha * torch.eye(n).expand(*self.tensorial_size, n, n)
-        )
+        self.register_buffer("alpha", torch.as_tensor(alpha))
 
     @classmethod
     def parse_size(cls, size):
@@ -66,7 +64,7 @@ class Hurwitz(ProductManifold):
         return PSD(size, triv=triv), PSD(size, triv=triv), Skew(size)
 
     def submersion(self, Q, P, S):
-        return P @ torch.add(S, Q, alpha=-0.5) - self.alphaIn
+        return P @ torch.add(S, Q, alpha=-0.5) - self.alpha * self.In
 
     def forward(self, X1, X2, X3):
         Q, P, S = super().forward([X1, X2, X3])
@@ -85,11 +83,10 @@ class Hurwitz(ProductManifold):
 
         """
         if check_in_manifold and not self.in_manifold_eigen(A):
-            print(f"Enforced alpha = {self.alpha} and given alpha = {get_lyap_exp(A)}")
-            raise InManifoldError(get_lyap_exp(A), self.alpha)
+            raise InManifoldError(A, self)
 
         with torch.no_grad():
-            A_shifted = A + (self.alpha - tol) * self.In
+            A_shifted = A + self.alpha * self.In
             A_shifted_T = A_shifted.mT.contiguous()
 
             # Batched Kronecker product using vmap for cleaner implementation
@@ -109,15 +106,18 @@ class Hurwitz(ProductManifold):
             vec_P = torch.linalg.solve(M, -flat_Q.unsqueeze(-1)).squeeze(-1)
             P = vec_P.view(*self.tensorial_size, self.n, self.n)
 
-            residual = torch.norm(A.mT @ P + P @ A + 2 * (self.alpha - tol) * P + Q)
+            residual = torch.linalg.vector_norm(
+                A.mT @ P + P @ A + 2 * self.alpha * P + Q
+            )
             if residual >= tol:
                 raise ValueError(
-                    f"Lyapunov equation ill-conditioned solve failed. \n Residual norm: {torch.norm(residual):.2e}"
+                    "Lyapunov equation ill-conditioned solve failed. "
+                    f"Residual norm: {residual:.2e}"
                 )
 
-            S = P @ (A + (self.alpha - tol) * self.In) + 0.5 * Q
+            S = P @ A_shifted + 0.5 * Q
 
-            P_inv = torch.inverse(P)
+            P_inv = torch.linalg.inv(P)
 
             return Q, P_inv, S
 
@@ -140,13 +140,14 @@ class Hurwitz(ProductManifold):
 
         .. math::
             A = P^{-1}(-Q/2 + S) - \alpha I
-        with :math:`P^{-1}_{i,j}, Q_{i,j}, S_{i,j} \sim \texttt{init_}`
+        The positive-definite factors are shifted by the identity to keep the
+        sample away from the boundary of the Hurwitz matrices.
 
         The output of this method can be used to initialize a parametrized tensor as::
 
             >>> layer = nn.Linear(20, 20)
             >>> M = Hurwitz(layer.weight.size(), alpha=0.5)
-            >>> geotorch.register_parametrization(layer, "weight", M)
+            >>> torch.nn.utils.parametrize.register_parametrization(layer, "weight", M)
             >>> layer.weight = M.sample()
 
         Args:
@@ -154,17 +155,12 @@ class Hurwitz(ProductManifold):
                             Default: ``torch.nn.init.xavier_normal_``
         """
         with torch.no_grad():
-
-            mani_psd = PSD((self.n, self.n))
-            mani_skew = Skew((self.n, self.n))
-
-            P = mani_psd.sample(init_)
-            Q = mani_psd.sample(init_)
-            S = mani_skew.sample(init_)
+            P = self[0].sample(init_) + self.In
+            Q = self[1].sample(init_) + self.In
+            S = self[2](init_(torch.empty_like(P)))
 
             A = self.submersion(Q, P, S)
             return A
 
     def extra_repr(self) -> str:
-        print(self.alpha)
         return _extra_repr(n=self.n, alpha=self.alpha)

@@ -6,7 +6,7 @@ from .utils import _extra_repr
 
 
 def project(x):
-    return x / x.norm(dim=-1, keepdim=True)
+    return x / torch.linalg.vector_norm(x, dim=-1, keepdim=True)
 
 
 def uniform_init_sphere_(x, r=1.0):
@@ -16,34 +16,14 @@ def uniform_init_sphere_(x, r=1.0):
     """
     with torch.no_grad():
         x.normal_()
-        x.data = r * project(x)
+        x.copy_(r * project(x))
     return x
 
 
 def _in_sphere(x, r, eps):
-    norm = x.norm(dim=-1)
+    norm = torch.linalg.vector_norm(x, dim=-1)
     rs = torch.full_like(norm, r)
-    return (torch.norm(norm - rs, p=float("inf")) < eps).all()
-
-
-class sinc_class(torch.autograd.Function):
-    @staticmethod
-    def forward(ctx, x):
-        ctx.save_for_backward(x)
-        # Hardocoded for float, will do for now
-        ret = torch.sin(x) / x
-        ret[x.abs() < 1e-45] = 1.0
-        return ret
-
-    @staticmethod
-    def backward(ctx, grad_output):
-        (x,) = ctx.saved_tensors
-        ret = torch.cos(x) / x - torch.sin(x) / (x * x)
-        ret[x.abs() < 1e-10] = 0.0
-        return ret * grad_output
-
-
-sinc = sinc_class.apply
+    return (torch.linalg.vector_norm(norm - rs, ord=float("inf")) < eps).all()
 
 
 class SphereEmbedded(nn.Module):
@@ -62,6 +42,7 @@ class SphereEmbedded(nn.Module):
         self.n = size[-1]
         self.tensorial_size = size[:-1]
         self.radius = SphereEmbedded.parse_radius(radius)
+        self.register_buffer("_reference", torch.empty(0), persistent=False)
 
     @staticmethod
     def parse_radius(radius):
@@ -97,7 +78,7 @@ class SphereEmbedded(nn.Module):
         r"""
         Returns a uniformly sampled vector on the sphere.
         """
-        x = torch.empty(*(self.tensorial_size) + (self.n,))
+        x = self._reference.new_empty(self.tensorial_size + (self.n,))
         return uniform_init_sphere_(x, r=self.radius)
 
     def extra_repr(self):
@@ -132,7 +113,7 @@ class Sphere(nn.Module):
         return radius
 
     def frame(self, x, v):
-        projection = (v.unsqueeze(-2) @ x.unsqueeze(-1)).squeeze(-1)
+        projection = (v * x).sum(dim=-1, keepdim=True)
         v = v - projection * x
         return v
 
@@ -140,8 +121,10 @@ class Sphere(nn.Module):
         x = self.base
         # Project v onto {<x,v> = 0}
         v = self.frame(x, v)
-        vnorm = v.norm(dim=-1, keepdim=True)
-        return self.radius * (torch.cos(vnorm) * x + sinc(vnorm) * v)
+        vnorm = torch.linalg.vector_norm(v, dim=-1, keepdim=True)
+        return self.radius * (
+            torch.cos(vnorm) * x + torch.special.sinc(vnorm / torch.pi) * v
+        )
 
     def right_inverse(self, x, check_in_manifold=True):
         if check_in_manifold and not self.in_manifold(x):

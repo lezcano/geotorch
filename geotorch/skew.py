@@ -19,6 +19,7 @@ class Skew(nn.Module):
         self.n = n
         self.tensorial_size = tensorial_size
         self.lower = lower
+        self.register_buffer("_reference", torch.empty(0), persistent=False)
 
     @classmethod
     def parse_size(cls, size):
@@ -79,7 +80,7 @@ class Skew(nn.Module):
 
             >>> layer = nn.Linear(20, 20)
             >>> M = Skew(layer.weight.size())
-            >>> geotorch.register_parametrization(layer, "weight", M)
+            >>> torch.nn.utils.parametrize.register_parametrization(layer, "weight", M)
             >>> layer.weight = M.sample()
 
         Args:
@@ -90,7 +91,7 @@ class Skew(nn.Module):
                     Default: ``torch.nn.init.xavier_normal_``
         """
         with torch.no_grad():
-            X = torch.empty(*(self.tensorial_size + (self.n, self.n)))
+            X = self._reference.new_empty(self.tensorial_size + (self.n, self.n))
             init_(X)
             if lower:
                 X.tril_(-1)

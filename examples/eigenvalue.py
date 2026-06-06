@@ -6,15 +6,6 @@ problem to the Sphere
 
 import torch
 
-try:
-    from torch.linalg import eigvalsh
-except ImportError:
-    from torch import symeig
-
-    def eigvalsh(X):
-        return symeig(X, eigenvectors=False).eigenvalues
-
-
 from torch import nn
 import geotorch
 
@@ -33,7 +24,7 @@ class Model(nn.Module):
 
     def forward(self, A):
         x = self.x
-        return x.T @ A @ x
+        return x @ A @ x
 
 
 # Generate matrix
@@ -41,7 +32,7 @@ A = torch.rand(N, N)  # Uniform on [0, 1)
 A = 0.5 * (A + A.T)
 
 # Compare against diagonalization (eigenvalues are returend in ascending order)
-max_eigenvalue = eigvalsh(A)[-1]
+max_eigenvalue = torch.linalg.eigvalsh(A)[-1]
 print("Max eigenvalue: {:10.5f}".format(max_eigenvalue))
 
 # Instantiate model and optimiser
