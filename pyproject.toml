@@ -1,0 +1,63 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "geotorch"
+dynamic = ["version"]
+description = "Constrained optimization and manifold optimization in PyTorch"
+readme = "README.rst"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [
+    {name = "Mario Lezcano Casado", email = "lezcano-93@hotmail.com"},
+]
+keywords = [
+    "constrained optimization",
+    "manifold optimization",
+    "PyTorch",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Mathematics",
+]
+dependencies = ["torch>=2.6"]
+
+[project.optional-dependencies]
+test = [
+    "pytest",
+    "pytest-xdist",
+]
+dev = [
+    "black",
+    "flake8",
+    "pytest",
+    "pytest-cov",
+    "pytest-xdist",
+    "sphinx",
+    "sphinx-autodoc-typehints",
+    "sphinx-rtd-theme",
+    "sphinxcontrib-spelling",
+]
+
+[project.urls]
+Documentation = "https://geotorch.readthedocs.io/"
+Repository = "https://github.com/Lezcano/geotorch"
+
+[tool.setuptools.dynamic]
+version = {attr = "geotorch.__version__"}
+
+[tool.setuptools.packages.find]
+include = ["geotorch*"]
+exclude = ["examples*", "test*"]
