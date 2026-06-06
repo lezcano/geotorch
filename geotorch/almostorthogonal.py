@@ -5,11 +5,11 @@ from .utils import _extra_repr
 
 
 def scaled_sigmoid(t):
-    return 2.0 * (torch.sigmoid(t) - 0.5)
+    return torch.tanh(0.5 * t)
 
 
 def inv_scaled_sigmoid(t):
-    return torch.logit(0.5 * t + 0.5)
+    return 2.0 * torch.atanh(t)
 
 
 class AlmostOrthogonal(LowRank):

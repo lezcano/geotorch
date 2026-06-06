@@ -100,9 +100,7 @@ class ExpRNNCell(nn.Module):
         # seems to help in classification problems
 
         def init_(x):
-            x.uniform_(0.0, math.pi / 2.0)
-            c = torch.cos(x)
-            x.copy_(-torch.sqrt((1.0 - c) / (1.0 + c)))
+            x.uniform_(0.0, math.pi / 2.0).mul_(0.5).tan_().neg_()
 
         K = self.recurrent_kernel
         # We initialize it by assigning directly to it from a sampler
