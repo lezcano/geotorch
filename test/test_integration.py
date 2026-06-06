@@ -5,7 +5,7 @@ import types
 
 import torch
 import torch.nn as nn
-import geotorch.parametrize as P
+from torch.nn.utils import parametrize
 
 import geotorch
 from geotorch.skew import Skew
@@ -190,7 +190,7 @@ class TestIntegration(TestCase):
                 X = M_.sample(**args_sample)
                 with torch.no_grad():
                     layer.weight.copy_(X)
-                P.register_parametrization(layer, "weight", M_)
+                parametrize.register_parametrization(layer, "weight", M_)
             # Check that it does not change the size of the layer
             self.assertEqual(old_size, layer.weight.size(), msg=f"{layer}")
             self._test_training(layer, args_sample, input_, initialize)
@@ -203,7 +203,7 @@ class TestIntegration(TestCase):
             X = M.sample(**args_sample)
             self.assertTrue(M.in_manifold(X), msg=msg)
             layer.weight = X
-            with P.cached():
+            with parametrize.cached():
                 # Compute the product if it is factorized
                 # The sampled matrix should not have a gradient
                 self.assertFalse(X.requires_grad)
@@ -215,7 +215,7 @@ class TestIntegration(TestCase):
         # Take a couple SGD steps
         optim = torch.optim.SGD(layer.parameters(), lr=1e-3)
         for i in range(3):
-            with P.cached():
+            with parametrize.cached():
                 loss = layer(input_).mean()
             optim.zero_grad()
             loss.backward()
@@ -223,7 +223,7 @@ class TestIntegration(TestCase):
             # The layer stays in the manifold while being optimised
             self.assertTrue(M.in_manifold(layer.weight), msg=f"i:{i}\n" + msg)
 
-        with P.cached():
+        with parametrize.cached():
             weight_old = layer.weight
             update_base(layer, "weight")
             # After changing the base, the weight stays the same

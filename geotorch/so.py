@@ -2,10 +2,7 @@ import math
 import torch
 from torch import nn
 
-try:
-    from torch.linalg import matrix_exp as expm
-except ImportError:
-    from torch import matrix_exp as expm
+from torch.linalg import matrix_exp as expm
 
 from .utils import _extra_repr
 from .skew import Skew
@@ -138,11 +135,7 @@ class SO(nn.Module):
                     `torch.init <https://pytorch.org/docs/stable/nn.init.html>`_.
                     Default: :math:`\operatorname{Uniform}(-\pi, \pi)`
         """
-        device = self.base.device
-        dtype = self.base.dtype
-        ret = torch.empty(
-            *(self.tensorial_size + (self.n, self.n)), device=device, dtype=dtype
-        )
+        ret = self.base.new_empty(self.tensorial_size + (self.n, self.n))
         if distribution == "uniform":
             uniform_init_(ret)
         elif distribution == "torus":
@@ -232,7 +225,7 @@ def torus_init_(tensor, init_=None, triv=expm):
 
     # Non-zero elements that we are going to set on the diagonal
     n_diag = n // 2
-    diag = tensor.new(tensorial_size + (n_diag,))
+    diag = tensor.new_empty(tensorial_size + (n_diag,))
     if init_ is None:
         torch.nn.init.uniform_(diag, -math.pi, math.pi)
     else:

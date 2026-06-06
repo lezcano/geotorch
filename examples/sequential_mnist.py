@@ -13,6 +13,7 @@ Lines 167-176 show how to assign different learning rates to parametrized weight
 
 import torch
 import torch.nn as nn
+from torch.nn.utils import parametrize
 import math
 import argparse
 from torchvision import datasets, transforms
@@ -55,11 +56,12 @@ class modrelu(nn.Module):
     def __init__(self, features):
         super(modrelu, self).__init__()
         self.features = features
-        self.b = nn.Parameter(torch.Tensor(self.features))
+        self.b = nn.Parameter(torch.empty(self.features))
         self.reset_parameters()
 
     def reset_parameters(self):
-        self.b.data.uniform_(-0.01, 0.01)
+        with torch.no_grad():
+            self.b.uniform_(-0.01, 0.01)
 
     def forward(self, inputs):
         norm = torch.abs(inputs)
@@ -92,15 +94,13 @@ class ExpRNNCell(nn.Module):
         self.reset_parameters()
 
     def reset_parameters(self):
-        nn.init.kaiming_normal_(self.input_kernel.weight.data, nonlinearity="relu")
+        nn.init.kaiming_normal_(self.input_kernel.weight, nonlinearity="relu")
 
         # Initialize the recurrent kernel à la Cayley, as having a block-diagonal matrix
         # seems to help in classification problems
 
         def init_(x):
-            x.uniform_(0.0, math.pi / 2.0)
-            c = torch.cos(x.data)
-            x.data = -torch.sqrt((1.0 - c) / (1.0 + c))
+            x.uniform_(0.0, math.pi / 2.0).mul_(0.5).tan_().neg_()
 
         K = self.recurrent_kernel
         # We initialize it by assigning directly to it from a sampler
@@ -130,7 +130,7 @@ class Model(nn.Module):
         if self.permute:
             inputs = inputs[:, self.permutation]
         out_rnn = self.rnn.default_hidden(inputs[:, 0, ...])
-        with geotorch.parametrize.cached():
+        with parametrize.cached():
             for input in torch.unbind(inputs, dim=1):
                 out_rnn = self.rnn(input.unsqueeze(dim=1), out_rnn)
         return self.lin(out_rnn)
@@ -139,7 +139,7 @@ class Model(nn.Module):
         return self.loss_func(logits, y)
 
     def correct(self, logits, y):
-        return torch.eq(torch.argmax(logits, dim=1), y).float().sum()
+        return torch.eq(torch.argmax(logits, dim=1), y).sum()
 
 
 def main():
@@ -154,11 +154,11 @@ def main():
         datasets.MNIST(
             "./mnist", train=True, download=True, transform=transforms.ToTensor()
         ),
-        **kwargs
+        **kwargs,
     )
     test_loader = torch.utils.data.DataLoader(
         datasets.MNIST("./mnist", train=False, transform=transforms.ToTensor()),
-        **kwargs
+        **kwargs,
     )
 
     # Model and optimizers
@@ -166,10 +166,11 @@ def main():
     model.train()
 
     p_orth = model.rnn.recurrent_kernel
-    orth_params = p_orth.parameters()
-    non_orth_params = (
-        param for param in model.parameters() if param not in set(p_orth.parameters())
-    )
+    orth_params = list(p_orth.parameters())
+    orth_params_set = set(orth_params)
+    non_orth_params = [
+        param for param in model.parameters() if param not in orth_params_set
+    ]
 
     optim = torch.optim.RMSprop(
         [{"params": non_orth_params}, {"params": orth_params, "lr": args.lr_orth}],
@@ -180,7 +181,7 @@ def main():
     for epoch in range(epochs):
         processed = 0
         for batch_idx, (batch_x, batch_y) in enumerate(train_loader):
-            batch_x, batch_y = batch_x.to(device).view(-1, 784), batch_y.to(device)
+            batch_x, batch_y = batch_x.to(device).flatten(1), batch_y.to(device)
 
             optim.zero_grad()
             logits = model(batch_x)
@@ -209,7 +210,7 @@ def main():
             test_loss = 0.0
             correct = 0.0
             for batch_x, batch_y in test_loader:
-                batch_x, batch_y = batch_x.to(device).view(-1, 784), batch_y.to(device)
+                batch_x, batch_y = batch_x.to(device).flatten(1), batch_y.to(device)
                 logits = model(batch_x)
                 test_loss += model.loss(logits, batch_y).float()
                 correct += model.correct(logits, batch_y).float()

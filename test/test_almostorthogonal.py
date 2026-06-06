@@ -1,6 +1,12 @@
 from unittest import TestCase
 
-from geotorch.almostorthogonal import AlmostOrthogonal
+import torch
+
+from geotorch.almostorthogonal import (
+    AlmostOrthogonal,
+    inv_scaled_sigmoid,
+    scaled_sigmoid,
+)
 
 
 class TestLowRank(TestCase):
@@ -21,3 +27,9 @@ class TestLowRank(TestCase):
         # Or too small
         with self.assertRaises(ValueError):
             AlmostOrthogonal(size=(5, 4), lam=-1.0)
+
+    def test_scaled_sigmoid_is_accurate_near_zero(self):
+        x = torch.tensor([1e-8], dtype=torch.float32)
+        y = scaled_sigmoid(x)
+        self.assertNotEqual(y.item(), 0.0)
+        torch.testing.assert_close(inv_scaled_sigmoid(y), x)

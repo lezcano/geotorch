@@ -136,9 +136,10 @@ You may try GeoTorch installing it as
 
 .. code:: bash
 
-    pip install git+https://github.com/Lezcano/geotorch/
+    pip install geotorch
 
-GeoTorch is tested in Linux, Mac, and Windows environments for Python >= 3.6 and supports PyTorch >= 1.9
+GeoTorch supports Python >= 3.10 and PyTorch >= 2.6. It is tested on Linux,
+macOS, and Windows.
 
 Sharing Weights, Parametrizations, and Normalizing Flows
 --------------------------------------------------------
@@ -147,12 +148,14 @@ If one wants to use a parametrized tensor in different places in their model, or
 
 .. code:: python
 
-    with geotorch.parametrize.cached():
+    from torch.nn.utils import parametrize
+
+    with parametrize.cached():
         logits = model(input_)
 
 Of course, this ``with`` statement may be used simply inside the forward function where the parametrized layer is used several times.
 
-These ideas fall in the context of parametrized optimization, where one wraps a tensor ``X`` with a function ``f``, and rather than using ``X``, uses ``f(X)``. Particular examples of this idea are pruning, weight normalization, and spectral normalization among others. This repository implements a framework to approach this kind of problems. This framework was accepted to core PyTorch 1.8. It can be found under `torch.nn.utils.parametrize`_ and `torch.nn.utils.parametrizations`_. When using PyTorch 1.10 or higher, the native PyTorch functions are used within GeoTorch. In this case, the user can interact with the parametrizations in GeoTorch using the PyTorch functions.
+These ideas fall in the context of parametrized optimization, where one wraps a tensor ``X`` with a function ``f``, and rather than using ``X``, uses ``f(X)``. Particular examples of this idea are pruning, weight normalization, and spectral normalization among others.
 
 As every space in GeoTorch is, at its core, a map from a flat space into a manifold, the tools implemented here also serve as a building block in normalizing flows. Using a factorized space such as |low|_ it is direct to compute the determinant of the transformation it defines, as we have direct access to the singular values of the layer.
 
@@ -208,8 +211,8 @@ Please cite the following work if you found GeoTorch useful. This paper exposes 
     }
 
 
-.. |Build| image:: https://github.com/lezcano/geotorch/workflows/Build/badge.svg
-   :target: https://github.com/lezcano/geotorch/workflows/Build/badge.svg
+.. |Build| image:: https://github.com/lezcano/geotorch/actions/workflows/build.yml/badge.svg
+   :target: https://github.com/lezcano/geotorch/actions/workflows/build.yml
    :alt: Build
 .. |Docs| image:: https://readthedocs.org/projects/geotorch/badge/?version=latest
    :target: https://geotorch.readthedocs.io/en/latest/?badge=latest
@@ -226,8 +229,6 @@ Please cite the following work if you found GeoTorch useful. This paper exposes 
 .. _here: https://github.com/Lezcano/geotorch/blob/master/examples/copying_problem.py#L16
 .. _torch.nn.utils.parametrize: https://pytorch.org/docs/stable/generated/torch.nn.utils.parametrize.register_parametrization.html
 .. _torch.nn.utils.parametrizations: https://pytorch.org/docs/stable/generated/torch.nn.utils.parametrizations.orthogonal.html
-.. _geotorch/parametrize.py: https://github.com/Lezcano/geotorch/blob/master/geotorch/parametrize.py
 .. _examples/sequential_mnist.py: https://github.com/Lezcano/geotorch/blob/master/examples/sequential_mnist.py
 .. _examples/copying_problem.py: https://github.com/Lezcano/geotorch/blob/master/examples/copying_problem.py
 .. _examples/parametrisations.ipynb: https://github.com/Lezcano/geotorch/blob/master/examples/parametrisations.ipynb
-

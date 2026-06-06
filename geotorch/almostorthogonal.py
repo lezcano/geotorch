@@ -5,12 +5,11 @@ from .utils import _extra_repr
 
 
 def scaled_sigmoid(t):
-    return 2.0 * (torch.sigmoid(t) - 0.5)
+    return torch.tanh(0.5 * t)
 
 
 def inv_scaled_sigmoid(t):
-    y = 0.5 * t + 0.5
-    return torch.log(y / (1.0 - y))
+    return 2.0 * torch.atanh(t)
 
 
 class AlmostOrthogonal(LowRank):
@@ -131,7 +130,7 @@ class AlmostOrthogonal(LowRank):
 
             >>> layer = nn.Linear(20, 20)
             >>> M = AlmostOrthogonal(layer.weight.size(), lam=0.5)
-            >>> geotorch.register_parametrization(layer, "weight", M)
+            >>> torch.nn.utils.parametrize.register_parametrization(layer, "weight", M)
             >>> layer.weight = M.sample()
 
         Args:

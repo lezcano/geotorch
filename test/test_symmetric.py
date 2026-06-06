@@ -4,8 +4,8 @@ import itertools
 
 import torch
 import torch.nn as nn
+from torch.nn.utils import parametrize
 
-import geotorch.parametrize as P
 from geotorch.symmetric import Symmetric, SymF
 
 
@@ -19,14 +19,16 @@ class TestSymmetric(TestCase):
 
         for n, lower in itertools.product(sizes, [True, False]):
             layer = nn.Linear(n, n)
-            P.register_parametrization(layer, "weight", Symmetric(lower=lower))
+            parametrize.register_parametrization(
+                layer, "weight", Symmetric(lower=lower)
+            )
 
             input_ = torch.rand(5, n)
             optim = torch.optim.SGD(layer.parameters(), lr=1.0)
 
             # Assert that is stays in Sym(n) after some optimiser steps
             for _ in range(2):
-                with P.cached():
+                with parametrize.cached():
                     self.assertTrue(Symmetric.in_manifold(layer.weight))
                     loss = layer(input_).sum()
                 optim.zero_grad()
