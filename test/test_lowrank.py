@@ -1,4 +1,4 @@
-from unittest import TestCase
+from unittest import TestCase, mock
 
 import torch
 
@@ -35,3 +35,24 @@ class TestLowRank(TestCase):
         inverse = inv_softplus_epsilon(x)
         self.assertTrue(torch.isfinite(inverse).all())
         self.assertTrue(torch.allclose(softplus_epsilon(inverse), x))
+
+    def test_full_rank_sample_skips_svd(self):
+        for size in [(3, 3), (5, 3), (3, 5), (2, 5, 3)]:
+            manifold = LowRank(size=size, rank=min(size[-2:])).double()
+
+            def init_(X):
+                return X.copy_(
+                    torch.arange(X.numel(), dtype=X.dtype, device=X.device).view_as(X)
+                )
+
+            canonical_size = size[:-2] + (max(size[-2:]), min(size[-2:]))
+            expected = torch.empty(canonical_size, dtype=torch.float64)
+            expected = torch.arange(expected.numel(), dtype=expected.dtype).view_as(
+                expected
+            )
+            if size[-2] < size[-1]:
+                expected = expected.mT
+
+            with mock.patch("torch.linalg.svd", side_effect=AssertionError):
+                sample = manifold.sample(init_)
+            self.assertTrue(torch.equal(sample, expected))
