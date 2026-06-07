@@ -168,7 +168,7 @@ class SymF(ProductManifold):
         if L.size(-1) > self.rank:
             # We compute the \infty-norm of the remaining dimension
             D = L[..., : -self.rank]
-            infty_norm_err = D.abs().max(dim=-1).values
+            infty_norm_err = D.abs().amax(dim=-1)
             if (infty_norm_err > 5.0 * eps).any():
                 return False
         return (L[..., -self.rank :] >= -eps).all().item()

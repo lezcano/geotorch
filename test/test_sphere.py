@@ -51,3 +51,11 @@ class TestSphere(TestCase):
         sample = sphere.sample()
         self.assertEqual(sample.dtype, torch.float64)
         self.assertEqual(sample.shape, (2, 3))
+
+    def test_membership_preserves_strict_epsilon_boundary(self):
+        sphere = SphereEmbedded(size=(1,), radius=2.0)
+        x = torch.tensor([2.0001], dtype=torch.float64)
+        eps = (torch.linalg.vector_norm(x) - sphere.radius).item()
+
+        self.assertFalse(sphere.in_manifold(x, eps=eps))
+        self.assertTrue(sphere.in_manifold(x, eps=2.0 * eps))

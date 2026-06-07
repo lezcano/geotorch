@@ -56,3 +56,12 @@ class TestLowRank(TestCase):
             with mock.patch("torch.linalg.svd", side_effect=AssertionError):
                 sample = manifold.sample(init_)
             self.assertTrue(torch.equal(sample, expected))
+
+    def test_fixed_rank_sample_clamps_singular_values(self):
+        manifold = FixedRank(size=(3, 3), rank=2).double()
+        _, singular_values, _ = manifold.sample(
+            init_=lambda X: X.zero_(), eps=0.25, factorized=True
+        )
+        self.assertTrue(
+            torch.equal(singular_values, torch.full_like(singular_values, 0.25))
+        )
