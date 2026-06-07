@@ -1,5 +1,4 @@
 import torch
-import math
 from .psd import PSD
 from .skew import Skew
 from .product import ProductManifold
@@ -89,16 +88,8 @@ class Hurwitz(ProductManifold):
             A_shifted = A + self.alpha * self.In
             A_shifted_T = A_shifted.mT.contiguous()
 
-            # Batched Kronecker product using vmap for cleaner implementation
-            def _single_kron_sum(A_single):
-                I_single = torch.eye(self.n, device=A.device, dtype=A.dtype)
-                return torch.kron(I_single, A_single) + torch.kron(A_single, I_single)
-
-            flat_batch_size = math.prod(self.tensorial_size)
-            A_flat = A_shifted_T.reshape(flat_batch_size, self.n, self.n)
-
-            M_flat = torch.vmap(_single_kron_sum)(A_flat)
-            M = M_flat.reshape(*self.tensorial_size, self.n * self.n, self.n * self.n)
+            identity = torch.eye(self.n, device=A.device, dtype=A.dtype)
+            M = torch.kron(identity, A_shifted_T) + torch.kron(A_shifted_T, identity)
 
             Q = rho * self.In
             flat_Q = Q.flatten(-2, -1)
@@ -157,7 +148,7 @@ class Hurwitz(ProductManifold):
         with torch.no_grad():
             P = self[0].sample(init_) + self.In
             Q = self[1].sample(init_) + self.In
-            S = self[2](init_(torch.empty_like(P)))
+            S = self[2].sample(init_)
 
             A = self.submersion(Q, P, S)
             return A
