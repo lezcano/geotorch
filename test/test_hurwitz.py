@@ -109,6 +109,17 @@ class TestHurwitz(TestCase):
 
         self.assertTrue(torch.allclose(A_batch, A_reconstructed, atol=1e-4))
 
+    def test_multi_batch_submersion_inv(self):
+        size = (2, 3, 2, 2)
+        hurwitz_batch = Hurwitz(size).double()
+        A_batch = hurwitz_batch.sample()
+        alpha = float(get_lyap_exp(A_batch)) / 2
+        inverse = Hurwitz(size, alpha=alpha).double()
+        Q, P_inv, S = inverse.submersion_inv(A_batch)
+        A_reconstructed = inverse.submersion(Q, P_inv, S)
+
+        self.assertTrue(torch.allclose(A_batch, A_reconstructed, atol=1e-4))
+
     def test_register_hurwitz(self):
         layer = torch.nn.Linear(self.size[-2], self.size[-1])
         geotorch.alpha_stable(layer, "weight", alpha=0.5)
