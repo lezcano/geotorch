@@ -26,6 +26,20 @@ class TestSL(TestCase):
             )
         )
 
+    def test_custom_map_is_normalized(self):
+        manifold = SL(size=(2, 3, 3), f=(torch.exp, torch.log)).double()
+        X = torch.randn(2, 3, 3, dtype=torch.float64)
+        matrix = manifold(X)
+        sign, logabsdet = torch.linalg.slogdet(matrix)
+
+        self.assertTrue(torch.equal(sign, torch.ones_like(sign)))
+        torch.testing.assert_close(
+            logabsdet, torch.zeros_like(logabsdet), atol=1e-6, rtol=0
+        )
+
+        inverse = manifold.right_inverse(matrix)
+        torch.testing.assert_close(manifold(inverse), matrix, atol=1e-6, rtol=1e-6)
+
     def test_negative_determinant_is_rejected(self):
         manifold = SL(size=(2, 2))
         self.assertFalse(manifold.in_manifold(torch.diag(torch.tensor([-1.0, 1.0]))))

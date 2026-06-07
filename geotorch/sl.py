@@ -30,18 +30,15 @@ class SL(GLp):
         super().__init__(size, SL.parse_f(f), triv)
 
     @staticmethod
-    def parse_f(f_name):
-        if f_name in FixedRank.fs.keys():
-            f, inv = FixedRank.parse_f(f_name)
+    def parse_f(f):
+        f, inv = FixedRank.parse_f(f)
 
-            def f_sl(x):
-                y = f(x)
-                log_y = y.log()
-                return (log_y - log_y.mean(dim=-1, keepdim=True)).exp()
+        def f_sl(x):
+            y = f(x)
+            log_y = y.log()
+            return (log_y - log_y.mean(dim=-1, keepdim=True)).exp()
 
-            return (f_sl, inv)
-        else:
-            return f_name
+        return f_sl, inv
 
     def in_manifold_singular_values(self, S, eps=5e-3):
         rank_eps = torch.finfo(S.dtype).eps * max(self.n, self.k)
