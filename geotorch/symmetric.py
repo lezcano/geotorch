@@ -218,6 +218,8 @@ class SymF(ProductManifold):
             X = self[0].base.new_empty(self.tensorial_size + (self.n, self.n))
             init_(X)
             X = X @ X.transpose(-2, -1)
+            if self.rank == self.n and not factorized:
+                return X
             L, Q = torch.linalg.eigh(X)
             L = L[..., -self.rank :]
             Q = Q[..., -self.rank :]

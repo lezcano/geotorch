@@ -1,5 +1,5 @@
 # Tests for the Sphere
-from unittest import TestCase
+from unittest import TestCase, mock
 import itertools
 
 import torch
@@ -7,6 +7,7 @@ import torch.nn as nn
 from torch.nn.utils import parametrize
 
 from geotorch.symmetric import Symmetric, SymF
+from geotorch.pssd import PSSD
 
 
 class TestSymmetric(TestCase):
@@ -64,3 +65,17 @@ class TestSymmetric(TestCase):
 
     def test_repr(self):
         print(Symmetric())
+
+    def test_full_rank_sample_skips_eigendecomposition(self):
+        manifold = PSSD(size=(2, 4, 4)).double()
+
+        def init_(X):
+            return X.copy_(
+                torch.arange(X.numel(), dtype=X.dtype, device=X.device).view_as(X)
+            )
+
+        X = torch.arange(32, dtype=torch.float64).view(2, 4, 4)
+        expected = X @ X.mT
+        with mock.patch("torch.linalg.eigh", side_effect=AssertionError):
+            sample = manifold.sample(init_)
+        self.assertTrue(torch.equal(sample, expected))
