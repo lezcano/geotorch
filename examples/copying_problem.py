@@ -138,15 +138,12 @@ def copy_data(batch_size):
     seq = torch.randint(
         1, alphabet_size + 1, (batch_size, S), dtype=torch.long, device=device
     )
-    zeros1 = torch.zeros((batch_size, L), dtype=torch.long, device=device)
-    zeros2 = torch.zeros((batch_size, S - 1), dtype=torch.long, device=device)
-    zeros3 = torch.zeros((batch_size, S + L), dtype=torch.long, device=device)
-    marker = torch.full(
-        (batch_size, 1), alphabet_size + 1, dtype=torch.long, device=device
-    )
 
-    x = torch.cat([seq, zeros1, marker, zeros2], dim=1)
-    y = torch.cat([zeros3, seq], dim=1)
+    x = torch.zeros((batch_size, L + 2 * S), dtype=torch.long, device=device)
+    y = torch.zeros_like(x)
+    x[:, :S] = seq
+    x[:, S + L] = alphabet_size + 1
+    y[:, S + L :] = seq
 
     return x, y
 
