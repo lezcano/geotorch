@@ -16,14 +16,13 @@ def uniform_init_sphere_(x, r=1.0):
     """
     with torch.no_grad():
         x.normal_()
-        x.copy_(r * project(x))
+        x.copy_(project(x)).mul_(r)
     return x
 
 
 def _in_sphere(x, r, eps):
     norm = torch.linalg.vector_norm(x, dim=-1)
-    rs = torch.full_like(norm, r)
-    return (torch.linalg.vector_norm(norm - rs, ord=float("inf")) < eps).all()
+    return (norm - r).abs().amax() < eps
 
 
 class SphereEmbedded(nn.Module):

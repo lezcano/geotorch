@@ -1,5 +1,7 @@
 from unittest import TestCase
 
+import torch
+
 from geotorch.pssdlowrank import PSSDLowRank
 from geotorch.pssdfixedrank import PSSDFixedRank
 from geotorch.pssd import PSSD
@@ -40,3 +42,10 @@ class TestPSSDLowRank(TestCase):
             PSD(size=(5, 2), f=3)
         with self.assertRaises(ValueError):
             PSD(size=(5, 3), f="fail")
+
+    def test_fixed_rank_sample_clamps_eigenvalues(self):
+        manifold = PSSDFixedRank(size=(3, 3), rank=2).double()
+        sample = manifold.sample(init_=lambda X: X.zero_(), eps=0.25)
+        eigenvalues = torch.linalg.eigvalsh(sample)
+        expected = torch.tensor([0.0, 0.25, 0.25], dtype=torch.float64)
+        torch.testing.assert_close(eigenvalues, expected)

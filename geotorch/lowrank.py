@@ -107,7 +107,7 @@ class LowRank(ProductManifold):
             return True
         # We compute the \infty-norm of the remaining dimension
         D = S[..., self.rank :]
-        infty_norm_err = D.abs().max(dim=-1).values
+        infty_norm_err = D.abs().amax(dim=-1)
         return (infty_norm_err < eps).all()
 
     def in_manifold(self, X, eps=1e-5):
