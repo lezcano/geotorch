@@ -148,6 +148,16 @@ class TestIntegration(TestCase):
             self.sizes(square=True),
         )
 
+    def test_almost_orthogonal_rectangular(self):
+        self._test_manifolds(
+            [geotorch.almost_orthogonal],
+            argss_sample=[{}],
+            argss_constr=[{"lam": 0.5}],
+            devices=self.devices(),
+            sizes=[(5, 3)],
+            initialize=True,
+        )
+
     def test_sphere(self):
         self._test_manifolds(
             [Sphere, SphereEmbedded, geotorch.sphere],

@@ -143,7 +143,10 @@ class AlmostOrthogonal(LowRank):
                     Default: :math:`\operatorname{Uniform}(-\pi, \pi)`
         """
         # Sample an orthogonal matrix as U and return it
-        return self[0].sample(distribution=distribution, init_=init_)
+        X = self[0].sample(distribution=distribution, init_=init_)
+        if self.transposed:
+            X = X.transpose(-2, -1)
+        return X
 
     def extra_repr(self):
         return _extra_repr(
